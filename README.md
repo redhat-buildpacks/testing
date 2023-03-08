@@ -1,19 +1,22 @@
 ## Table of Contents
 
+* [How to build a runtime using buildpack](#how-to-build-a-runtime-using-buildpack)
 * [0. Common steps](#0-common-steps)
 * [1. Pack client](#1-pack-client)
 * [2. Pod running the lifecycle creator](#2-pod-running-the-lifecycle-creator)
-* [3. Shipwright and Buildpack v3](#3-shipwright-and-buildpack-v3)
-* [4. Tekton](#4-tekton)
+* [3. Tekton and Pipeline as a Code](#3-tekton-and-pipeline-as-a-code)
+* [Deprecated](#deprecated)
+    * [Shipwright and Buildpack v3](#shipwright-and-buildpack-v3)
+    * [All steps](#all-steps)
+
 
 ## How to build a runtime using buildpack
 
-The goal of this project is to test/experiment different approach to build a runtime using:
+The goal of this project is to test/experiment different approaches to build a runtime using:
 
 - [pack](#1-pack-client) build client
 - [pod](#2-pod-running-the-lifecycle-creator) build
-- [Shipwright](#3-shipwright-and-buildpack-v3)
-- [Tekton](#4-tekton)
+- [Tekton & Pipeline As a Code](#3-tekton-and-pipeline-as-a-code)
 
 ## 0. Common steps
 
@@ -101,7 +104,12 @@ Watch the progression of the build
 kubectl -n demo logs -lapp=quarkus-petclinic-image-build -c build -f
 ```
 
-## 3. Shipwright and Buildpack v3
+## 3. Tekton and Pipeline as a Code
+
+TODO 
+## Deprecated
+
+### Shipwright and Buildpack v3
 
 See project doc for more information - https://github.com/shipwright-io/build
 
@@ -182,7 +190,3 @@ kubectl delete -f k8s/shipwright/buildstrategy-runtime.yml
 kubectl delete -f k8s/shipwright/build.yml
 kubectl delete -f k8s/shipwright/build-run.yml
 ```
-
-## 4. Tekton
-
-TODO
