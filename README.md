@@ -83,7 +83,7 @@ If both are omitted, lifecycle defaults to the version that was last released at
 First, create a configMap containing the selfsigned certificate of the docker registry under the namespace `demo`
 ```bash
 kubectl create ns demo
-kubectl create -n demo cm local-registry-cert --from-file $HOME/local-registry.crt
+kubectl create -n demo cm local-registry-cert --from-file $HOME/.kind_registry/certs/localhost/client.crt
 ```
 
 Create a secret containing the `docker json cfg` file with `auths`
