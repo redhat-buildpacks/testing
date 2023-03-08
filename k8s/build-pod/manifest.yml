@@ -68,7 +68,7 @@ spec:
            - |
              set -e
 
-             # Install thetool able to update locally the trusted CA certificates
+             # Install the tool able to update locally the trusted CA certificates
              echo "## Install openssl and update-ca-certificates binaries"
              apk --no-cache add ca-certificates openssl > /dev/null 2>&1
              rm -rf /var/cache/apk/* > /dev/null 2>&1
@@ -100,7 +100,7 @@ spec:
              mountPath: /workspace
            - name: local-registry-cert
              mountPath: /local-registry-cert.crt
-             subPath: local-registry.crt
+             subPath: local-registry-cert.crt
          imagePullPolicy: Always
          securityContext:
            privileged: true
@@ -129,7 +129,7 @@ spec:
              mountPath: /etc/ssl/certs
          imagePullPolicy: Always
        - name: detect
-         image: registry.local:5000/redhat-builder/quarkus
+         image: registry.local:5000/buildpacks-quarkus-builder:jvm
          command:
            - /cnb/lifecycle/detector
          args:
@@ -155,7 +155,7 @@ spec:
              mountPath: /etc/ssl/certs
          imagePullPolicy: Always
        - name: analyze
-         image: registry.local:5000/redhat-builder/quarkus
+         image: registry.local:5000/buildpacks-quarkus-builder:jvm
          command:
            - /cnb/lifecycle/analyzer
          args:
@@ -186,7 +186,7 @@ spec:
            runAsUser: 185
            runAsGroup: 185
        - name: restore
-         image: registry.local:5000/redhat-builder/quarkus
+         image: registry.local:5000/buildpacks-quarkus-builder:jvm
          command:
            - /cnb/lifecycle/restorer
          args:
@@ -213,7 +213,7 @@ spec:
            runAsUser: 185
            runAsGroup: 185
        - name: build
-         image: registry.local:5000/redhat-builder/quarkus
+         image: registry.local:5000/buildpacks-quarkus-builder:jvm
          command:
            - /cnb/lifecycle/builder
          args:
@@ -240,7 +240,7 @@ spec:
              mountPath: /etc/ssl/certs
          imagePullPolicy: Always
        - name: export
-         image: registry.local:5000/redhat-builder/quarkus
+         image: registry.local:5000/buildpacks-quarkus-builder:jvm
          command:
            - /cnb/lifecycle/exporter
          args:
@@ -253,7 +253,7 @@ spec:
            - '-cache-dir=/cache'
            - '-report=/var/report/report.toml'
            - '-process-type=web'
-           - '-run-image=registry.local:5000/redhat-buildpacks/quarkus:run'
+           - '-run-image=registry.local:5000/buildpacks-quarkus-run'
            - 'registry.local:5000/quarkus-petclinic'
            - 'registry.local:5000/quarkus-petclinic:b1.20211008'
          env:

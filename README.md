@@ -38,13 +38,13 @@ git clone https://github.com/quarkusio/quarkus-buildpacks.git && cd quarkus-buil
 ```bash
 # Tag and push the images to the private docker registry
 export REGISTRY_HOST="registry.local:5000"
-docker tag redhat/buildpacks-builder-quarkus-jvm:latest ${REGISTRY_HOST}/redhat-builder/quarkus:latest
-docker tag redhat/buildpacks-stack-quarkus-run:jvm ${REGISTRY_HOST}/redhat-buildpacks/quarkus:run
-docker tag redhat/buildpacks-stack-quarkus-build:jvm ${REGISTRY_HOST}/redhat-buildpacks/quarkus:build
+docker tag codejive/buildpacks-quarkus-builder:jvm ${REGISTRY_HOST}/buildpacks-quarkus-builder:jvm
+docker tag codejive/buildpacks-quarkus-run:jvm ${REGISTRY_HOST}/buildpacks-quarkus-run:jvm
+docker tag codejive/buildpacks-quarkus-build:jvm ${REGISTRY_HOST}/buildpacks-quarkus-build:jvm
 
-docker push ${REGISTRY_HOST}/redhat-builder/quarkus:latest
-docker push ${REGISTRY_HOST}/redhat-buildpacks/quarkus:build
-docker push ${REGISTRY_HOST}/redhat-buildpacks/quarkus:run
+docker push ${REGISTRY_HOST}/buildpacks-quarkus-builder:jvm
+docker push ${REGISTRY_HOST}/buildpacks-quarkus-run:jvm
+docker push ${REGISTRY_HOST}/buildpacks-quarkus-build:jvm
 ```
 You can create a kubernetes cluster locally using `docker desktop` and [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) client and the following script
 able to run a k8s cluster, a TLS/secured registry
@@ -83,7 +83,8 @@ If both are omitted, lifecycle defaults to the version that was last released at
 First, create a configMap containing the selfsigned certificate of the docker registry under the namespace `demo`
 ```bash
 kubectl create ns demo
-kubectl create -n demo cm local-registry-cert --from-file $HOME/.kind_registry/certs/localhost/client.crt
+cp $HOME/.kind_registry/certs/localhost/client.crt $HOME/.kind_registry/certs/localhost/local-registry-cert.crt
+kubectl create -n demo cm local-registry-cert --from-file $HOME/.kind_registry/certs/localhost/local-registry-cert.crt
 ```
 
 Create a secret containing the `docker json cfg` file with `auths`
@@ -96,8 +97,8 @@ kubectl create secret docker-registry registry-creds -n demo \
 ```
 Next deploy the deployment resource able to perform a build using a runtime example (e.g. )
 ```bash
-kubectl apply -f k8s/build-pod/manifest.yml
 kubectl delete -f k8s/build-pod/manifest.yml
+kubectl apply -f k8s/build-pod/manifest.yml
 ```
 Watch the progression of the build
 ```bash
