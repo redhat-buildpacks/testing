@@ -5,10 +5,7 @@
 * [1. Pack client](#1-pack-client)
 * [2. Pod running the lifecycle creator](#2-pod-running-the-lifecycle-creator)
 * [3. Tekton and Pipeline as a Code](#3-tekton-and-pipeline-as-a-code)
-* [Deprecated](#deprecated)
-    * [Shipwright and Buildpack v3](#shipwright-and-buildpack-v3)
-    * [All steps](#all-steps)
-
+* [4. Shipwright and Buildpack](#4-shipwright-and-buildpack)
 
 ## How to build a runtime using buildpack
 
@@ -108,68 +105,94 @@ kubectl -n demo logs -lapp=quarkus-petclinic-image-build -c build -f
 ## 3. Tekton and Pipeline as a Code
 
 TODO 
-## Deprecated
 
-### Shipwright and Buildpack v3
+## 4. Shipwright and Buildpack
 
-See project doc for more information - https://github.com/shipwright-io/build
+See project documentation for more information: https://github.com/shipwright-io/build
 
-**WARNING**: This scenario will not work for the moment due to several issues:
+>**WARNING**: This scenario will not work for the moment due to several issues:
 - [issue-838](https://github.com/shipwright-io/build/issues/838)
-- [issue-895](https://github.com/shipwright-io/build/issues/895)
 - [issue-896](https://github.com/shipwright-io/build/issues/896)
 
-To use shipwright, it is needed to have a k8s cluster, tekton installed
+To use shipwright, it is needed to have a k8s cluster, local docker registry and tekton installed (v0.41.+)
 ```bash
-kubectl apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.25.0/release.
-kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.28.1/release.yaml
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --secure-registry
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.44.0/release.yaml
 ```
 Next, deploy the latest release of shipwright
 ```bash
-kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.5.1/release.yaml
+kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ```
 
-When done, we can create a secret, used by the serviceAccount of the build's pod to access the container
-registry
+Generate a secret to access the container registry
+
+>**Note**: This secret will be used by the serviceAccount of the build's pod to access the container registry
 
 ```bash
-REGISTRY_HOST="registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
+REGISTRY_HOST="kind-registry:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
+kubectl create ns demo
 kubectl create secret docker-registry registry-creds -n demo \
   --docker-server="${REGISTRY_HOST}" \
   --docker-username="${REGISTRY_USER}" \
   --docker-password="${REGISTRY_PASSWORD}"
 ```
-Install the serviceAccount that the build's pod will use (as we need to use an imagePullSecret consumming the registry secret):
+
+Create a serviceAccount that we will use to perform the build and able to be authenticated using the 
+secret's credentials with the registry
 ```bash
-kubectl apply -f k8s/shipwright/sa.yml
 kubectl delete -f k8s/shipwright/sa.yml
+kubectl apply -f k8s/shipwright/sa.yml
 ```
-
-Next, deploy the Buildpack strategy using the following CR
+Add the selsigned certificate of the private container registry to the Tekton Pipeline 
 ```bash
-kubectl apply -f k8s/shipwright/buildstrategy-runtime.yml
-kubectl delete -f k8s/shipwright/buildstrategy-runtime.yml
+REGISTRY_CA_PATH=~/.registry/certs/kind-registry/client.crt
+cat ${REGISTRY_CA_PATH} | jq -Rs '{data: {"cert":.}}' > tmp.json | kubectl patch configmap config-registry-cert -n tekton-pipelines --type merge --patch-file tmp.json
+
+kubectl create configmap certificate-registry -n demo \
+  --from-file=kind-registry.crt=./k8s/binding/ca-certificates/kind-registry.crt \
+  --from-file=type=./k8s/binding/ca-certificates/type
 ```
 
+Next, deploy some `ClusterBuildStrategy` (ko, kaniko, s2i, buildpacks) using the following command: 
+```bash
+kubectl delete -f k8s/shipwright/clusterbuildstrategy.yml
+kubectl apply -f k8s/shipwright/clusterbuildstrategy.yml
+```
+
+As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the [imgpkg](https://carvel.dev/imgpkg/docs/v0.36.x/install/) tool:
+```bash
+imgpkg copy -i docker.io/paketobuildpacks/builder:full --to-tar ./k8s/builder-full.tar 
+imgpkg copy -i docker.io/paketobuildpacks/builder:base --to-tar ./k8s/builder-base.tar
+
+imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry/client.crt \
+  --tar ./k8s/builder-full.tar \
+  --to-repo kind-registry:5000/paketobuildpacks/builder
+  
+imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry/client.crt \
+  --tar ./k8s/builder-base.tar \
+  --to-repo kind-registry:5000/paketobuildpacks/builder  
+```
+>**Tip**: Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
+> 
 Create a Build object:
 
 ```bash
-kubectl apply -f k8s/shipwright/build.yml
 kubectl delete -f k8s/shipwright/build.yml
+kubectl apply -f k8s/shipwright/build.yml
 ```
 To view the Build which you just created:
 
 ```bash
-kubectl get build -n demo                        
-NAME                      REGISTERED   REASON                  BUILDSTRATEGYKIND   BUILDSTRATEGYNAME    CREATIONTIME
-buildpack-quarkus-build   False        BuildStrategyNotFound   BuildStrategy       quarkus-buildpacks   174m
+kubectl get build -n demo                
+NAME                     REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDSTRATEGYNAME   CREATIONTIME
+buildpack-nodejs-build   True         Succeeded   ClusterBuildStrategy   buildpacks-v3       22s
 ```
 
-Submit your BuildRun:
+Submit a `BuildRun`:
 
 ```bash
-kubectl apply -f k8s/shipwright/build-run.yml
-kubectl delete -f k8s/shipwright/build-run.yml
+kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-nodejs-build -n demo
+kubectl create -f k8s/shipwright/buildrun.yml
 ```
 Wait until your BuildRun is completed, and then you can view it as follows:
 
@@ -180,14 +203,29 @@ buildpack-quarkus-buildrun-1   Unknown     Pending   11s
 ```
 
 ### All steps
-```bash
-kubectl apply -f k8s/shipwright/sa.yml
-kubectl apply -f k8s/shipwright/buildstrategy-runtime.yml
-kubectl apply -f k8s/shipwright/build.yml
-kubectl apply -f k8s/shipwright/build-run.yml
 
+```bash
+kubectl create ns demo
+kubectl create configmap certificate-registry -n demo \
+  --from-file=kind-registry.crt=./k8s/binding/ca-certificates/kind-registry.crt \
+  --from-file=type=./k8s/binding/ca-certificates/type
+  
+REGISTRY_HOST="kind-registry:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
+kubectl create secret docker-registry registry-creds -n demo \
+  --docker-server="${REGISTRY_HOST}" \
+  --docker-username="${REGISTRY_USER}" \
+  --docker-password="${REGISTRY_PASSWORD}"
+
+kubectl apply -f k8s/shipwright/sa.yml  
+
+kubectl apply -f k8s/shipwright/clusterbuildstrategy.yml
+kubectl apply -f k8s/shipwright/build.yml
+kubectl create -f k8s/shipwright/buildrun.yml
+
+kubectl delete secret registry-creds -n demo
 kubectl delete -f k8s/shipwright/sa.yml
-kubectl delete -f k8s/shipwright/buildstrategy-runtime.yml
+kubectl delete -f k8s/shipwright/buildrun.yml
 kubectl delete -f k8s/shipwright/build.yml
-kubectl delete -f k8s/shipwright/build-run.yml
+kubectl delete -f k8s/shipwright/clusterbuildstrategy.yml
+kubectl delete ns demo
 ```
