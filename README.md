@@ -170,7 +170,7 @@ imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry/client.crt \
   
 imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry/client.crt \
   --tar ./k8s/builder-base.tar \
-  --to-repo kind-registry:5000/paketobuildpacks/builder  
+  --to-repo kind-registry:5000/paketobuildpacks/builder
 ```
 >**Tip**: Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
 > 
@@ -204,6 +204,42 @@ buildpack-quarkus-buildrun-1   Unknown     Pending   11s
 
 ### All steps
 
+Setup first the kind cluster and docker registry
+```bash
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --delete-kind-cluster
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.44.0/release.yaml
+kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
+```
+
+Next, deploy the Shipwright resources using either an unsecured or secured container registry
+
+1. Unsecured
+
+Upload the paketo builder tar images
+```bash
+imgpkg copy --registry-insecure \
+  --tar ./k8s/builder-base.tar \
+  --to-repo kind-registry:5000/paketobuildpacks/builder
+```
+
+And deploy in a demo namespace the needed resources
+```bash
+kubectl create ns demo
+kubectl apply  -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
+kubectl apply  -f k8s/shipwright/unsecured/build.yml
+kubectl create -f k8s/shipwright/unsecured/buildrun.yml
+```
+
+2. Secured
+
+Upload the paketo builder tar images
+```bash
+imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry/client.crt \
+  --tar ./k8s/builder-base.tar \
+  --to-repo kind-registry:5000/paketobuildpacks/builder
+```
+
+And deploy in a demo namespace the needed resources
 ```bash
 kubectl create ns demo
 kubectl create configmap certificate-registry -n demo \
@@ -217,15 +253,18 @@ kubectl create secret docker-registry registry-creds -n demo \
   --docker-password="${REGISTRY_PASSWORD}"
 
 kubectl apply -f k8s/shipwright/sa.yml  
+kubectl apply  -f k8s/shipwright/secured/clusterbuildstrategy.yml
+kubectl apply  -f k8s/shipwright/secured/build.yml
+kubectl create -f k8s/shipwright/secured/buildrun.yml
+```
 
-kubectl apply -f k8s/shipwright/clusterbuildstrategy.yml
-kubectl apply -f k8s/shipwright/build.yml
-kubectl create -f k8s/shipwright/buildrun.yml
-
+To clean up
+```bash
+DIR="unsecured"
 kubectl delete secret registry-creds -n demo
-kubectl delete -f k8s/shipwright/sa.yml
-kubectl delete -f k8s/shipwright/buildrun.yml
-kubectl delete -f k8s/shipwright/build.yml
-kubectl delete -f k8s/shipwright/clusterbuildstrategy.yml
+kubectl delete -f k8s/shipwright/${DIR}/sa.yml
+kubectl delete -f k8s/shipwright/${DIR}/buildrun.yml
+kubectl delete -f k8s/shipwright/${DIR}/build.yml
+kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete ns demo
 ```

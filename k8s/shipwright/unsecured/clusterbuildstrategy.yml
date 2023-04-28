@@ -1,3 +1,67 @@
+---
+apiVersion: shipwright.io/v1alpha1
+kind: ClusterBuildStrategy
+metadata:
+  name: buildpacks
+spec:
+  volumes:
+    - name: platform-env
+      emptyDir: {}
+  parameters:
+    - name: platform-api-version
+      description: The referenced version is the minimum version that all relevant buildpack implementations support.
+      default: "0.4"
+  buildSteps:
+    - name: prepare
+      image: kind-registry:5000/paketobuildpacks/builder:base
+      imagePullPolicy: Always
+      securityContext:
+        runAsUser: 0
+        capabilities:
+          add:
+            - CHOWN
+      command:
+        - chown
+      args:
+        - -R
+        - "1000:1000"
+        - /tekton/home
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 65Mi
+    - name: build-and-push
+      image: kind-registry:5000/paketobuildpacks/builder:base
+      imagePullPolicy: Always
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      env:
+        - name: CNB_PLATFORM_API
+          value: $(params.platform-api-version)
+        - name: PARAM_SOURCE_CONTEXT
+          value: $(params.shp-source-context)
+        - name: PARAM_OUTPUT_IMAGE
+          value: $(params.shp-output-image)
+      command:
+        - /bin/bash
+      args:
+        - -c
+        - "set -euo pipefail\n\necho \"> Processing environment variables...\"\nENV_DIR=\"/platform/env\"\n\nenvs=($(env))\n\n# Denying the creation of non required files from system environments.\n# The creation of a file named PATH (corresponding to PATH system environment)\n# caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)\nblock_list=(\"PATH\" \"HOSTNAME\" \"PWD\" \"_\" \"SHLVL\" \"HOME\" \"\")\n\nfor env in \"${envs[@]}\"; do\n  blocked=false\n\n  IFS='=' read -r key value string <<< \"$env\"\n\n  for str in \"${block_list[@]}\"; do\n    if [[ \"$key\" == \"$str\" ]]; then\n      blocked=true\n      break\n    fi\n  done\n\n  if [ \"$blocked\" == \"false\" ]; then\n    path=\"${ENV_DIR}/${key}\"\n    echo -n \"$value\" > \"$path\"\n  fi\ndone\n\nLAYERS_DIR=/tmp/layers\nCACHE_DIR=/tmp/cache\n\nmkdir \"$CACHE_DIR\" \"$LAYERS_DIR\"\n\nfunction anounce_phase {\n  printf \"===> %s\\n\" \"$1\" \n}\n\nanounce_phase \"DETECTING\"\n/cnb/lifecycle/detector -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nanounce_phase \"ANALYZING\"\n/cnb/lifecycle/analyzer -layers=\"$LAYERS_DIR\" -cache-dir=\"$CACHE_DIR\" \"${PARAM_OUTPUT_IMAGE}\"\n\nanounce_phase \"RESTORING\"\n/cnb/lifecycle/restorer -cache-dir=\"$CACHE_DIR\"\n\nanounce_phase \"BUILDING\"\n/cnb/lifecycle/builder -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nexporter_args=( -layers=\"$LAYERS_DIR\" -report=/tmp/report.toml -cache-dir=\"$CACHE_DIR\" -app=\"${PARAM_SOURCE_CONTEXT}\")\ngrep -q \"buildpack-default-process-type\" \"$LAYERS_DIR/config/metadata.toml\" || exporter_args+=( -process-type web ) \n\nanounce_phase \"EXPORTING\"\n/cnb/lifecycle/exporter \"${exporter_args[@]}\" \"${PARAM_OUTPUT_IMAGE}\"\n\n# Store the image digest\ngrep digest /tmp/report.toml | tr -d ' \\\"\\n' | sed s/digest=// > \"$(results.shp-image-digest.path)\"\n"
+      volumeMounts:
+        - mountPath: /platform/env
+          name: platform-env
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 65Mi
+---
 apiVersion: shipwright.io/v1alpha1
 kind: ClusterBuildStrategy
 metadata:
@@ -380,144 +444,6 @@ spec:
         - $(params.platforms[*])
         - --secrets
         - $(params.secrets[*])
-
----
-apiVersion: shipwright.io/v1alpha1
-kind: ClusterBuildStrategy
-metadata:
-  name: buildpacks-v3-heroku
-spec:
-  volumes:
-    - name: platform-env
-      emptyDir: {}
-  parameters:
-    - name: platform-api-version
-      description: The referenced version is the minimum version that all relevant buildpack implementations support.
-      default: "0.4"
-  buildSteps:
-    - name: prepare
-      image: heroku/buildpacks:18
-      securityContext:
-        runAsUser: 0
-        capabilities:
-          add:
-            - CHOWN
-      command:
-        - chown
-      args:
-        - -R
-        - "1000:1000"
-        - /tekton/home
-      resources:
-        limits:
-          cpu: 500m
-          memory: 1Gi
-        requests:
-          cpu: 250m
-          memory: 65Mi
-    - name: build-and-push
-      image: heroku/buildpacks:18
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-      env:
-        - name: CNB_PLATFORM_API
-          value: $(params.platform-api-version)
-        - name: PARAM_SOURCE_CONTEXT
-          value: $(params.shp-source-context)
-        - name: PARAM_OUTPUT_IMAGE
-          value: $(params.shp-output-image)
-      command:
-        - /bin/bash
-      args:
-        - -c
-        - "set -euo pipefail\n\necho \"> Processing environment variables...\"\nENV_DIR=\"/platform/env\"\n\nenvs=($(env))\n\n# Denying the creation of non required files from system environments.\n# The creation of a file named PATH (corresponding to PATH system environment)\n# caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)\nblock_list=(\"PATH\" \"HOSTNAME\" \"PWD\" \"_\" \"SHLVL\" \"HOME\" \"\")\n\nfor env in \"${envs[@]}\"; do\n  blocked=false\n\n  IFS='=' read -r key value string <<< \"$env\"\n\n  for str in \"${block_list[@]}\"; do\n    if [[ \"$key\" == \"$str\" ]]; then\n      blocked=true\n      break\n    fi\n  done\n\n  if [ \"$blocked\" == \"false\" ]; then\n    path=\"${ENV_DIR}/${key}\"\n    echo -n \"$value\" > \"$path\"\n  fi\ndone\n\nLAYERS_DIR=/tmp/layers\nCACHE_DIR=/tmp/cache\n\nmkdir \"$CACHE_DIR\" \"$LAYERS_DIR\"\n\nfunction anounce_phase {\n  printf \"===> %s\\n\" \"$1\" \n}\n\nanounce_phase \"DETECTING\"\n/cnb/lifecycle/detector -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nanounce_phase \"ANALYZING\"\n/cnb/lifecycle/analyzer -layers=\"$LAYERS_DIR\" -cache-dir=\"$CACHE_DIR\" \"${PARAM_OUTPUT_IMAGE}\"\n\nanounce_phase \"RESTORING\"\n/cnb/lifecycle/restorer -cache-dir=\"$CACHE_DIR\"\n\nanounce_phase \"BUILDING\"\n/cnb/lifecycle/builder -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nexporter_args=( -layers=\"$LAYERS_DIR\" -report=/tmp/report.toml -cache-dir=\"$CACHE_DIR\" -app=\"${PARAM_SOURCE_CONTEXT}\")\ngrep -q \"buildpack-default-process-type\" \"$LAYERS_DIR/config/metadata.toml\" || exporter_args+=( -process-type web ) \n\nanounce_phase \"EXPORTING\"\n/cnb/lifecycle/exporter \"${exporter_args[@]}\" \"${PARAM_OUTPUT_IMAGE}\"\n\n# Store the image digest\ngrep digest /tmp/report.toml | tr -d ' \\\"\\n' | sed s/digest=// > \"$(results.shp-image-digest.path)\"\n"
-      volumeMounts:
-        - mountPath: /platform/env
-          name: platform-env
-      resources:
-        limits:
-          cpu: 500m
-          memory: 1Gi
-        requests:
-          cpu: 250m
-          memory: 65Mi
-
----
-apiVersion: shipwright.io/v1alpha1
-kind: ClusterBuildStrategy
-metadata:
-  name: buildpacks-v3
-spec:
-  volumes:
-    - name: platform-env
-      emptyDir: {}
-    - name: certificate-registry
-      configMap:
-        name: certificate-registry
-  parameters:
-    - name: platform-api-version
-      description: The referenced version is the minimum version that all relevant buildpack implementations support.
-      default: "0.4"
-    - name: service-binding-path
-      description: Path to access the volume containing the files, env variables using the Service Binding
-      default: "/platform/bindings"
-  buildSteps:
-    - name: prepare
-      image: kind-registry:5000/paketobuildpacks/builder:base
-      imagePullPolicy: Always
-      securityContext:
-        runAsUser: 0
-        capabilities:
-          add:
-            - CHOWN
-      command:
-        - chown
-      args:
-        - -R
-        - "1000:1000"
-        - /tekton/home
-      resources:
-        limits:
-          cpu: 500m
-          memory: 1Gi
-        requests:
-          cpu: 250m
-          memory: 65Mi
-    - name: build-and-push
-      image: kind-registry:5000/paketobuildpacks/builder:base
-      imagePullPolicy: Always
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-      env:
-        - name: CNB_PLATFORM_API
-          value: $(params.platform-api-version)
-        - name: PARAM_SOURCE_CONTEXT
-          value: $(params.shp-source-context)
-        - name: PARAM_OUTPUT_IMAGE
-          value: $(params.shp-output-image)
-        - name: SERVICE_BINDING_ROOT
-          value: $(params.service-binding-path)
-      command:
-        - /bin/bash
-      args:
-        - -c
-        - "set -euo pipefail\n\necho \"> Processing environment variables...\"\nENV_DIR=\"/platform/env\"\n\nenvs=($(env))\n\n# Denying the creation of non required files from system environments.\n# The creation of a file named PATH (corresponding to PATH system environment)\n# caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)\nblock_list=(\"PATH\" \"HOSTNAME\" \"PWD\" \"_\" \"SHLVL\" \"HOME\" \"\")\n\nfor env in \"${envs[@]}\"; do\n  blocked=false\n\n  IFS='=' read -r key value string <<< \"$env\"\n\n  for str in \"${block_list[@]}\"; do\n    if [[ \"$key\" == \"$str\" ]]; then\n      blocked=true\n      break\n    fi\n  done\n\n  if [ \"$blocked\" == \"false\" ]; then\n    path=\"${ENV_DIR}/${key}\"\n    echo -n \"$value\" > \"$path\"\n  fi\ndone\n\nLAYERS_DIR=/tmp/layers\nCACHE_DIR=/tmp/cache\n\nmkdir \"$CACHE_DIR\" \"$LAYERS_DIR\"\n\nfunction anounce_phase {\n  printf \"===> %s\\n\" \"$1\" \n}\n\nanounce_phase \"DETECTING\"\n/cnb/lifecycle/detector -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nanounce_phase \"ANALYZING\"\n/cnb/lifecycle/analyzer -layers=\"$LAYERS_DIR\" -cache-dir=\"$CACHE_DIR\" \"${PARAM_OUTPUT_IMAGE}\"\n\nanounce_phase \"RESTORING\"\n/cnb/lifecycle/restorer -cache-dir=\"$CACHE_DIR\"\n\nanounce_phase \"BUILDING\"\n/cnb/lifecycle/builder -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nexporter_args=( -layers=\"$LAYERS_DIR\" -report=/tmp/report.toml -cache-dir=\"$CACHE_DIR\" -app=\"${PARAM_SOURCE_CONTEXT}\")\ngrep -q \"buildpack-default-process-type\" \"$LAYERS_DIR/config/metadata.toml\" || exporter_args+=( -process-type web ) \n\nanounce_phase \"EXPORTING\"\n/cnb/lifecycle/exporter \"${exporter_args[@]}\" \"${PARAM_OUTPUT_IMAGE}\"\n\n# Store the image digest\ngrep digest /tmp/report.toml | tr -d ' \\\"\\n' | sed s/digest=// > \"$(results.shp-image-digest.path)\"\n"
-      volumeMounts:
-        - mountPath: /platform/env
-          name: platform-env
-        - mountPath: /platform/bindings/ca-certificates
-          name: certificate-registry
-          readOnly: true
-      resources:
-        limits:
-          cpu: 500m
-          memory: 1Gi
-        requests:
-          cpu: 250m
-          memory: 65Mi
-
 ---
 # This Build Strategy will intentionally fail if the image has any
 # critical CVEs. It will not be pushed into the destination registry
