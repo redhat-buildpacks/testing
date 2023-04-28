@@ -207,11 +207,15 @@ buildpack-quarkus-buildrun-1   Unknown     Pending   11s
 Setup first the kind cluster and docker registry
 ```bash
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --delete-kind-cluster
+```
+
+Next, install Tekton and Shipwright 
+```bash
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.44.0/release.yaml
 kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ```
 
-Next, deploy the Shipwright resources using either an unsecured or secured container registry
+And finally, deploy the resources using either an `unsecured` or `secured` container registry
 
 1. Unsecured
 
