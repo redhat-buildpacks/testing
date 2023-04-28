@@ -208,6 +208,7 @@ Setup first the kind cluster and docker registry
 ```bash
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --delete-kind-cluster
 ```
+>**Note**: To install a secured (HTTPS and authentication) docker registry, pass the parameter: --secure-registry
 
 Next, install Tekton and Shipwright 
 ```bash
