@@ -50,7 +50,68 @@ spec:
         - /bin/bash
       args:
         - -c
-        - "set -euo pipefail\n\necho \"> Processing environment variables...\"\nENV_DIR=\"/platform/env\"\n\nenvs=($(env))\n\n# Denying the creation of non required files from system environments.\n# The creation of a file named PATH (corresponding to PATH system environment)\n# caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)\nblock_list=(\"PATH\" \"HOSTNAME\" \"PWD\" \"_\" \"SHLVL\" \"HOME\" \"\")\n\nfor env in \"${envs[@]}\"; do\n  blocked=false\n\n  IFS='=' read -r key value string <<< \"$env\"\n\n  for str in \"${block_list[@]}\"; do\n    if [[ \"$key\" == \"$str\" ]]; then\n      blocked=true\n      break\n    fi\n  done\n\n  if [ \"$blocked\" == \"false\" ]; then\n    path=\"${ENV_DIR}/${key}\"\n    echo -n \"$value\" > \"$path\"\n  fi\ndone\n\nLAYERS_DIR=/tmp/layers\nCACHE_DIR=/tmp/cache\n\nmkdir \"$CACHE_DIR\" \"$LAYERS_DIR\"\n\nfunction anounce_phase {\n  printf \"===> %s\\n\" \"$1\" \n}\n\nanounce_phase \"DETECTING\"\n/cnb/lifecycle/detector -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nanounce_phase \"ANALYZING\"\n/cnb/lifecycle/analyzer -layers=\"$LAYERS_DIR\" -cache-dir=\"$CACHE_DIR\" \"${PARAM_OUTPUT_IMAGE}\"\n\nanounce_phase \"RESTORING\"\n/cnb/lifecycle/restorer -cache-dir=\"$CACHE_DIR\"\n\nanounce_phase \"BUILDING\"\n/cnb/lifecycle/builder -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nexporter_args=( -layers=\"$LAYERS_DIR\" -report=/tmp/report.toml -cache-dir=\"$CACHE_DIR\" -app=\"${PARAM_SOURCE_CONTEXT}\")\ngrep -q \"buildpack-default-process-type\" \"$LAYERS_DIR/config/metadata.toml\" || exporter_args+=( -process-type web ) \n\nanounce_phase \"EXPORTING\"\n/cnb/lifecycle/exporter \"${exporter_args[@]}\" \"${PARAM_OUTPUT_IMAGE}\"\n\n# Store the image digest\ngrep digest /tmp/report.toml | tr -d ' \\\"\\n' | sed s/digest=// > \"$(results.shp-image-digest.path)\"\n"
+        - |
+          set -euo pipefail
+          
+          echo "> Processing environment variables..."
+          ENV_DIR="/platform/env"
+          
+          envs=($(env))
+          
+          # Denying the creation of non required files from system environments.
+          # The creation of a file named PATH (corresponding to PATH system environment)
+          # caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)
+          block_list=("PATH" "HOSTNAME" "PWD" "_" "SHLVL" "HOME" "")
+          
+          for env in "${envs[@]}"; do
+            blocked=false
+          
+            IFS='=' read -r key value string <<< "$env"
+          
+            for str in "${block_list[@]}"; do
+              if [[ "$key" == "$str" ]]; then
+                blocked=true
+                break
+              fi
+            done
+          
+            if [ "$blocked" == "false" ]; then
+              path="${ENV_DIR}/${key}"
+              echo -n "$value" > "$path"
+            fi
+          done
+          
+          LAYERS_DIR=/tmp/layers
+          CACHE_DIR=/tmp/cache
+          
+          mkdir "$CACHE_DIR" "$LAYERS_DIR"
+          
+          function anounce_phase {
+            printf "===> %s\
+          " "$1" 
+          }
+          
+          anounce_phase "DETECTING"
+          /cnb/lifecycle/detector -app="${PARAM_SOURCE_CONTEXT}" -layers="$LAYERS_DIR"
+          
+          anounce_phase "ANALYZING"
+          /cnb/lifecycle/analyzer -layers="$LAYERS_DIR" -cache-dir="$CACHE_DIR" "${PARAM_OUTPUT_IMAGE}"
+          
+          anounce_phase "RESTORING"
+          /cnb/lifecycle/restorer -cache-dir="$CACHE_DIR"
+          
+          anounce_phase "BUILDING"
+          /cnb/lifecycle/builder -app="${PARAM_SOURCE_CONTEXT}" -layers="$LAYERS_DIR"
+          
+          exporter_args=( -layers="$LAYERS_DIR" -report=/tmp/report.toml -cache-dir="$CACHE_DIR" -app="${PARAM_SOURCE_CONTEXT}")
+          grep -q "buildpack-default-process-type" "$LAYERS_DIR/config/metadata.toml" || exporter_args+=( -process-type web ) 
+          
+          anounce_phase "EXPORTING"
+          /cnb/lifecycle/exporter "${exporter_args[@]}" "${PARAM_OUTPUT_IMAGE}"
+          
+          # Store the image digest
+          grep digest /tmp/report.toml | tr -d ' \\"\
+          ' | sed s/digest=// > "$(results.shp-image-digest.path)"
       volumeMounts:
         - mountPath: /platform/env
           name: platform-env
@@ -365,19 +426,19 @@ spec:
 
           echo "#!/bin/ash" > /tmp/run.sh
           echo "set -euo pipefail" >> /tmp/run.sh
-          echo "buildctl-daemonless.sh \\" >> /tmp/run.sh
-          echo "build \\" >> /tmp/run.sh
-          echo "--progress=plain \\" >> /tmp/run.sh
-          echo "--frontend=dockerfile.v0 \\" >> /tmp/run.sh
-          echo "--opt=filename=\"${DOCKERFILE_NAME}\" \\" >> /tmp/run.sh
-          echo "--local=context=\"${PARAM_SOURCE_CONTEXT}\" \\" >> /tmp/run.sh
-          echo "--local=dockerfile=\"${DOCKERFILE_DIR}\" \\" >> /tmp/run.sh
-          echo "--output=type=image,name=\"${PARAM_OUTPUT_IMAGE}\",push=true,registry.insecure=\"${PARAM_INSECURE_REGISTRY}\" \\" >> /tmp/run.sh
+          echo "buildctl-daemonless.sh \" >> /tmp/run.sh
+          echo "build \" >> /tmp/run.sh
+          echo "--progress=plain \" >> /tmp/run.sh
+          echo "--frontend=dockerfile.v0 \" >> /tmp/run.sh
+          echo "--opt=filename="${DOCKERFILE_NAME}" \" >> /tmp/run.sh
+          echo "--local=context="${PARAM_SOURCE_CONTEXT}" \" >> /tmp/run.sh
+          echo "--local=dockerfile="${DOCKERFILE_DIR}" \" >> /tmp/run.sh
+          echo "--output=type=image,name="${PARAM_OUTPUT_IMAGE}",push=true,registry.insecure="${PARAM_INSECURE_REGISTRY}" \" >> /tmp/run.sh
           if [ "${PARAM_CACHE}" == "registry" ]; then
-            echo "--export-cache=type=inline \\" >> /tmp/run.sh
-            echo "--import-cache=type=registry,ref=\"${PARAM_OUTPUT_IMAGE}\" \\" >> /tmp/run.sh
+            echo "--export-cache=type=inline \" >> /tmp/run.sh
+            echo "--import-cache=type=registry,ref="${PARAM_OUTPUT_IMAGE}" \" >> /tmp/run.sh
           elif [ "${PARAM_CACHE}" == "disabled" ]; then
-            echo "--no-cache \\" >> /tmp/run.sh
+            echo "--no-cache \" >> /tmp/run.sh
           else
             echo -e "An invalid value for the parameter 'cache' has been provided: '${PARAM_CACHE}'. Allowed values are 'disabled' and 'registry'."
             echo -n "InvalidParameterValue" > '$(results.shp-error-reason.path)'
@@ -396,7 +457,7 @@ spec:
             elif [ "${a}" == "--secrets" ]; then
               stage=secrets
             elif [ "${stage}" == "build-args" ]; then
-              echo "--opt=\"build-arg:${a}\" \\" >> /tmp/run.sh
+              echo "--opt="build-arg:${a}" \" >> /tmp/run.sh
             elif [ "${stage}" == "platforms" ]; then
               if [ "${platforms}" == "" ]; then
                 platforms="${a}"
@@ -421,12 +482,12 @@ spec:
               echo -n "${data}" > "/tmp/secret_${id}"
 
               # Add the secret argument
-              echo "--secret id=${id},src="/tmp/secret_${id}" \\" >> /tmp/run.sh
+              echo "--secret id=${id},src="/tmp/secret_${id}" \" >> /tmp/run.sh
             fi
           done
 
           if [ "${platforms}" != "" ]; then
-            echo "--opt=\"platform=${platforms}\" \\" >> /tmp/run.sh
+            echo "--opt="platform=${platforms}" \" >> /tmp/run.sh
           fi
 
           echo "--metadata-file /tmp/image-metadata.json" >> /tmp/run.sh
@@ -435,7 +496,8 @@ spec:
           /tmp/run.sh
 
           # Store the image digest
-          grep containerimage.digest /tmp/image-metadata.json | sed -E 's/.*containerimage.digest":\s*"([^"]*).*/\1/' | tr -d '\n' > '$(results.shp-image-digest.path)'
+          grep containerimage.digest /tmp/image-metadata.json | sed -E 's/.*containerimage.digest":\s*"([^"]*).*/\1/' | tr -d '
+' > '$(results.shp-image-digest.path)'
         # That's the separator between the shell script and its args
         - --
         - --build-args
@@ -555,10 +617,12 @@ spec:
           set -euo pipefail
 
           # Store the image digest
-          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > "$(results.shp-image-digest.path)"
+          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
+' > "$(results.shp-image-digest.path)"
 
           # Store the image size
-          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > "$(results.shp-image-size.path)"
+          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
+' > "$(results.shp-image-size.path)"
       resources:
         limits:
           cpu: 100m
@@ -635,10 +699,12 @@ spec:
           set -euo pipefail
 
           # Store the image digest
-          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > "$(results.shp-image-digest.path)"
+          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
+' > "$(results.shp-image-digest.path)"
 
           # Store the image size
-          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > "$(results.shp-image-size.path)"
+          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
+' > "$(results.shp-image-size.path)"
       resources:
         limits:
           cpu: 100m
@@ -801,10 +867,12 @@ spec:
           popd > /dev/null
 
           # Store the image digest
-          grep digest /tmp/layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > '$(results.shp-image-digest.path)'
+          grep digest /tmp/layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
+' > '$(results.shp-image-digest.path)'
 
           # Store the image size
-          du -b -c /tmp/layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > '$(results.shp-image-size.path)'
+          du -b -c /tmp/layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
+' > '$(results.shp-image-size.path)'
       resources:
         limits:
           cpu: 500m
@@ -1036,10 +1104,12 @@ spec:
           set -euo pipefail
 
           # Store the image digest
-          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > "$(results.shp-image-digest.path)"
+          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
+' > "$(results.shp-image-digest.path)"
 
           # Store the image size
-          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > "$(results.shp-image-size.path)"
+          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
+' > "$(results.shp-image-size.path)"
       resources:
         limits:
           cpu: 100m
