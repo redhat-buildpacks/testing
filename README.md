@@ -44,7 +44,18 @@ pack build ${REGISTRY_HOST}/quarkus-hello \
 ```
 Next, test the image
 ```bash
-docker run -p 8080:8080 -e PORT=8080 kind-registry.local:5000/quarkus-hello
+docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
+...
+Enabling Java Native Memory Tracking
+Adding 124 container CA certificates to JVM truststore
+Picked up JAVA_TOOL_OPTIONS: -Djava.security.properties=/layers/paketo-buildpacks_bellsoft-liberica/java-security-properties/java-security.properties -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=6 -XX:MaxDirectMemorySize=10M -Xmx2751739K -XX:MaxMetaspaceSize=71524K -XX:ReservedCodeCacheSize=240M -Xss1M -XX:+UnlockDiagnosticVMOptions -XX:NativeMemoryTracking=summary -XX:+PrintNMTStatistics
+__  ____  __  _____   ___  __ ____  ______ 
+ --/ __ \/ / / / _ | / _ \/ //_/ / / / __/ 
+ -/ /_/ / /_/ / __ |/ , _/ ,< / /_/ /\ \   
+--\___\_\____/_/ |_/_/|_/_/|_|\____/___/   
+2023-05-02 17:24:40,195 INFO  [io.quarkus] (main) getting-started 1.0.0-SNAPSHOT on JVM (powered by Quarkus 3.0.1.Final) started in 0.793s. Listening on: http://0.0.0.0:8080
+2023-05-02 17:24:40,228 INFO  [io.quarkus] (main) Profile prod activated. 
+2023-05-02 17:24:40,228 INFO  [io.quarkus] (main) Installed features: [cdi, resteasy-reactive, smallrye-context-propagation, vertx]
 ```
 
 >**Tip**: If you plan to use a different version of the [lifecycle](https://hub.docker.com/r/buildpacksio/lifecycle/tags), append then the following parameter to th pack command:
