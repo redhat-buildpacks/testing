@@ -38,13 +38,13 @@ The client will use by default the Paketo builder `tiny` [image](https://github.
 REGISTRY_HOST="kind-registry.local:5000"
 pack build ${REGISTRY_HOST}/quarkus-hello \
      -e BP_NATIVE_IMAGE="false" \
-     -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar" \
+     -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
      --path ./quarkus-quickstarts/getting-started
 ```
 Next, test the image
 ```bash
-docker run -it kind-registry.local:5000/quarkus-hello
+docker run -p 8080:8080 -e PORT=8080 kind-registry.local:5000/quarkus-hello
 ```
 
 >**Tip**: If you plan to use a different version of the [lifecycle](https://hub.docker.com/r/buildpacksio/lifecycle/tags), append then the following parameter to th pack command:
