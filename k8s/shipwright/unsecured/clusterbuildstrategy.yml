@@ -424,19 +424,19 @@ spec:
 
           echo "#!/bin/ash" > /tmp/run.sh
           echo "set -euo pipefail" >> /tmp/run.sh
-          echo "buildctl-daemonless.sh \" >> /tmp/run.sh
-          echo "build \" >> /tmp/run.sh
-          echo "--progress=plain \" >> /tmp/run.sh
-          echo "--frontend=dockerfile.v0 \" >> /tmp/run.sh
-          echo "--opt=filename="${DOCKERFILE_NAME}" \" >> /tmp/run.sh
-          echo "--local=context="${PARAM_SOURCE_CONTEXT}" \" >> /tmp/run.sh
-          echo "--local=dockerfile="${DOCKERFILE_DIR}" \" >> /tmp/run.sh
-          echo "--output=type=image,name="${PARAM_OUTPUT_IMAGE}",push=true,registry.insecure="${PARAM_INSECURE_REGISTRY}" \" >> /tmp/run.sh
+          echo "buildctl-daemonless.sh \\" >> /tmp/run.sh
+          echo "build \\" >> /tmp/run.sh
+          echo "--progress=plain \\" >> /tmp/run.sh
+          echo "--frontend=dockerfile.v0 \\" >> /tmp/run.sh
+          echo "--opt=filename=\"${DOCKERFILE_NAME}\" \\" >> /tmp/run.sh
+          echo "--local=context=\"${PARAM_SOURCE_CONTEXT}\" \\" >> /tmp/run.sh
+          echo "--local=dockerfile=\"${DOCKERFILE_DIR}\" \\" >> /tmp/run.sh
+          echo "--output=type=image,name=\"${PARAM_OUTPUT_IMAGE}\",push=true,registry.insecure=\"${PARAM_INSECURE_REGISTRY}\" \\" >> /tmp/run.sh
           if [ "${PARAM_CACHE}" == "registry" ]; then
-            echo "--export-cache=type=inline \" >> /tmp/run.sh
-            echo "--import-cache=type=registry,ref="${PARAM_OUTPUT_IMAGE}" \" >> /tmp/run.sh
+            echo "--export-cache=type=inline \\" >> /tmp/run.sh
+            echo "--import-cache=type=registry,ref=\"${PARAM_OUTPUT_IMAGE}\" \\" >> /tmp/run.sh
           elif [ "${PARAM_CACHE}" == "disabled" ]; then
-            echo "--no-cache \" >> /tmp/run.sh
+            echo "--no-cache \\" >> /tmp/run.sh
           else
             echo -e "An invalid value for the parameter 'cache' has been provided: '${PARAM_CACHE}'. Allowed values are 'disabled' and 'registry'."
             echo -n "InvalidParameterValue" > '$(results.shp-error-reason.path)'
@@ -455,7 +455,7 @@ spec:
             elif [ "${a}" == "--secrets" ]; then
               stage=secrets
             elif [ "${stage}" == "build-args" ]; then
-              echo "--opt="build-arg:${a}" \" >> /tmp/run.sh
+              echo "--opt=\"build-arg:${a}\" \\" >> /tmp/run.sh
             elif [ "${stage}" == "platforms" ]; then
               if [ "${platforms}" == "" ]; then
                 platforms="${a}"
@@ -480,12 +480,12 @@ spec:
               echo -n "${data}" > "/tmp/secret_${id}"
 
               # Add the secret argument
-              echo "--secret id=${id},src="/tmp/secret_${id}" \" >> /tmp/run.sh
+              echo "--secret id=${id},src="/tmp/secret_${id}" \\" >> /tmp/run.sh
             fi
           done
 
           if [ "${platforms}" != "" ]; then
-            echo "--opt="platform=${platforms}" \" >> /tmp/run.sh
+            echo "--opt=\"platform=${platforms}\" \\" >> /tmp/run.sh
           fi
 
           echo "--metadata-file /tmp/image-metadata.json" >> /tmp/run.sh
@@ -494,8 +494,7 @@ spec:
           /tmp/run.sh
 
           # Store the image digest
-          grep containerimage.digest /tmp/image-metadata.json | sed -E 's/.*containerimage.digest":\s*"([^"]*).*/\1/' | tr -d '
-' > '$(results.shp-image-digest.path)'
+          grep containerimage.digest /tmp/image-metadata.json | sed -E 's/.*containerimage.digest":\s*"([^"]*).*/\1/' | tr -d '\n' > '$(results.shp-image-digest.path)'
         # That's the separator between the shell script and its args
         - --
         - --build-args
@@ -615,12 +614,10 @@ spec:
           set -euo pipefail
 
           # Store the image digest
-          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
-' > "$(results.shp-image-digest.path)"
+          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > "$(results.shp-image-digest.path)"
 
           # Store the image size
-          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
-' > "$(results.shp-image-size.path)"
+          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > "$(results.shp-image-size.path)"
       resources:
         limits:
           cpu: 100m
@@ -697,12 +694,10 @@ spec:
           set -euo pipefail
 
           # Store the image digest
-          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
-' > "$(results.shp-image-digest.path)"
+          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > "$(results.shp-image-digest.path)"
 
           # Store the image size
-          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
-' > "$(results.shp-image-size.path)"
+          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > "$(results.shp-image-size.path)"
       resources:
         limits:
           cpu: 100m
@@ -865,12 +860,10 @@ spec:
           popd > /dev/null
 
           # Store the image digest
-          grep digest /tmp/layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
-' > '$(results.shp-image-digest.path)'
+          grep digest /tmp/layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > '$(results.shp-image-digest.path)'
 
           # Store the image size
-          du -b -c /tmp/layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
-' > '$(results.shp-image-size.path)'
+          du -b -c /tmp/layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > '$(results.shp-image-size.path)'
       resources:
         limits:
           cpu: 500m
@@ -1102,12 +1095,10 @@ spec:
           set -euo pipefail
 
           # Store the image digest
-          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '
-' > "$(results.shp-image-digest.path)"
+          grep digest /kaniko/oci-image-layout/index.json | sed -E 's/.*sha256([^"]*).*/sha256\1/' | tr -d '\n' > "$(results.shp-image-digest.path)"
 
           # Store the image size
-          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '
-' > "$(results.shp-image-size.path)"
+          du -b -c /kaniko/oci-image-layout/blobs/sha256/* | tail -1 | sed 's/\s*total//' | tr -d '\n' > "$(results.shp-image-size.path)"
       resources:
         limits:
           cpu: 100m
