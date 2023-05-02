@@ -3,110 +3,56 @@
 * [How to build a runtime using buildpack](#how-to-build-a-runtime-using-buildpack)
 * [0. Common steps](#0-common-steps)
 * [1. Pack client](#1-pack-client)
-* [2. Pod running the lifecycle creator](#2-pod-running-the-lifecycle-creator)
+* [2. Shipwright and Buildpack](#2-shipwright-and-buildpack)
+    * [All steps](#all-steps)
 * [3. Tekton and Pipeline as a Code](#3-tekton-and-pipeline-as-a-code)
-* [4. Shipwright and Buildpack](#4-shipwright-and-buildpack)
 
 ## How to build a runtime using buildpack
 
 The goal of this project is to test/experiment different approaches to build a runtime using:
 
 - [pack](#1-pack-client) build client
-- [pod](#2-pod-running-the-lifecycle-creator) build
+- [Shipwright](#2-shipwright-and-buildpack)
 - [Tekton & Pipeline As a Code](#3-tekton-and-pipeline-as-a-code)
 
 ## 0. Common steps
 
-To play with the different scenarios, a sample [runtime](https://github.com/snowdrop/quarkus-tap-petclinic/tree/main) project is available and can be cloned
+To play with the different scenarios, a Quarkus [runtime](https://github.com/snowdrop/quarkus-tap-petclinic/tree/main) project is available and can be cloned
 ```bash
-git clone https://github.com/snowdrop/quarkus-tap-petclinic.git quarkus-petclinic && cd quarkus-petclinic
+git clone https://github.com/quarkusio/quarkus-quickstarts.git
 ```
 
-To use the builder image (packaging the `build` and `run` stacks) able to build a Quarkus project, then it is needed to use the `quarkus-buildpacks` project.
+You can create locally a kubernetes `kind` cluster and a secured HTTPS docker registry using this bash script:
 ```bash
-git clone https://github.com/quarkusio/quarkus-buildpacks.git && cd quarkus-buildpacks
-
-# Generate the buildpack quarkus images (build, run and builder)
-./create-buildpacks.sh
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --secure-registry
 ```
 
-**NOTE**: If you plan to use a private container registry, then the images generated should be tagged/pushed to the registry (e.g. `local.registry:5000`)
-
-```bash
-# Tag and push the images to the private docker registry
-export REGISTRY_HOST="registry.local:5000"
-docker tag codejive/buildpacks-quarkus-builder:jvm ${REGISTRY_HOST}/buildpacks-quarkus-builder:jvm
-docker tag codejive/buildpacks-quarkus-run:jvm ${REGISTRY_HOST}/buildpacks-quarkus-run:jvm
-docker tag codejive/buildpacks-quarkus-build:jvm ${REGISTRY_HOST}/buildpacks-quarkus-build:jvm
-
-docker push ${REGISTRY_HOST}/buildpacks-quarkus-builder:jvm
-docker push ${REGISTRY_HOST}/buildpacks-quarkus-run:jvm
-docker push ${REGISTRY_HOST}/buildpacks-quarkus-build:jvm
-```
-You can create a kubernetes cluster locally using `docker desktop` and [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) client and the following script
-able to run a k8s cluster, a TLS/secured registry
-
-```bash
-git clone https://github.com/snowdrop/k8s-infra.git && cd k8s-infra/kind
-./k8s/kind-tls-secured-reg.sh
-```
-**NOTE**: The certificate generated is copied within the file `$HOME/local-registry.crt` and the user, password to be used to be authenticated
-with the registry are respectively `admin` and `snowdrop`
+>**Note**: Use the command `... | bash -s -h` to see the usage and notice end of the execution of the script where you can find the selfsigned certificate
 
 ## 1. Pack client
 
-The easiest way to build a `runtime` sample is to use the [pack client](https://buildpacks.io/docs/tools/pack/) with the builder runtime image
-
-**NOTE**: The command should be executed within the sample runtime project or path should be calculated to point to the runtime sample project
+The easiest way to build the container of Quarkus petclinic is to use the [pack client](https://buildpacks.io/docs/tools/pack/).
+The client will use by default the Paketo builder `tiny` [image](https://github.com/paketo-buildpacks/tiny-builder).
 
 ```bash
-REGISTRY_HOST="registry.local:5000"
-pack build ${REGISTRY_HOST}/quarkus-petclinic \
-     --path ./ \
-     --builder ${REGISTRY_HOST}/buildpacks-builder-quarkus-jvm
+REGISTRY_HOST="kind-registry.local:5000"
+pack build ${REGISTRY_HOST}/quarkus-hello \
+     -e BP_NATIVE_IMAGE="false" \
+     -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar" \
+     -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
+     --path ./quarkus-quickstarts/getting-started
 ```
-
-If you plan to use a different version of the lifecycle, append then the following parameter with the image to be used:
+Next, test the image
 ```bash
-    --lifecycle-image buildpacksio/lifecycle:919b8ad-linux-arm64
+docker run -it kind-registry.local:5000/quarkus-hello
 ```
-**WARNING**: Take care that the lifecycle-image parameter will only be used for `analyze/restore/export` and you would need to update the lifecycle in the builder image for it to be used for `detect/build`
 
-**NOTE**: The `builder.toml` can include or not a section containing the version and/or uri of the lifecycle to be used (e.g version: 0.12.4 or uri: ).
-If both are omitted, lifecycle defaults to the version that was last released at the time of pack’s release. In other words, for a particular version of `pack`, this default will not change despite new lifecycle versions being released.
-
-## 2. Pod running the lifecycle creator
-
-First, create a configMap containing the selfsigned certificate of the docker registry under the namespace `demo`
+>**Tip**: If you plan to use a different version of the [lifecycle](https://hub.docker.com/r/buildpacksio/lifecycle/tags), append then the following parameter to th pack command:
 ```bash
-kubectl create ns demo
-cp $HOME/.kind_registry/certs/localhost/client.crt $HOME/.kind_registry/certs/localhost/local-registry-cert.crt
-kubectl create -n demo cm local-registry-cert --from-file $HOME/.kind_registry/certs/localhost/local-registry-cert.crt
+    --lifecycle-image buildpacksio/lifecycle:<TAG>
 ```
 
-Create a secret containing the `docker json cfg` file with `auths`
-```bash
-export REGISTRY_HOST="registry.local:5000"
-kubectl create secret docker-registry registry-creds -n demo \
-  --docker-server="${REGISTRY_HOST}" \
-  --docker-username="admin" \
-  --docker-password="snowdrop"
-```
-Next deploy the deployment resource able to perform a build using a runtime example (e.g. )
-```bash
-kubectl delete -f k8s/build-pod/manifest.yml
-kubectl apply -f k8s/build-pod/manifest.yml
-```
-Watch the progression of the build
-```bash
-kubectl -n demo logs -lapp=quarkus-petclinic-image-build -c build -f
-```
-
-## 3. Tekton and Pipeline as a Code
-
-TODO 
-
-## 4. Shipwright and Buildpack
+## 2. Shipwright and Buildpack
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
@@ -133,13 +79,13 @@ kubectl create secret docker-registry registry-creds -n demo \
   --docker-password="${REGISTRY_PASSWORD}"
 ```
 
-Create a serviceAccount that the platform will use to perform the build and able to be authenticated using the 
+Create a serviceAccount that the platform will use to perform the build and able to be authenticated using the
 secret's credentials with the registry
 ```bash
 kubectl delete -f k8s/shipwright/secured/sa.yml
 kubectl apply -f k8s/shipwright/secured/sa.yml
 ```
-Add the selfsigned certificate of the private container registry to the Tekton Pipeline 
+Add the selfsigned certificate of the private container registry to the Tekton Pipeline
 ```bash
 REGISTRY_CA_PATH=~/.registry/certs/kind-registry.local/client.crt
 cat ${REGISTRY_CA_PATH} | jq -Rs '{data: {"cert":.}}' > tmp.json | kubectl patch configmap config-registry-cert -n tekton-pipelines --type merge --patch-file tmp.json
@@ -149,7 +95,7 @@ kubectl create configmap certificate-registry -n demo \
   --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt
 ```
 
-Next, deploy some `ClusterBuildStrategy` (ko, kaniko, s2i, buildpacks) using the following command: 
+Next, deploy some `ClusterBuildStrategy` (ko, kaniko, s2i, buildpacks) using the following command:
 ```bash
 kubectl delete -f k8s/shipwright/secured/clusterbuildstrategy.yml
 kubectl apply -f k8s/shipwright/secured/clusterbuildstrategy.yml
@@ -171,7 +117,7 @@ imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client
   --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 >**Tip**: Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
-> 
+>
 Create a Build object:
 
 ```bash
@@ -208,7 +154,7 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 ```
 >**Note**: To install a secured (HTTPS and authentication) docker registry, pass the parameter: --secure-registry
 
-Next, install Tekton and Shipwright 
+Next, install Tekton and Shipwright
 ```bash
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.44.0/release.yaml
 kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
@@ -238,6 +184,7 @@ kubectl create -f k8s/shipwright/unsecured/buildrun.yml
 Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
 ```bash
 imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
+  --registry-username admin --registry-password snowdrop \
   --tar ./k8s/builder-base.tar \
   --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
@@ -270,3 +217,7 @@ kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete ns demo
 ```
+
+## 3. Tekton and Pipeline as a Code
+
+TODO
