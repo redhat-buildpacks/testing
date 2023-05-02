@@ -105,7 +105,7 @@ spec:
     - /tekton/home
     command:
     - /tekton/bin/entrypoint
-    image: kind-registry:5000/paketobuildpacks/builder:base
+    image: kind-registry.local:5000/paketobuildpacks/builder:base
     imagePullPolicy: Always
     name: step-prepare
     resources:
@@ -193,8 +193,8 @@ spec:
     - name: PARAM_SOURCE_CONTEXT
       value: /workspace/source/source-build
     - name: PARAM_OUTPUT_IMAGE
-      value: kind-registry:5000/snowdrop/sample-nodejs:latest
-    image: kind-registry:5000/paketobuildpacks/builder:base
+      value: kind-registry.local:5000/snowdrop/sample-nodejs:latest
+    image: kind-registry.local:5000/paketobuildpacks/builder:base
     imagePullPolicy: Always
     name: step-build-and-push
     resources:
@@ -362,7 +362,7 @@ status:
     status: "True"
     type: PodScheduled
   containerStatuses:
-  - image: kind-registry:5000/paketobuildpacks/builder:base
+  - image: kind-registry.local:5000/paketobuildpacks/builder:base
     imageID: ""
     lastState: {}
     name: step-build-and-push
@@ -372,7 +372,7 @@ status:
     state:
       waiting:
         reason: PodInitializing
-  - image: kind-registry:5000/paketobuildpacks/builder:base
+  - image: kind-registry.local:5000/paketobuildpacks/builder:base
     imageID: ""
     lastState: {}
     name: step-prepare

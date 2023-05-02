@@ -11,4 +11,4 @@ spec:
     name: buildpacks
     kind: ClusterBuildStrategy
   output:
-    image: kind-registry:5000/snowdrop/sample-nodejs:latest
+    image: kind-registry.local:5000/snowdrop/sample-nodejs:latest

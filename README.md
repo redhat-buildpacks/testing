@@ -108,11 +108,7 @@ TODO
 
 ## 4. Shipwright and Buildpack
 
-See project documentation for more information: https://github.com/shipwright-io/build
-
->**WARNING**: This scenario will not work for the moment due to several issues:
-- [issue-838](https://github.com/shipwright-io/build/issues/838)
-- [issue-896](https://github.com/shipwright-io/build/issues/896)
+See the project documentation for more information: https://github.com/shipwright-io/build
 
 To use shipwright, it is needed to have a k8s cluster, local docker registry and tekton installed (v0.41.+)
 ```bash
@@ -224,7 +220,7 @@ Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
 ```bash
 imgpkg copy --registry-insecure \
   --tar ./k8s/builder-base.tar \
-  --to-repo kind-registry:5000/paketobuildpacks/builder
+  --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 
 And deploy in a demo namespace the needed resources
