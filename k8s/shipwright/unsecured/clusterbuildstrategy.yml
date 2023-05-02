@@ -110,8 +110,7 @@ spec:
           /cnb/lifecycle/exporter "${exporter_args[@]}" "${PARAM_OUTPUT_IMAGE}"
           
           # Store the image digest
-          grep digest /tmp/report.toml | tr -d ' \\"\
-          ' | sed s/digest=// > "$(results.shp-image-digest.path)"
+          grep digest /tmp/report.toml | tr -d ' \"\n' | sed s/digest=// > "$(results.shp-image-digest.path)"
       volumeMounts:
         - mountPath: /platform/env
           name: platform-env
