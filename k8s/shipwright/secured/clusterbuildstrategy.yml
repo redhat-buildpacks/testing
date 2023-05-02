@@ -54,6 +54,8 @@ spec:
           value: $(params.shp-output-image)
         - name: SERVICE_BINDING_ROOT
           value: $(params.service-binding-path)
+        - name: SSL_CERT_DIR
+          value: $(params.service-binding-path)
       command:
         - /bin/bash
       args:

@@ -238,25 +238,25 @@ kubectl create -f k8s/shipwright/unsecured/buildrun.yml
 
 Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
 ```bash
-imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry/client.crt \
+imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
   --tar ./k8s/builder-base.tar \
-  --to-repo kind-registry:5000/paketobuildpacks/builder
+  --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 
 And deploy in a demo namespace the needed resources
 ```bash
 kubectl create ns demo
 kubectl create configmap certificate-registry -n demo \
-  --from-file=kind-registry.crt=./k8s/binding/ca-certificates/kind-registry.crt \
-  --from-file=type=./k8s/binding/ca-certificates/type
+  --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt \
+  --from-file=type=./k8s/shipwright/secured/binding/ca-certificates/type
   
-REGISTRY_HOST="kind-registry:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
+REGISTRY_HOST="kind-registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
 kubectl create secret docker-registry registry-creds -n demo \
   --docker-server="${REGISTRY_HOST}" \
   --docker-username="${REGISTRY_USER}" \
   --docker-password="${REGISTRY_PASSWORD}"
 
-kubectl apply -f k8s/shipwright/sa.yml  
+kubectl apply  -f k8s/shipwright/secured/sa.yml  
 kubectl apply  -f k8s/shipwright/secured/clusterbuildstrategy.yml
 kubectl apply  -f k8s/shipwright/secured/build.yml
 kubectl create -f k8s/shipwright/secured/buildrun.yml
