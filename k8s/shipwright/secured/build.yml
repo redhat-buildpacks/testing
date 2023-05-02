@@ -8,9 +8,9 @@ spec:
     url: https://github.com/shipwright-io/sample-nodejs
     contextDir: source-build
   strategy:
-    name: buildpacks-volume
+    name: buildpacks
     kind: ClusterBuildStrategy
   output:
-    image: kind-registry:5000/snowdrop/sample-nodejs:latest
+    image: kind-registry.local:5000/snowdrop/sample-nodejs:latest
     credentials:
       name: registry-creds
