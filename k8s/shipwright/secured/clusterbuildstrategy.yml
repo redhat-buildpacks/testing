@@ -14,9 +14,12 @@ spec:
     - name: platform-api-version
       description: The referenced version is the minimum version that all relevant buildpack implementations support.
       default: "0.4"
-    - name: service-binding-path
-      description: Path to access the volume containing the files, env variables using the Service Binding
-      default: "/platform/bindings"
+    - name: certificate-path
+      description: Path to self signed certificate(s)
+      default: "/selfsigned-certificates"
+      #- name: service-binding-path
+      #  description: Path to access the volume containing the files, env variables using the Service Binding
+      #  default: "/platform/bindings"
   buildSteps:
     - name: prepare
       image: kind-registry.local:5000/paketobuildpacks/builder:base
@@ -52,10 +55,10 @@ spec:
           value: $(params.shp-source-context)
         - name: PARAM_OUTPUT_IMAGE
           value: $(params.shp-output-image)
-        - name: SERVICE_BINDING_ROOT
-          value: $(params.service-binding-path)
+        #- name: SERVICE_BINDING_ROOT
+        #  value: $(params.service-binding-path)
         - name: SSL_CERT_DIR
-          value: $(params.service-binding-path)
+          value: $(params.certificate-path)
       command:
         - /bin/bash
       args:
@@ -64,7 +67,7 @@ spec:
       volumeMounts:
         - mountPath: /platform/env
           name: platform-env
-        - mountPath: /platform/bindings/my-certificates
+        - mountPath: /selfsigned-certificates
           name: certificate-registry
           readOnly: true
       resources:

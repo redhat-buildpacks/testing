@@ -146,8 +146,7 @@ cat ${REGISTRY_CA_PATH} | jq -Rs '{data: {"cert":.}}' > tmp.json | kubectl patch
 
 kubectl delete  configmap certificate-registry -n demo
 kubectl create configmap certificate-registry -n demo \
-  --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt \
-  --from-file=type=./k8s/shipwright/secured/binding/ca-certificates/type
+  --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt
 ```
 
 Next, deploy some `ClusterBuildStrategy` (ko, kaniko, s2i, buildpacks) using the following command: 
@@ -247,8 +246,7 @@ And deploy in a demo namespace the needed resources
 ```bash
 kubectl create ns demo
 kubectl create configmap certificate-registry -n demo \
-  --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt \
-  --from-file=type=./k8s/shipwright/secured/binding/ca-certificates/type
+  --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt
   
 REGISTRY_HOST="kind-registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
 kubectl create secret docker-registry registry-creds -n demo \
