@@ -87,8 +87,7 @@ spec:
           mkdir "$CACHE_DIR" "$LAYERS_DIR"
           
           function anounce_phase {
-            printf "===> %s\
-          " "$1" 
+            printf "===> %s\n" "$1" 
           }
           
           anounce_phase "DETECTING"
