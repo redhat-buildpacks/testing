@@ -220,7 +220,7 @@ And finally, deploy the resources using either an `unsecured` or `secured` conta
 
 1. Unsecured
 
-Upload the paketo builder tar images
+Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
 ```bash
 imgpkg copy --registry-insecure \
   --tar ./k8s/builder-base.tar \
@@ -237,7 +237,7 @@ kubectl create -f k8s/shipwright/unsecured/buildrun.yml
 
 2. Secured
 
-Upload the paketo builder tar images
+Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
 ```bash
 imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry/client.crt \
   --tar ./k8s/builder-base.tar \
@@ -268,7 +268,7 @@ To clean up
 DIR="unsecured"
 kubectl delete secret registry-creds -n demo
 kubectl delete -f k8s/shipwright/${DIR}/sa.yml
-kubectl delete -f k8s/shipwright/${DIR}/buildrun.yml
+kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-nodejs-build
 kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete ns demo
