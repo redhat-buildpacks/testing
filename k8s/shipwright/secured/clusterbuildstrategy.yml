@@ -25,7 +25,7 @@ spec:
       default: "target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
     - name: BP_MAVEN_BUILD_ARGUMENTS
       description: Configure the arguments to pass to Maven. Defaults to -Dmaven.test.skip=true --no-transfer-progress package. --batch-mode will be prepended to the argument list in environments without a TTY.
-      default: package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
+      default: "package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
   buildSteps:
     - name: prepare
       image: kind-registry.local:5000/paketobuildpacks/builder:base
@@ -73,7 +73,68 @@ spec:
         - /bin/bash
       args:
         - -c
-        - "set -euo pipefail\n\necho \"> Processing environment variables...\"\nENV_DIR=\"/platform/env\"\n\nenvs=($(env))\n\n# Denying the creation of non required files from system environments.\n# The creation of a file named PATH (corresponding to PATH system environment)\n# caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)\nblock_list=(\"PATH\" \"HOSTNAME\" \"PWD\" \"_\" \"SHLVL\" \"HOME\" \"\")\n\nfor env in \"${envs[@]}\"; do\n  blocked=false\n\n  IFS='=' read -r key value string <<< \"$env\"\n\n  for str in \"${block_list[@]}\"; do\n    if [[ \"$key\" == \"$str\" ]]; then\n      blocked=true\n      break\n    fi\n  done\n\n  if [ \"$blocked\" == \"false\" ]; then\n    path=\"${ENV_DIR}/${key}\"\n    echo -n \"$value\" > \"$path\"\n  fi\ndone\n\nLAYERS_DIR=/tmp/layers\nCACHE_DIR=/tmp/cache\n\nmkdir \"$CACHE_DIR\" \"$LAYERS_DIR\"\n\nfunction anounce_phase {\n  printf \"===> %s\\n\" \"$1\" \n}\n\nanounce_phase \"DETECTING\"\n/cnb/lifecycle/detector -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nanounce_phase \"ANALYZING\"\n/cnb/lifecycle/analyzer -layers=\"$LAYERS_DIR\" -cache-dir=\"$CACHE_DIR\" \"${PARAM_OUTPUT_IMAGE}\"\n\nanounce_phase \"RESTORING\"\n/cnb/lifecycle/restorer -cache-dir=\"$CACHE_DIR\"\n\nanounce_phase \"BUILDING\"\n/cnb/lifecycle/builder -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"\n\nexporter_args=( -layers=\"$LAYERS_DIR\" -report=/tmp/report.toml -cache-dir=\"$CACHE_DIR\" -app=\"${PARAM_SOURCE_CONTEXT}\")\ngrep -q \"buildpack-default-process-type\" \"$LAYERS_DIR/config/metadata.toml\" || exporter_args+=( -process-type web ) \n\nanounce_phase \"EXPORTING\"\n/cnb/lifecycle/exporter \"${exporter_args[@]}\" \"${PARAM_OUTPUT_IMAGE}\"\n\n# Store the image digest\ngrep digest /tmp/report.toml | tr -d ' \\\"\\n' | sed s/digest=// > \"$(results.shp-image-digest.path)\"\n"
+        - "set -euo pipefail
+
+echo \"> Processing environment variables...\"
+ENV_DIR=\"/platform/env\"
+
+envs=($(env))
+
+# Denying the creation of non required files from system environments.
+# The creation of a file named PATH (corresponding to PATH system environment)
+# caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)
+block_list=(\"PATH\" \"HOSTNAME\" \"PWD\" \"_\" \"SHLVL\" \"HOME\" \"\")
+
+for env in \"${envs[@]}\"; do
+  blocked=false
+
+  IFS='=' read -r key value string <<< \"$env\"
+
+  for str in \"${block_list[@]}\"; do
+    if [[ \"$key\" == \"$str\" ]]; then
+      blocked=true
+      break
+    fi
+  done
+
+  if [ \"$blocked\" == \"false\" ]; then
+    path=\"${ENV_DIR}/${key}\"
+    echo -n \"$value\" > \"$path\"
+  fi
+done
+
+LAYERS_DIR=/tmp/layers
+CACHE_DIR=/tmp/cache
+
+mkdir \"$CACHE_DIR\" \"$LAYERS_DIR\"
+
+function anounce_phase {
+  printf \"===> %s\
+\" \"$1\" 
+}
+
+anounce_phase \"DETECTING\"
+/cnb/lifecycle/detector -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"
+
+anounce_phase \"ANALYZING\"
+/cnb/lifecycle/analyzer -layers=\"$LAYERS_DIR\" -cache-dir=\"$CACHE_DIR\" \"${PARAM_OUTPUT_IMAGE}\"
+
+anounce_phase \"RESTORING\"
+/cnb/lifecycle/restorer -cache-dir=\"$CACHE_DIR\"
+
+anounce_phase \"BUILDING\"
+/cnb/lifecycle/builder -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"
+
+exporter_args=( -layers=\"$LAYERS_DIR\" -report=/tmp/report.toml -cache-dir=\"$CACHE_DIR\" -app=\"${PARAM_SOURCE_CONTEXT}\")
+grep -q \"buildpack-default-process-type\" \"$LAYERS_DIR/config/metadata.toml\" || exporter_args+=( -process-type web ) 
+
+anounce_phase \"EXPORTING\"
+/cnb/lifecycle/exporter \"${exporter_args[@]}\" \"${PARAM_OUTPUT_IMAGE}\"
+
+# Store the image digest
+grep digest /tmp/report.toml | tr -d ' \\\"\
+' | sed s/digest=// > \"$(results.shp-image-digest.path)\"
+"
       volumeMounts:
         - mountPath: /platform/env
           name: platform-env

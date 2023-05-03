@@ -19,7 +19,7 @@ spec:
       default: "target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
     - name: BP_MAVEN_BUILD_ARGUMENTS
       description: Configure the arguments to pass to Maven. Defaults to -Dmaven.test.skip=true --no-transfer-progress package. --batch-mode will be prepended to the argument list in environments without a TTY.
-      default: package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
+      default: "package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
   buildSteps:
     - name: prepare
       image: kind-registry.local:5000/paketobuildpacks/builder:base
