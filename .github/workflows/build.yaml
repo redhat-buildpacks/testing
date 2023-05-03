@@ -1,0 +1,63 @@
+name: "Build"
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+jobs:
+  linux-jvm-build:
+    name: Linux - JVM build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 17 ]
+        jvm-builder-image: [ 'paketobuildpacks/builder:tiny' ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+
+      - name: Setup Container Registry
+        uses: Sgitario/setup-container-registry@v1
+
+      - name: Test Quarkus Getting Started using ${{ matrix.jvm-builder-image }}
+        run: |
+          # Checkout
+          git clone https://github.com/quarkusio/quarkus-quickstarts.git
+          cd quarkus-quickstarts/getting-started
+
+          # Add quarkus-container-image-buildpack extension
+          mvn quarkus:add-extension -Dextensions="container-image-buildpack"
+
+          # Build image and push to the container registry
+          mvn package \
+            -Dquarkus.container-image.image=$CONTAINER_REGISTRY_URL/quarkus-hello:1.0 \
+            -Dquarkus.buildpack.jvm-builder-image=${{ matrix.jvm-builder-image }} \
+            -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
+            -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
+            -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
+            -Dquarkus.container-image.build=true \
+            -Dquarkus.container-image.push=true
+
+          # Run container
+          docker run -d --rm --name quarkus-hello -p 8081:8080 $CONTAINER_REGISTRY_URL/quarkus-hello:1.0
+
+          # Wait until app is running
+          while ! docker logs quarkus-hello | grep -q "Installed features";
+          do
+              sleep 1
+          done
+
+          # Verify app is running
+          RESULT=$(curl localhost:8081/hello/greeting/coder)
+          docker rm -f quarkus-hello
+          if [[ "$RESULT" != "hello coder" ]]
+          then
+            echo "Application failed to start"
+            exit 1
+          fi
