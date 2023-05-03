@@ -126,12 +126,12 @@ Add the selfsigned certificate of the private container registry to the Tekton P
 REGISTRY_CA_PATH=~/.registry/certs/kind-registry.local/client.crt
 cat ${REGISTRY_CA_PATH} | jq -Rs '{data: {"cert":.}}' > tmp.json | kubectl patch configmap config-registry-cert -n tekton-pipelines --type merge --patch-file tmp.json
 
-kubectl delete  configmap certificate-registry -n demo
+kubectl delete configmap certificate-registry -n demo
 kubectl create configmap certificate-registry -n demo \
   --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt
 ```
 
-Next, deploy some `ClusterBuildStrategy` (ko, kaniko, s2i, buildpacks) using the following command:
+Next, install the `Buildpacks BuildStrategy` using the following command:
 ```bash
 kubectl delete -f k8s/shipwright/secured/clusterbuildstrategy.yml
 kubectl apply -f k8s/shipwright/secured/clusterbuildstrategy.yml
