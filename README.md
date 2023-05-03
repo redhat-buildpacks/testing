@@ -2,24 +2,33 @@
 
 * [How to build a runtime using buildpack](#how-to-build-a-runtime-using-buildpack)
 * [0. Common steps](#0-common-steps)
-* [1. Pack client](#1-pack-client)
-* [2. Shipwright and Buildpack](#2-shipwright-and-buildpack)
-    * [All steps](#all-steps)
-* [3. Tekton and Pipeline as a Code](#3-tekton-and-pipeline-as-a-code)
+* [1. Java buildpacks lib](#1-java-buildpacks-lib)
+* [2. Pack client](#2-pack-client)
+* [3. Shipwright and Buildpack](#3-shipwright-and-buildpack)
+  * [All steps](#all-steps)
+* [4. Tekton and Pipeline as a Code](#4-tekton-and-pipeline-as-a-code)
 
 ## How to build a runtime using buildpack
 
 The goal of this project is to test/experiment different approaches to build a runtime using:
 
-- [pack](#1-pack-client) build client
-- [Shipwright](#2-shipwright-and-buildpack)
-- [Tekton & Pipeline As a Code](#3-tekton-and-pipeline-as-a-code)
+- [java buildpacks](#1-java-buildpacks-lib) lib
+- [pack](#2-pack-client) build client
+- [Shipwright](#3-shipwright-and-buildpack)
+- [Tekton & Pipeline As a Code](#4-tekton-and-pipeline-as-a-code)
 
 ## 0. Common steps
 
-To play with the different scenarios, a Quarkus [runtime](https://github.com/snowdrop/quarkus-tap-petclinic/tree/main) project is available and can be cloned
+To play with the different scenarios, git clone this Quarkus [runtime](https://github.com/snowdrop/quarkus-tap-petclinic/tree/main) project.
 ```bash
 git clone https://github.com/quarkusio/quarkus-quickstarts.git
+cd quarkus-quickstarts/getting-started
+mvn quarkus:dev
+```
+In a separate terminal, curl the HTTP endpoint
+```bash
+curl http://localhost:8080/hello/greeting/coder
+hello coder
 ```
 
 You can create locally a kubernetes `kind` cluster and a secured HTTPS docker registry using this bash script:
@@ -29,7 +38,11 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 
 >**Note**: Use the command `... | bash -s -h` to see the usage and notice end of the execution of the script where you can find the selfsigned certificate
 
-## 1. Pack client
+## 1. Java buildpacks lib
+
+
+
+## 2. Pack client
 
 The easiest way to build the container of Quarkus petclinic is to use the [pack client](https://buildpacks.io/docs/tools/pack/).
 The client will use by default the Paketo builder `tiny` [image](https://github.com/paketo-buildpacks/tiny-builder).
@@ -63,7 +76,7 @@ __  ____  __  _____   ___  __ ____  ______
     --lifecycle-image buildpacksio/lifecycle:<TAG>
 ```
 
-## 2. Shipwright and Buildpack
+## 3. Shipwright and Buildpack
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
@@ -229,6 +242,6 @@ kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete ns demo
 ```
 
-## 3. Tekton and Pipeline as a Code
+## 4. Tekton and Pipeline as a Code
 
 TODO
