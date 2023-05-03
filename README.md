@@ -1,6 +1,8 @@
 <p align="center">
  <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/build.yaml" alt="Build Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/build.yaml/badge.svg"></a>
+ <a href="https://github.com/redhat-buildpacks/testing/pulse" alt="Activity">
+ <img src="https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing"/></a>
 </p>
 
 ## Table of Contents
