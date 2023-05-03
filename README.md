@@ -44,14 +44,15 @@ Add first the following Quarkus extension to the Quarkus Getting started example
 ```bash
 quarkus extension add 'container-image-buildpack'
 ```
-Do the build using as builder image `paketobuildpacks/builder:tiny`
+Do the build using as builder image `paketobuildpacks/builder:tiny` and where you pass the needed `BP_***` env variables in order to configure 
+properly the Quarkus mavn build:
 ```bash
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
  -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder:tiny \
- -DBP_NATIVE_IMAGE="false" \
- -DBP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
- -DBP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
+ -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
+ -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
+ -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true
 ```
