@@ -1,3 +1,8 @@
+<p align="center">
+ <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/build.yaml" alt="Build Status">
+ <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/build.yaml/badge.svg"></a>
+</p>
+
 ## Table of Contents
 
 * [How to build a runtime using buildpack](#how-to-build-a-runtime-using-buildpack)
