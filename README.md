@@ -49,6 +49,9 @@ Do the build using as builder image `paketobuildpacks/builder:tiny`
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
  -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder:tiny \
+ -DBP_NATIVE_IMAGE="false" \
+ -DBP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
+ -DBP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true
 ```
@@ -59,9 +62,12 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 ## 2. Pack client
 
-The easiest way to build the container of Quarkus petclinic is to use the [pack client](https://buildpacks.io/docs/tools/pack/).
-The client will use by default the Paketo builder `tiny` [image](https://github.com/paketo-buildpacks/tiny-builder).
+To validate this scenario we will use the [pack client](https://buildpacks.io/docs/tools/pack/).
 
+>>**NOTE**: The pack client uses by default the Paketo builder `tiny` [image](https://github.com/paketo-buildpacks/tiny-builder). So it is then not needed to specify it as parameter !
+
+To build properly the Quarkus container, we must pass some `BP_***` variables to configure the [Java Buildpacks](https://github.com/paketo-buildpacks/java)
+as you can hereafter:
 ```bash
 REGISTRY_HOST="kind-registry.local:5000"
 pack build ${REGISTRY_HOST}/quarkus-hello \
@@ -70,7 +76,7 @@ pack build ${REGISTRY_HOST}/quarkus-hello \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
      --path ./quarkus-quickstarts/getting-started
 ```
-Next, start the container and curl the endpoint
+Next, start the container and curl the endpoint `curl http://localhost:8080/hello/greeting/coder`
 ```bash
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 ```
