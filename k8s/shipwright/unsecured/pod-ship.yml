@@ -4,13 +4,13 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: tekton-pipelines
     build.shipwright.io/generation: "1"
-    build.shipwright.io/name: buildpack-nodejs-build
+    build.shipwright.io/name: buildpack-quarkus-build
     buildrun.shipwright.io/generation: "1"
-    buildrun.shipwright.io/name: buildpack-nodejs-buildrun-1
+    buildrun.shipwright.io/name: buildpack-quarkus-buildrun-1
     clusterbuildstrategy.shipwright.io/generation: "1"
     clusterbuildstrategy.shipwright.io/name: buildpacks
-    tekton.dev/taskRun: buildpack-nodejs-buildrun-1
-  name: buildpack-nodejs-buildrun-1
+    tekton.dev/taskRun: buildpack-quarkus-buildrun-1
+  name: buildpack-quarkus-buildrun-1
   namespace: demo
 spec:
   activeDeadlineSeconds: 5400
@@ -31,7 +31,7 @@ spec:
     - /ko-app/git
     - --
     - --url
-    - https://github.com/shipwright-io/sample-nodejs
+    - https://github.com/quarkusio/quarkus-quickstarts
     - --target
     - /workspace/source
     - --result-file-commit-sha
@@ -193,7 +193,7 @@ spec:
     - name: PARAM_SOURCE_CONTEXT
       value: /workspace/source/source-build
     - name: PARAM_OUTPUT_IMAGE
-      value: kind-registry.local:5000/snowdrop/sample-nodejs:latest
+      value: kind-registry.local:5000/snowdrop/quarkus-hello:latest
     image: kind-registry.local:5000/paketobuildpacks/builder:base
     imagePullPolicy: Always
     name: step-build-and-push

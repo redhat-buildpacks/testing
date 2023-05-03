@@ -1,8 +1,8 @@
 apiVersion: shipwright.io/v1alpha1
 kind: BuildRun
 metadata:
-  generateName: buildpack-nodejs-buildrun-
+  generateName: buildpack-quarkus-buildrun-
   namespace: demo
 spec:
   buildRef:
-    name: buildpack-nodejs-build
+    name: buildpack-quarkus-build

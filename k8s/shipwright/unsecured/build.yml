@@ -1,14 +1,14 @@
 apiVersion: shipwright.io/v1alpha1
 kind: Build
 metadata:
-  name: buildpack-nodejs-build
+  name: buildpack-quarkus-build
   namespace: demo
 spec:
   source:
-    url: https://github.com/shipwright-io/sample-nodejs
-    contextDir: source-build
+    url: https://github.com/quarkusio/quarkus-quickstarts
+    contextDir: getting-started
   strategy:
     name: buildpacks
     kind: ClusterBuildStrategy
   output:
-    image: kind-registry.local:5000/snowdrop/sample-nodejs:latest
+    image: kind-registry.local:5000/snowdrop/quarkus-hello:latest

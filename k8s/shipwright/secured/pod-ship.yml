@@ -6,11 +6,11 @@ metadata:
     tekton.dev/ready: READY
   labels:
     app.kubernetes.io/managed-by: tekton-pipelines
-    build.shipwright.io/name: buildpack-nodejs-build
-    buildrun.shipwright.io/name: buildpack-nodejs-buildrun-1
+    build.shipwright.io/name: buildpack-quarkus-build
+    buildrun.shipwright.io/name: buildpack-quarkus-buildrun-1
     clusterbuildstrategy.shipwright.io/name: buildpacks
-    tekton.dev/taskRun: buildpack-nodejs-buildrun-1
-  name: buildpack-nodejs-buildrun-1-pod
+    tekton.dev/taskRun: buildpack-quarkus-buildrun-1
+  name: buildpack-quarkus-buildrun-1-pod
   namespace: demo
 spec:
   containers:
@@ -31,7 +31,7 @@ spec:
     - /ko-app/git
     - --
     - --url
-    - https://github.com/shipwright-io/sample-nodejs
+    - https://github.com/quarkusio/quarkus-quickstarts
     - --target
     - /workspace/source
     - --result-file-commit-sha
@@ -199,7 +199,7 @@ spec:
     - name: PARAM_SOURCE_CONTEXT
       value: /workspace/source/source-build
     - name: PARAM_OUTPUT_IMAGE
-      value: kind-registry.local:5000/snowdrop/sample-nodejs:latest
+      value: kind-registry.local:5000/snowdrop/quarkus-hello:latest
     #- name: SERVICE_BINDING_ROOT
     #  value: /platform/bindings
     - name: SSL_CERT_DIR

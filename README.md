@@ -31,9 +31,9 @@ curl http://localhost:8080/hello/greeting/coder
 hello coder
 ```
 
-You can create locally a kubernetes `kind` cluster and a secured HTTPS docker registry using this bash script:
+You can create a kubernetes `kind` cluster and an unsecure or secured HTTPS docker registry using this bash script:
 ```bash
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --secure-registry
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
 ```
 
 >**Note**: Use the command `... | bash -s -h` to see the usage and notice end of the execution of the script where you can find the selfsigned certificate
@@ -75,7 +75,7 @@ docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
 pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
      -e BP_NATIVE_IMAGE="false" \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
-     -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
+     -e  ="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
      --path ./quarkus-quickstarts/getting-started
 ```
 Next, start the container and curl the endpoint `curl http://localhost:8080/hello/greeting/coder`
@@ -102,7 +102,7 @@ Next, deploy the latest release of shipwright
 kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ```
 
-Generate a secret to access the container registry
+Generate a docker-registry secret
 
 >**Note**: This secret will be used by the serviceAccount of the build's pod to access the container registry
 
@@ -121,14 +121,12 @@ secret's credentials with the registry
 kubectl delete -f k8s/shipwright/secured/sa.yml
 kubectl apply -f k8s/shipwright/secured/sa.yml
 ```
-Add the selfsigned certificate of the private container registry to the Tekton Pipeline
+Add the selfsigned certificate to a configMap. It will be mounted as a volume to set the env var `SSL_CERT_DIR` used by the go-containerregistry lib (of lifecycle)
+to access the registry using the HTTPS/TLS protocol.
 ```bash
-REGISTRY_CA_PATH=~/.registry/certs/kind-registry.local/client.crt
-cat ${REGISTRY_CA_PATH} | jq -Rs '{data: {"cert":.}}' > tmp.json | kubectl patch configmap config-registry-cert -n tekton-pipelines --type merge --patch-file tmp.json
-
 kubectl delete configmap certificate-registry -n demo
 kubectl create configmap certificate-registry -n demo \
-  --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt
+  --from-file=kind-registry.crt=$HOME/.registry/certs/kind-registry.local/client.crt 
 ```
 
 Next, install the `Buildpacks BuildStrategy` using the following command:
@@ -154,7 +152,7 @@ imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client
 ```
 >**Tip**: Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
 >
-Create a Build object:
+Create the `Build` CR using as source the Quarkus Getting started repository:
 
 ```bash
 kubectl delete -f k8s/shipwright/secured/build.yml
@@ -164,14 +162,14 @@ To view the Build which you just created:
 
 ```bash
 kubectl get build -n demo
-NAME                     REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDSTRATEGYNAME   CREATIONTIME
-buildpack-nodejs-build   True         Succeeded   ClusterBuildStrategy   buildpacks-v3       22s
+NAME                      REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDSTRATEGYNAME   CREATIONTIME
+buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildpacks          6s
 ```
 
 Submit a `BuildRun`:
 
 ```bash
-kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-nodejs-build -n demo
+kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo
 kubectl create -f k8s/shipwright/secured/buildrun.yml
 ```
 Wait until your BuildRun is completed, and then you can view it as follows:
@@ -179,7 +177,7 @@ Wait until your BuildRun is completed, and then you can view it as follows:
 ```bash
 kubectl get buildruns -n demo
 NAME                              SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
-buildpack-nodejs-buildrun-vp2gb   True        Succeeded   2m22s       9s
+buildpack-quarkus-buildrun-vp2gb   True        Succeeded   2m22s       9s
 ```
 
 ### All steps
@@ -248,7 +246,7 @@ To clean up
 DIR="unsecured"
 kubectl delete secret registry-creds -n demo
 kubectl delete -f k8s/shipwright/${DIR}/sa.yml
-kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-nodejs-build
+kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
 kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete ns demo
