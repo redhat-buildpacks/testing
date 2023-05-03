@@ -2,7 +2,7 @@
 
 * [How to build a runtime using buildpack](#how-to-build-a-runtime-using-buildpack)
 * [0. Common steps](#0-common-steps)
-* [1. Java buildpacks lib](#1-java-buildpacks-lib)
+* [1. Quarkus Buildpacks](#1-quarkus-buildpacks)
 * [2. Pack client](#2-pack-client)
 * [3. Shipwright and Buildpack](#3-shipwright-and-buildpack)
   * [All steps](#all-steps)
@@ -12,7 +12,7 @@
 
 The goal of this project is to test/experiment different approaches to build a runtime using:
 
-- [java buildpacks](#1-java-buildpacks-lib) lib
+- [Quarkus buildpacks](#1-quarkus-buildpacks)
 - [pack](#2-pack-client) build client
 - [Shipwright](#3-shipwright-and-buildpack)
 - [Tekton & Pipeline As a Code](#4-tekton-and-pipeline-as-a-code)
@@ -38,9 +38,24 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 
 >**Note**: Use the command `... | bash -s -h` to see the usage and notice end of the execution of the script where you can find the selfsigned certificate
 
-## 1. Java buildpacks lib
+## 1. Quarkus Buildpacks
 
-
+Add first the following Quarkus extension to the Quarkus Getting started example able to build the quarkus example using the [Java Buildpacks client](https://github.com/snowdrop/java-buildpack-client).
+```bash
+quarkus extension add 'container-image-buildpack'
+```
+Do the build using as builder image `paketobuildpacks/builder:tiny`
+```bash
+mvn package \
+ -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder:tiny \
+ -Dquarkus.container-image.build=true \
+ -Dquarkus.container-image.push=true
+```
+Next, start the container and curl the endpoint
+```bash
+docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
+```
 
 ## 2. Pack client
 
@@ -55,20 +70,9 @@ pack build ${REGISTRY_HOST}/quarkus-hello \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
      --path ./quarkus-quickstarts/getting-started
 ```
-Next, test the image
+Next, start the container and curl the endpoint
 ```bash
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
-...
-Enabling Java Native Memory Tracking
-Adding 124 container CA certificates to JVM truststore
-Picked up JAVA_TOOL_OPTIONS: -Djava.security.properties=/layers/paketo-buildpacks_bellsoft-liberica/java-security-properties/java-security.properties -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=6 -XX:MaxDirectMemorySize=10M -Xmx2751739K -XX:MaxMetaspaceSize=71524K -XX:ReservedCodeCacheSize=240M -Xss1M -XX:+UnlockDiagnosticVMOptions -XX:NativeMemoryTracking=summary -XX:+PrintNMTStatistics
-__  ____  __  _____   ___  __ ____  ______ 
- --/ __ \/ / / / _ | / _ \/ //_/ / / / __/ 
- -/ /_/ / /_/ / __ |/ , _/ ,< / /_/ /\ \   
---\___\_\____/_/ |_/_/|_/_/|_|\____/___/   
-2023-05-02 17:24:40,195 INFO  [io.quarkus] (main) getting-started 1.0.0-SNAPSHOT on JVM (powered by Quarkus 3.0.1.Final) started in 0.793s. Listening on: http://0.0.0.0:8080
-2023-05-02 17:24:40,228 INFO  [io.quarkus] (main) Profile prod activated. 
-2023-05-02 17:24:40,228 INFO  [io.quarkus] (main) Installed features: [cdi, resteasy-reactive, smallrye-context-propagation, vertx]
 ```
 
 >**Tip**: If you plan to use a different version of the [lifecycle](https://hub.docker.com/r/buildpacksio/lifecycle/tags), append then the following parameter to th pack command:
