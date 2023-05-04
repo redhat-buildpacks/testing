@@ -89,7 +89,7 @@ pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
 
 Next, start the container and curl the endpoint `curl http://localhost:8080/hello/greeting/coder`
 ```bash
-docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
+docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 ```
 
 >**Tip**: If you plan to use a different version of the [lifecycle](https://hub.docker.com/r/buildpacksio/lifecycle/tags), append then the following parameter to th pack command:
