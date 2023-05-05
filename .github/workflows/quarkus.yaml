@@ -1,4 +1,4 @@
-name: "Build"
+name: "Test using Quarkus Container Image Buildpack extension"
 on:
   workflow_dispatch:
   pull_request:
@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        jvm-builder-image: [ 'paketobuildpacks/builder:tiny' ]
+        builder-image: [ 'paketobuildpacks/builder:tiny' ]
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}
@@ -25,8 +25,11 @@ jobs:
       - name: Setup Container Registry
         uses: Sgitario/setup-container-registry@v1
 
-      - name: Test Quarkus Getting Started using ${{ matrix.jvm-builder-image }}
+      - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
+          CONTAINER_NAME=quarkus-jvm-hello
+          CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
+
           # Checkout
           git clone https://github.com/quarkusio/quarkus-quickstarts.git
           cd quarkus-quickstarts/getting-started
@@ -36,8 +39,8 @@ jobs:
 
           # Build image and push to the container registry
           mvn package \
-            -Dquarkus.container-image.image=$CONTAINER_REGISTRY_URL/quarkus-hello:1.0 \
-            -Dquarkus.buildpack.jvm-builder-image=${{ matrix.jvm-builder-image }} \
+            -Dquarkus.container-image.image=$CONTAINER_IMAGE \
+            -Dquarkus.buildpack.jvm-builder-image=${{ matrix.builder-image }} \
             -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
             -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
             -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
@@ -45,17 +48,17 @@ jobs:
             -Dquarkus.container-image.push=true
 
           # Run container
-          docker run -d --rm --name quarkus-hello -p 8081:8080 $CONTAINER_REGISTRY_URL/quarkus-hello:1.0
+          docker run -d --rm --name $CONTAINER_NAME -p 8081:8080 $CONTAINER_IMAGE
 
           # Wait until app is running
-          while ! docker logs quarkus-hello | grep -q "Installed features";
+          while ! docker logs $CONTAINER_NAME | grep -q "Installed features";
           do
               sleep 1
           done
 
           # Verify app is running
           RESULT=$(curl localhost:8081/hello/greeting/coder)
-          docker rm -f quarkus-hello
+          docker rm -f $CONTAINER_NAME
           if [[ "$RESULT" != "hello coder" ]]
           then
             echo "Application failed to start"
