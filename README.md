@@ -1,6 +1,8 @@
 <p align="center">
- <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/build.yaml" alt="Build Status">
- <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/build.yaml/badge.svg"></a>
+ <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml" alt="Test Quarkus Extension Status">
+ <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg"></a>
+ <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml" alt="Test Pack CLI Status">
+ <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg"></a>
  <a href="https://github.com/redhat-buildpacks/testing/pulse" alt="Activity">
  <img src="https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing"/></a>
 </p>
@@ -82,6 +84,7 @@ pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
      -e BP_NATIVE_IMAGE="false" \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
+     --builder paketobuildpacks/builder:tiny \
      --path ./quarkus-quickstarts/getting-started
 ```
 
