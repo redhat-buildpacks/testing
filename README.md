@@ -156,6 +156,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 BUILDER_IMAGE=paketobuildpacks/builder:0.1.361-tiny
 LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.3
+RUN_IMAGE=paketobuildpacks/run:tiny
 
 kubectl delete task/buildpacks-phases
 kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
@@ -217,12 +218,14 @@ spec:
           - name: BUILDER_IMAGE
             value: ${BUILDER_IMAGE}
           - name: LIFECYCLE_IMAGE
-            value: ${LIFECYCLE_IMAGE}  
+            value: ${LIFECYCLE_IMAGE}
+          - name: RUN_IMAGE
+            value: ${RUN_IMAGE}  
           - name: ENV_VARS
             value:
               - BP_NATIVE_IMAGE=false
-              - BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" 
-              - BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+              - BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
+              - BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
           - name: PROCESS_TYPE
             value: ""
   workspaces:
@@ -236,7 +239,12 @@ spec:
         claimName: env-vars-ws-pvc
 EOF
 ```
-Follow the execution the pipeline using the dashboard: 
+Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns
+
+When the task is finished and no error is reported, then launch the container
+```bash
+docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
+```
 
 ## 4. Shipwright and Buildpack
 
