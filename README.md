@@ -133,6 +133,7 @@ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/bu
 It is time to create a `Pipelinerun` to build the Quarkus application
 ```bash
 kubectl delete PipelineRun/buildpacks-phases
+kubectl delete pvc/env-vars-ws-pvc
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
