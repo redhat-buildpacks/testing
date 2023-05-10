@@ -139,6 +139,26 @@ spec:
         - name: layers-dir
           mountPath: /layers
 
+    - name: analyze
+      image: $(params.LIFECYCLE_IMAGE)
+      imagePullPolicy: Always
+      command: ["/cnb/lifecycle/analyzer"]
+      args:
+        - "-layers=/layers"
+        # Argument removed as it is not supported with lifecycle 0.16
+        # - "-group=/layers/group.toml"
+        # Argument removed as it is not supported with lifecycle 0.16
+        # - "-cache-dir=$(workspaces.cache.path)"
+        - "-run-image=$(params.RUN_IMAGE)"
+        - "-cache-image=$(params.CACHE_IMAGE)"
+        - "-uid=$(params.USER_ID)"
+        - "-gid=$(params.GROUP_ID)"
+        - "$(params.APP_IMAGE)"
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+
+
     - name: detect
       image: $(params.BUILDER_IMAGE)
       imagePullPolicy: Always
@@ -154,24 +174,6 @@ spec:
           mountPath: /platform
         - name: empty-dir
           mountPath: /tekton/home
-
-    - name: analyze
-      image: $(params.LIFECYCLE_IMAGE)
-      imagePullPolicy: Always
-      command: ["/cnb/lifecycle/analyzer"]
-      args:
-        - "-layers=/layers"
-        # Argument removed as it is not supported with lifecycle 0.16
-        # - "-group=/layers/group.toml"
-        # Argument removed as it is not supported with lifecycle 0.16
-        # - "-cache-dir=$(workspaces.cache.path)"
-        - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
-        - "$(params.APP_IMAGE)"
-      volumeMounts:
-        - name: layers-dir
-          mountPath: /layers
 
     - name: restore
       image: $(params.LIFECYCLE_IMAGE)

@@ -129,7 +129,8 @@ kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekto
 When the platform is ready, you can install the Tekton `Tasks` to git clone, able to perform a buildpacks build adn to execute the phases individually
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
-kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/buildpacks-phases/0.2/buildpacks-phases.yaml
+# TODO: Dont install it now as it is outdated and do not work with lifecycle 1.16
+# kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/buildpacks-phases/0.2/buildpacks-phases.yaml
 ```
 
 Set the following variables:
