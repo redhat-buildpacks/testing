@@ -195,7 +195,7 @@ spec:
             workspace: cache-ws
         params:
           - name: CNB_PLATFORM_API
-            value: 0.11
+            value: 0.10
           - name: APP_IMAGE
             value: ${IMAGE_NAME}
           - name: SOURCE_SUBPATH
