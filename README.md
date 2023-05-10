@@ -139,7 +139,7 @@ IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/app
 
 It is time to create a `Pipelinerun` to build the Quarkus application
 ```bash
-IMAGE_NAME=kind-registry.local:5000/buildpack/app
+IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/env-vars-ws-pvc
 cat <<EOF | kubectl apply -f -
@@ -175,11 +175,13 @@ spec:
             workspace: source-ws
         params:
           - name: url
-            value: https://github.com/buildpacks/samples
+            value: https://github.com/quarkusio/quarkus-quickstarts.git
           - name: subdirectory
-            value: ""
+            value: "getting-started"
           - name: deleteExisting
             value: "true"
+          - name: builderImage
+            value: paketobuildpacks/builder:tiny  
       - name: buildpacks
         taskRef:
           name: buildpacks-phases
@@ -196,11 +198,12 @@ spec:
           - name: SOURCE_SUBPATH
             value: apps
           - name: BUILDER_IMAGE
-            value: docker.io/cnbs/sample-builder:alpine@sha256:b51367258b3b6fff1fe8f375ecca79dab4339b177efb791e131417a5a4357f42
+            value: ${builderImage}
           - name: ENV_VARS
             value:
-              - "ENV_VAR_1=VALUE_1"
-              - "ENV_VAR_2=VALUE 2"
+              - "BP_NATIVE_IMAGE=\"false\""
+              - "BP_MAVEN_BUILT_ARTIFACT=\"target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/\"" 
+              - "BP_MAVEN_BUILD_ARGUMENTS=\""package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar\""
           - name: PROCESS_TYPE
             value: ""
   workspaces:
