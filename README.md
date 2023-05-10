@@ -143,6 +143,8 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 BUILDER_IMAGE=paketobuildpacks/builder:tiny
 
+kubectl delete task/buildpacks-phases
+kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/env-vars-ws-pvc
 cat <<EOF | kubectl apply -f -
