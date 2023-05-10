@@ -197,7 +197,7 @@ spec:
           - name: APP_IMAGE
             value: ${IMAGE_NAME}
           - name: SOURCE_SUBPATH
-            value: apps
+            value: getting-started
           - name: BUILDER_IMAGE
             value: ${BUILDER_IMAGE}
           - name: ENV_VARS
