@@ -132,14 +132,17 @@ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/gi
 kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/buildpacks-phases/0.2/buildpacks-phases.yaml
 ```
 
-Set the following variable to define the container image to be used to build the application
+Set the following variables:
 ```bash
 IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/app
+BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUr_OWN_BUILDER_IMAGE>
 ```
 
 It is time to create a `Pipelinerun` to build the Quarkus application
 ```bash
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
+BUILDER_IMAGE=paketobuildpacks/builder:tiny
+
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/env-vars-ws-pvc
 cat <<EOF | kubectl apply -f -
@@ -180,8 +183,6 @@ spec:
             value: "getting-started"
           - name: deleteExisting
             value: "true"
-          - name: builderImage
-            value: paketobuildpacks/builder:tiny  
       - name: buildpacks
         taskRef:
           name: buildpacks-phases
@@ -198,7 +199,7 @@ spec:
           - name: SOURCE_SUBPATH
             value: apps
           - name: BUILDER_IMAGE
-            value: ${builderImage}
+            value: ${BUILDER_IMAGE}
           - name: ENV_VARS
             value:
               - BP_NATIVE_IMAGE="false"
