@@ -124,13 +124,15 @@ VM_IP=127.0.0.1
 kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
 ```
 
-When the platform is ready, you can install the Tekton `Task` able to perform a buildpacks build adn to execute the phases individually
+When the platform is ready, you can install the Tekton `Tasks` to git clone, able to perform a buildpacks build adn to execute the phases individually
 ```bash
+kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
 kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/buildpacks-phases/0.2/buildpacks-phases.yaml
 ```
 
 It is time to create a `Pipelinerun` to build the Quarkus application
 ```bash
+kubectl delete PipelineRun/buildpacks-phases
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
