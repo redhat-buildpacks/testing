@@ -163,7 +163,8 @@ spec:
         - "-layers=/layers"
         # Argument removed as it is not supported with lifecycle 0.16
         # - "-group=/layers/group.toml"
-        - "-cache-dir=$(workspaces.cache.path)"
+        # Argument removed as it is not supported with lifecycle 0.16
+        # - "-cache-dir=$(workspaces.cache.path)"
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
