@@ -138,10 +138,22 @@ IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/app
 BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUr_OWN_BUILDER_IMAGE>
 ```
 
+The [paketo builder image](https://hub.docker.com/r/paketobuildpacks/builder/tags) version `0.1.361` [supports](https://github.com/paketo-buildpacks/tiny-builder/releases/tag/v0.1.361):
+```text
+Lifecycle:
+  Version: 0.16.3
+  Buildpack APIs:
+    Deprecated: 0.2, 0.3, 0.4, 0.5, 0.6
+    Supported: 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
+  Platform APIs:
+    Deprecated: 0.3, 0.4, 0.5, 0.6
+    Supported: 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10, 0.11
+```
+
 It is time to create a `Pipelinerun` to build the Quarkus application
 ```bash
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
-BUILDER_IMAGE=paketobuildpacks/builder:tiny
+BUILDER_IMAGE=paketobuildpacks/builder:0.1.361-tiny
 
 kubectl delete task/buildpacks-phases
 kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
@@ -196,8 +208,6 @@ spec:
           - name: cache
             workspace: cache-ws
         params:
-          - name: CNB_PLATFORM_API
-            value: 0.10
           - name: APP_IMAGE
             value: ${IMAGE_NAME}
           - name: SOURCE_SUBPATH
