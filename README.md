@@ -147,7 +147,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: env-vars-pipeline-run
+  name: buildpacks-phases
   labels:
     app.kubernetes.io/description: "Buildpacks PipelineRun and env vars"
 spec:
