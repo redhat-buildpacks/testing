@@ -149,7 +149,7 @@ kind: PipelineRun
 metadata:
   name: env-vars-pipeline-run
   labels:
-    app.kubernetes.io/description: Buildpacks PipelineRun and env vars
+    app.kubernetes.io/description: "Buildpacks PipelineRun and env vars"
 spec:
   pipelineSpec:
     workspaces:
