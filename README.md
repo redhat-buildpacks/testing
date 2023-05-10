@@ -13,9 +13,10 @@
 * [0. Common steps](#0-common-steps)
 * [1. Quarkus Buildpacks](#1-quarkus-buildpacks)
 * [2. Pack client](#2-pack-client)
-* [3. Shipwright and Buildpack](#3-shipwright-and-buildpack)
+* [3. Tekton and Pipeline as a Code](#3-tekton-and-pipeline-as-a-code)
+* [4. Shipwright and Buildpack](#4-shipwright-and-buildpack)
   * [All steps](#all-steps)
-* [4. Tekton and Pipeline as a Code](#4-tekton-and-pipeline-as-a-code)
+
 
 ## How to build a runtime using buildpack
 
@@ -100,7 +101,111 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
     --lifecycle-image buildpacksio/lifecycle:<TAG>
 ```
 
-## 3. Shipwright and Buildpack
+
+## 3. Tekton and Pipeline as a Code
+
+See the project documentation for more information: https://tekton.dev/
+
+To use Tekton, it is needed to have a k8s cluster & local docker registry
+```bash
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+```
+to install the latest official release (or a specific release)
+```bash
+kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.47.0/release.yaml
+```
+and optionally, you can also install the Tekton dashboard
+```bash
+kubectl apply -f https://storage.googleapis.com/tekton-releases/dashboard/latest/release.yaml
+```
+Expose the dashboard service externally using an ingress route and open the url in your browser: `tekton-ui.127.0.0.1.nip.io`
+```bash
+VM_IP=127.0.0.1
+kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
+```
+
+When the platform is ready, you can install the Tekton `Task` able to perform a buildpacks build adn to execute the phases individually
+```bash
+kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/buildpacks-phases/0.2/buildpacks-phases.yaml
+```
+
+It is time to create a `Pipelinerun` to build the Quarkus application
+```bash
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: env-vars-ws-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: env-vars-pipeline-run
+  labels:
+    app.kubernetes.io/description: A PipelineRun configured to provide _build-time_ environment variables.
+spec:
+  pipelineSpec:
+    workspaces:
+      - name: source-ws
+      - name: cache-ws
+    tasks:
+      - name: fetch-repository
+        taskRef:
+          name: git-clone
+        workspaces:
+          - name: output
+            workspace: source-ws
+        params:
+          - name: url
+            value: https://github.com/buildpacks/samples
+          - name: subdirectory
+            value: ""
+          - name: deleteExisting
+            value: "true"
+      - name: buildpacks
+        taskRef:
+          name: buildpacks-phases
+        runAfter:
+          - fetch-repository
+        workspaces:
+          - name: source
+            workspace: source-ws
+          - name: cache
+            workspace: cache-ws
+        params:
+          - name: APP_IMAGE
+            value: <IMAGE_NAME>
+          - name: SOURCE_SUBPATH
+            value: apps
+          - name: BUILDER_IMAGE
+            value: docker.io/cnbs/sample-builder:alpine@sha256:b51367258b3b6fff1fe8f375ecca79dab4339b177efb791e131417a5a4357f42
+          - name: ENV_VARS
+            value:
+              - "ENV_VAR_1=VALUE_1"
+              - "ENV_VAR_2=VALUE 2"
+          - name: PROCESS_TYPE
+            value: ""
+  workspaces:
+    - name: source-ws
+      subPath: source
+      persistentVolumeClaim:
+        claimName: env-vars-ws-pvc
+    - name: cache-ws
+      subPath: cache
+      persistentVolumeClaim:
+        claimName: env-vars-ws-pvc
+EOF
+```
+Follow the execution the pipeline using the dashboard: 
+
+## 4. Shipwright and Buildpack
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
@@ -263,7 +368,3 @@ kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete ns demo
 ```
-
-## 4. Tekton and Pipeline as a Code
-
-TODO
