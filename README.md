@@ -139,7 +139,7 @@ IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/app
 
 It is time to create a `Pipelinerun` to build the Quarkus application
 ```bash
-IMAGE_NAME=kind-registry:5000/buildpack/app
+IMAGE_NAME=kind-registry.local:5000/buildpack/app
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/env-vars-ws-pvc
 cat <<EOF | kubectl apply -f -
