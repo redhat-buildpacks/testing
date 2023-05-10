@@ -154,6 +154,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ```bash
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 BUILDER_IMAGE=paketobuildpacks/builder:0.1.361-tiny
+LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.3
 
 kubectl delete task/buildpacks-phases
 kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
@@ -214,9 +215,11 @@ spec:
             value: getting-started
           - name: BUILDER_IMAGE
             value: ${BUILDER_IMAGE}
+          - name: LIFECYCLE_IMAGE
+            value: ${LIFECYCLE_IMAGE}  
           - name: ENV_VARS
             value:
-              - BP_NATIVE_IMAGE="false"
+              - BP_NATIVE_IMAGE=false
               - BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" 
               - BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
           - name: PROCESS_TYPE
