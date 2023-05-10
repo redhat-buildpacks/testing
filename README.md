@@ -106,10 +106,12 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 See the project documentation for more information: https://tekton.dev/
 
-To use Tekton, it is needed to have a k8s cluster & local docker registry
+To use Tekton, it is needed to have a k8s cluster (>= 1.24) & local docker registry
 ```bash
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
 ```
+>**Warning**: Append as suffix to the local registry name `*.local` otherwise buildpacks lifecycle will report this error during analyse phase `failed to get previous image: connect to repo store 'kind-registry:5000/buildpack/app': Get "https://kind-registry:5000/v2/": http: server gave HTTP response to HTTPS client`
+
 to install the latest official release (or a specific release)
 ```bash
 kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.47.0/release.yaml
