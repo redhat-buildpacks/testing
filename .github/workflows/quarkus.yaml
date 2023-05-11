@@ -47,20 +47,5 @@ jobs:
             -Dquarkus.container-image.build=true \
             -Dquarkus.container-image.push=true
 
-          # Run container
-          docker run -d --rm --name $CONTAINER_NAME -p 8081:8080 $CONTAINER_IMAGE
-
-          # Wait until app is running
-          while ! docker logs $CONTAINER_NAME | grep -q "Installed features";
-          do
-              sleep 1
-          done
-
-          # Verify app is running
-          RESULT=$(curl localhost:8081/hello/greeting/coder)
-          docker rm -f $CONTAINER_NAME
-          if [[ "$RESULT" != "hello coder" ]]
-          then
-            echo "Application failed to start"
-            exit 1
-          fi
+          # Test application
+          ../../.github/testGreetingApplication.sh $CONTAINER_NAME $CONTAINER_IMAGE

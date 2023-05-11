@@ -222,7 +222,6 @@ spec:
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
         - "-stack=/layers/stack.toml"
-        - "-run-image=$(params.RUN_IMAGE)"
         - "$(params.APP_IMAGE)"
       volumeMounts:
         - name: layers-dir

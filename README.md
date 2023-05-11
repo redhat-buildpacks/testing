@@ -106,7 +106,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 See the project documentation for more information: https://tekton.dev/
 
-To use Tekton, it is needed to have a k8s cluster (>= 1.24) & local docker registry
+To use Tekton, it is needed to have a k8s cluster (>= 1.24) & local docker registry & the kind CLI installed (>= 0.17)
 ```bash
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
 ```
@@ -126,7 +126,7 @@ VM_IP=127.0.0.1
 kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
 ```
 
-When the platform is ready, you can install the Tekton `Tasks` to git clone, able to perform a buildpacks build adn to execute the phases individually
+When the platform is ready, you can install the Tekton `Tasks` to git clone, able to perform a buildpacks build and to execute the phases individually
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
 # TODO: Dont install it now as it is outdated and do not work with lifecycle 1.16
@@ -136,7 +136,7 @@ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/gi
 Set the following variables:
 ```bash
 IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/app
-BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUr_OWN_BUILDER_IMAGE>
+BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUR_OWN_BUILDER_IMAGE>
 ```
 
 The [paketo builder image](https://hub.docker.com/r/paketobuildpacks/builder/tags) version `0.1.361` [supports](https://github.com/paketo-buildpacks/tiny-builder/releases/tag/v0.1.361):
@@ -196,8 +196,6 @@ spec:
         params:
           - name: url
             value: https://github.com/quarkusio/quarkus-quickstarts.git
-          - name: subdirectory
-            value: "getting-started"
           - name: deleteExisting
             value: "true"
       - name: buildpacks
