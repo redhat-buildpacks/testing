@@ -3,6 +3,8 @@
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg"></a>
  <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml" alt="Test Pack CLI Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg"></a>
+<a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml" alt="Test Tekton Status">
+ <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg"></a>
  <a href="https://github.com/redhat-buildpacks/testing/pulse" alt="Activity">
  <img src="https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing"/></a>
 </p>
