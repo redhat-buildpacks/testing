@@ -122,7 +122,7 @@ jobs:
           EOF
           
           # Log the execution of the build process
-          tkn pipeline logs buildpacks-phases
+          tkn pipelinerun logs buildpacks-phases
           
           # Wait for the build
           kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks-phases
