@@ -1,4 +1,4 @@
-name: "Test using Quarkus Container Image Buildpack extension"
+name: "Test using Quarkus Buildpack extension"
 on:
   workflow_dispatch:
   pull_request:
