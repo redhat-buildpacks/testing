@@ -121,14 +121,15 @@ jobs:
                   claimName: env-vars-ws-pvc
           EOF
           
-          # Log the execution of the build process
-          tkn pipelinerun logs buildpacks-phases
-          
           # Wait for the build
           kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks-phases
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
+      - name: Log the execution of the pipelinerun
+        if: success()
+        run: |
+          tkn pipelinerun logs buildpacks-phases
       - name: (Only if it failed) Print Pipeline Task logs
         if: failure()
         run: |
