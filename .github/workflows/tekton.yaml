@@ -1,0 +1,128 @@
+name: "Test using Tekton and Pipeline as a Code"
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+jobs:
+  linux-tekton-build:
+    name: Linux - Tekton build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 17 ]
+        tekton-version: [ 'v0.47.0' ]
+        builder-image: [ 'paketobuildpacks/builder:0.1.361-tiny' ]
+        lifecycle-image: [ 'buildpacksio/lifecycle:0.16.3' ]
+        run-image: [ 'paketobuildpacks/run:tiny' ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+
+      - name: Setup Kind with Registry
+        run: |
+          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
+
+      - name: Setup Tekton
+        run: |
+          kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
+          kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=90s
+          kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
+          kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
+
+      - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
+        run: |
+          CONTAINER_NAME=quarkus-tekton-hello
+          CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
+
+          kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
+          cat <<EOF | kubectl apply -f -
+          ---
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: env-vars-ws-pvc
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 500Mi
+          ---
+          apiVersion: tekton.dev/v1beta1
+          kind: PipelineRun
+          metadata:
+            name: buildpacks-phases
+            labels:
+              app.kubernetes.io/description: "Buildpacks-PipelineRun"
+          spec:
+            pipelineSpec:
+              workspaces:
+                - name: source-ws
+                - name: cache-ws
+              tasks:
+                - name: fetch-repository
+                  taskRef:
+                    name: git-clone
+                  workspaces:
+                    - name: output
+                      workspace: source-ws
+                  params:
+                    - name: url
+                      value: https://github.com/quarkusio/quarkus-quickstarts.git
+                    - name: deleteExisting
+                      value: "true"
+                - name: buildpacks
+                  taskRef:
+                    name: buildpacks-phases
+                  runAfter:
+                    - fetch-repository
+                  workspaces:
+                    - name: source
+                      workspace: source-ws
+                    - name: cache
+                      workspace: cache-ws
+                  params:
+                    - name: APP_IMAGE
+                      value: ${CONTAINER_IMAGE}
+                    - name: SOURCE_SUBPATH
+                      value: getting-started
+                    - name: BUILDER_IMAGE
+                      value: ${{ matrix.builder-image }}
+                    - name: LIFECYCLE_IMAGE
+                      value: ${{ matrix.lifecycle-image }}
+                    - name: RUN_IMAGE
+                      value: ${{ matrix.run-image }}
+                    - name: ENV_VARS
+                      value:
+                        - BP_NATIVE_IMAGE=false
+                        - BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
+                        - BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
+                    - name: PROCESS_TYPE
+                      value: ""
+            workspaces:
+              - name: source-ws
+                subPath: source
+                persistentVolumeClaim:
+                  claimName: env-vars-ws-pvc
+              - name: cache-ws
+                subPath: cache
+                persistentVolumeClaim:
+                  claimName: env-vars-ws-pvc
+          EOF
+
+          # Wait for the build
+          kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks-phases
+
+          # Test application
+          .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
+      - name: (Only if it failed) Print Pipeline Task logs
+        if: failure()
+        run: |
+          kubectl logs buildpacks-phases-buildpacks-pod --all-containers --ignore-errors
