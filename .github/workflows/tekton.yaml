@@ -116,7 +116,9 @@ jobs:
                 persistentVolumeClaim:
                   claimName: env-vars-ws-pvc
           EOF
-
+          
+          # Log th execution of the build process
+          kubectl logs buildpacks-phases-buildpacks-pod --all-containers --ignore-errors &
           # Wait for the build
           kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks-phases
 
