@@ -13,6 +13,7 @@ jobs:
       matrix:
         java: [ 17 ]
         tekton-version: [ 'v0.47.0' ]
+        tekton-client-version: [ '0.31.0']
         builder-image: [ 'paketobuildpacks/builder:0.1.361-tiny' ]
         lifecycle-image: [ 'buildpacksio/lifecycle:0.16.3' ]
         run-image: [ 'paketobuildpacks/run:tiny' ]
@@ -35,6 +36,9 @@ jobs:
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=90s
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
           kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
+          
+          wget https://github.com/tektoncd/cli/releases/download/v${{ matrix.tekton-client-version }}/tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
+          sudo rpm -Uvh tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
@@ -117,8 +121,9 @@ jobs:
                   claimName: env-vars-ws-pvc
           EOF
           
-          # Log th execution of the build process
-          kubectl logs buildpacks-phases-buildpacks-pod --all-containers --ignore-errors &
+          # Log the execution of the build process
+          tkn pipeline logs buildpacks-phases
+          
           # Wait for the build
           kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks-phases
 
