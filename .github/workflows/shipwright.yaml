@@ -34,11 +34,11 @@ jobs:
       - name: Setup Tekton & Shipwright
         run: |
           kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
-          kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=90s
-          kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
+          kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=120s
+          kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=120s
           
           kubectl apply -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
-          kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=90s
+          kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=120s
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
@@ -58,7 +58,6 @@ jobs:
               url: https://github.com/quarkusio/quarkus-quickstarts
               contextDir: getting-started
             paramValues:
-              #
               - name: SOURCE_SUBPATH
                 value: getting-started
               - name: CNB_PLATFORM_API
@@ -88,7 +87,7 @@ jobs:
           
           # Wait for the build
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          kubectl wait --for=condition=Succeeded --timeout=600s $BUILDRUN_NAME
+          kubectl wait --for=condition=Succeeded --timeout=900s $BUILDRUN_NAME
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
