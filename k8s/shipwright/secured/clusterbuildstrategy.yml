@@ -5,142 +5,231 @@ metadata:
   name: buildpacks
 spec:
   volumes:
-    - name: platform-env
-      emptyDir: {}
     - name: certificate-registry
       configMap:
         name: certificate-registry
+    - name: platform-env
+      emptyDir: {}
+    - name: layers-dir
+      emptyDir: {}
+    - name: empty-dir
+      emptyDir: {}
+    - name: cache-dir
+      persistentVolumeClaim:
+        claimName: ws-pvc
   parameters:
-    - name: platform-api-version
-      description: The referenced version is the minimum version that all relevant buildpack implementations support.
-      default: "0.4"
     - name: certificate-path
       description: Path to self signed certificate(s)
       default: "/selfsigned-certificates"
-    - name: BP_NATIVE_IMAGE
+    - name: CNB_PLATFORM_API
+      description: Platform API Version supported
+      default: ""
+    - name: CNB_BUILDER_IMAGE
+      description: Builder image containing the buildpacks
+      default: ""
+    - name: CNB_LIFECYCLE_IMAGE
+      description: The image to use when executing Lifecycle phases.
+      default: ""
+    - name: APP_IMAGE
+      description: The name of where to store the app image.
+    - name: RUN_IMAGE
+      description: Reference to a run image to use.
+      default: ""
+    - name: CACHE_IMAGE
+      description: The name of the persistent app cache image (if no cache workspace is provided).
+      default: ""
+    - name: CACHE_DIR_NAME
+      description: Directory to cache files
+      default: cache
+    - name: PROCESS_TYPE
+      description: The default process type to set on the image.
+      default: "web"
+    - name: SOURCE_SUBPATH
+      description: A subpath within the `source` input where the source to build is located.
+      default: ""
+    - name: ENV_VARS
+      type: array
+      description: Environment variables to set during _build-time_.
+      defaults: []
+    - name: PLATFORM_DIR
+      description: The name of the platform directory.
+      default: empty-dir
+    - name: USER_ID
+      description: The user ID of the builder image user.
+      default: "1000"
+    - name: GROUP_ID
+      description: The group ID of the builder image user.
+      default: "1000"
+    - name: USER_HOME
+      description: Absolute path to the user's home directory.
+      default: /tekton/home
+    - # TODO: Should be defined using ENV_VARS. To be reviewed
+      name: BP_NATIVE_IMAGE
       description: Whether to build a native image from the application. Defaults to false.
       default: "false"
-    - name: BP_MAVEN_BUILT_ARTIFACT
+    - # TODO: Should be defined using ENV_VARS. To be reviewed
+      name: BP_MAVEN_BUILT_ARTIFACT
       description: Configure the built application artifact explicitly. Supersedes $BP_MAVEN_BUILT_MODULE Defaults to target/*.[ejw]ar. Can match a single file, multiple files or a directory. Can be one or more space separated patterns.
-      default: "target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
-    - name: BP_MAVEN_BUILD_ARGUMENTS
+      default: "target/*.[ejw]ar"
+    - # TODO: Should be defined using ENV_VARS. To be reviewed
+      name: BP_MAVEN_BUILD_ARGUMENTS
       description: Configure the arguments to pass to Maven. Defaults to -Dmaven.test.skip=true --no-transfer-progress package. --batch-mode will be prepended to the argument list in environments without a TTY.
-      default: "package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+      default: "-Dmaven.test.skip=true --no-transfer-progress package"
+    - name: certificate-path
+      description: Path to self signed certificate(s)
+      default: "/selfsigned-certificates"
   buildSteps:
     - name: prepare
-      image: kind-registry.local:5000/paketobuildpacks/builder:base
-      imagePullPolicy: Always
-      securityContext:
-        runAsUser: 0
-        capabilities:
-          add:
-            - CHOWN
-      command:
-        - chown
+      image: docker.io/library/bash:5.1.4
       args:
-        - -R
-        - "1000:1000"
-        - /tekton/home
-      resources:
-        limits:
-          cpu: 500m
-          memory: 1Gi
-        requests:
-          cpu: 250m
-          memory: 65Mi
+        - -c
+        - |
+          set -e
+
+          # TODO: To be reviewed
+          echo "> Creating the cache directory if it is not empty"
+          if [ ! -d "$DIRECTORY" ]; then
+            echo "> Creating cache: /layers/$(params.CACHE_DIR_NAME)"
+            mkdir -p /layers/$(params.CACHE_DIR_NAME)
+            chown -R "$(params.USER_ID):$(params.GROUP_ID)" /layers/$(params.CACHE_DIR_NAME)
+          fi
+          
+          # TODO: To be reviewed as shipwright don't support like Tekton workspaces
+          #if [[ "$(workspaces.cache.bound)" == "true" ]]; then
+          #  echo "> Setting permissions on '$(workspaces.cache.path)'..."
+          #  chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$(workspaces.cache.path)"
+          #fi
+
+          for path in "/tekton/home" "/layers" "$(workspaces.source.path)"; do
+            echo "> Setting permissions on '$path'..."
+            chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$path"
+          done
+
+          echo "> Parsing additional configuration..."
+          parsing_flag=""
+          envs=()
+          for arg in "$@"; do
+              if [[ "$arg" == "--env-vars" ]]; then
+                  echo "-> Parsing env variables..."
+                  parsing_flag="env-vars"
+              elif [[ "$parsing_flag" == "env-vars" ]]; then
+                  envs+=("$arg")
+              fi
+          done
+
+          echo "> Processing any environment variables..."
+          ENV_DIR="/platform/env"
+
+          echo "--> Creating 'env' directory: $ENV_DIR"
+          mkdir -p "$ENV_DIR"
+
+          for env in "${envs[@]}"; do
+              IFS='=' read -r key value string <<< "$env"
+              if [[ "$key" != "" && "$value" != "" ]]; then
+                  path="${ENV_DIR}/${key}"
+                  echo "--> Writing ${path}..."
+                  echo -n "$value" > "$path"
+              fi
+          done
+        # That's the separator between the shell script and its args
+        - --
+        - --env-vars
+        - $(params.ENV_VARS[*])
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+        - name: empty-dir #name: --> DON'T WORK : $(params.PLATFORM_DIR)
+          mountPath: /platform
+        - name: cache-dir #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
+          mountPath: /tmp/cache
+    - name: analyze
+      image: $(params.CNB_LIFECYCLE_IMAGE)
+      command: ["/cnb/lifecycle/analyzer"]
+      args:
+        - "-layers=/layers"
+        - "-run-image=$(params.RUN_IMAGE)"
+        - "-cache-image=$(params.CACHE_IMAGE)"
+        - "-uid=$(params.USER_ID)"
+        - "-gid=$(params.GROUP_ID)"
+        - "$(params.APP_IMAGE)"
+      env:
+        - name: CNB_PLATFORM_API
+          value: $(params.CNB_PLATFORM_API)
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+
+    - name: detect
+      image: $(params.CNB_BUILDER_IMAGE)
+      imagePullPolicy: Always
+      command: [ "/cnb/lifecycle/detector" ]
+      args:
+        - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+        - "-group=/layers/group.toml"
+        - "-plan=/layers/plan.toml"
+        - "-platform=$(params.PLATFORM_DIR)"
+      env:
+        - name: CNB_PLATFORM_API
+          value: $(params.CNB_PLATFORM_API)
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+        - name: empty-dir # Hard coded the name as substitution do not work: $(params.PLATFORM_DIR)
+          mountPath: /platform
+        - name: empty-dir
+          mountPath: /tekton/home
+
+    - name: restore
+      image: $(params.CNB_LIFECYCLE_IMAGE)
+      imagePullPolicy: Always
+      command: ["/cnb/lifecycle/restorer"]
+      args:
+        - "-group=/layers/group.toml"
+        - "-layers=/layers"
+        - "-cache-dir=/layers/$(params.CACHE_DIR_NAME)"
+        - "-cache-image=$(params.CACHE_IMAGE)"
+        - "-uid=$(params.USER_ID)"
+        - "-gid=$(params.GROUP_ID)"
+      env:
+        - name: CNB_PLATFORM_API
+          value: $(params.CNB_PLATFORM_API)
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+        - name: cache-dir
+          mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
+
     - name: build-and-push
-      image: kind-registry.local:5000/paketobuildpacks/builder:base
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
+      command: ["/cnb/lifecycle/builder"]
+      args:
+        - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+        - "-layers=/layers"
+        - "-group=/layers/group.toml"
+        - "-plan=/layers/plan.toml"
+        - "-platform=$(params.PLATFORM_DIR)"
       env:
         - name: CNB_PLATFORM_API
-          value: $(params.platform-api-version)
-        - name: PARAM_SOURCE_CONTEXT
-          value: $(params.shp-source-context)
-        - name: PARAM_OUTPUT_IMAGE
-          value: $(params.shp-output-image)
-        - name: SSL_CERT_DIR
-          value: $(params.certificate-path)
+          value: $(params.CNB_PLATFORM_API)
+        # TODO: Can we retrieve the ENV VARs using Build.Spec.ParamsValues.ENV_VARs ?
+        # instead of hard coding them here
         - name: BP_NATIVE_IMAGE
           value: $(params.BP_NATIVE_IMAGE)
         - name: BP_MAVEN_BUILT_ARTIFACT
           value: $(params.BP_MAVEN_BUILT_ARTIFACT)
         - name: BP_MAVEN_BUILD_ARGUMENTS
           value: $(params.BP_MAVEN_BUILD_ARGUMENTS)
-      command:
-        - /bin/bash
-      args:
-        - -c
-        - "set -euo pipefail
-
-echo \"> Processing environment variables...\"
-ENV_DIR=\"/platform/env\"
-
-envs=($(env))
-
-# Denying the creation of non required files from system environments.
-# The creation of a file named PATH (corresponding to PATH system environment)
-# caused failure for python source during pip install (https://github.com/Azure-Samples/python-docs-hello-world)
-block_list=(\"PATH\" \"HOSTNAME\" \"PWD\" \"_\" \"SHLVL\" \"HOME\" \"\")
-
-for env in \"${envs[@]}\"; do
-  blocked=false
-
-  IFS='=' read -r key value string <<< \"$env\"
-
-  for str in \"${block_list[@]}\"; do
-    if [[ \"$key\" == \"$str\" ]]; then
-      blocked=true
-      break
-    fi
-  done
-
-  if [ \"$blocked\" == \"false\" ]; then
-    path=\"${ENV_DIR}/${key}\"
-    echo -n \"$value\" > \"$path\"
-  fi
-done
-
-LAYERS_DIR=/tmp/layers
-CACHE_DIR=/tmp/cache
-
-mkdir \"$CACHE_DIR\" \"$LAYERS_DIR\"
-
-function anounce_phase {
-  printf \"===> %s\
-\" \"$1\" 
-}
-
-anounce_phase \"DETECTING\"
-/cnb/lifecycle/detector -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"
-
-anounce_phase \"ANALYZING\"
-/cnb/lifecycle/analyzer -layers=\"$LAYERS_DIR\" -cache-dir=\"$CACHE_DIR\" \"${PARAM_OUTPUT_IMAGE}\"
-
-anounce_phase \"RESTORING\"
-/cnb/lifecycle/restorer -cache-dir=\"$CACHE_DIR\"
-
-anounce_phase \"BUILDING\"
-/cnb/lifecycle/builder -app=\"${PARAM_SOURCE_CONTEXT}\" -layers=\"$LAYERS_DIR\"
-
-exporter_args=( -layers=\"$LAYERS_DIR\" -report=/tmp/report.toml -cache-dir=\"$CACHE_DIR\" -app=\"${PARAM_SOURCE_CONTEXT}\")
-grep -q \"buildpack-default-process-type\" \"$LAYERS_DIR/config/metadata.toml\" || exporter_args+=( -process-type web ) 
-
-anounce_phase \"EXPORTING\"
-/cnb/lifecycle/exporter \"${exporter_args[@]}\" \"${PARAM_OUTPUT_IMAGE}\"
-
-# Store the image digest
-grep digest /tmp/report.toml | tr -d ' \\\"\
-' | sed s/digest=// > \"$(results.shp-image-digest.path)\"
-"
       volumeMounts:
-        - mountPath: /platform/env
-          name: platform-env
-        - mountPath: /selfsigned-certificates
-          name: certificate-registry
-          readOnly: true
+        - name: layers-dir
+          mountPath: /layers
+        - name: empty-dir # Hard coded the name as substitution do not work: $(params.PLATFORM_DIR)
+          mountPath: /platform
+        - name: empty-dir
+          mountPath: /tekton/home
       resources:
         limits:
           cpu: 500m
@@ -148,3 +237,40 @@ grep digest /tmp/report.toml | tr -d ' \\\"\
         requests:
           cpu: 250m
           memory: 65Mi
+    - name: export
+      image: $(params.CNB_LIFECYCLE_IMAGE)
+      imagePullPolicy: Always
+      command: ["/cnb/lifecycle/exporter"]
+      args:
+        - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+        - "-layers=/layers"
+        - "-group=/layers/group.toml"
+        - "-cache-dir=/layers/$(params.CACHE_DIR_NAME)"
+        - "-cache-image=$(params.CACHE_IMAGE)"
+        - "-report=/layers/report.toml"
+        - "-process-type=$(params.PROCESS_TYPE)"
+        - "-uid=$(params.USER_ID)"
+        - "-gid=$(params.GROUP_ID)"
+        - "-stack=/layers/stack.toml"
+        - "$(params.APP_IMAGE)"
+      env:
+        - name: CNB_PLATFORM_API
+          value: $(params.CNB_PLATFORM_API)
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+        - name: cache-dir
+          mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
+        - mountPath: /selfsigned-certificates
+          name: certificate-registry
+          readOnly: true
+    - name: results
+      image: docker.io/library/bash:5.1.4
+      args:
+        - -c
+        - |
+          set -e
+          cat /layers/report.toml | grep "digest" | cut -d'"' -f2 | cut -d'"' -f2 | tr -d '\n' | tee $(results.APP_IMAGE_DIGEST.path)
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
