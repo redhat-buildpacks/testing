@@ -87,7 +87,7 @@ jobs:
           
           # Wait for the build
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          kubectl wait --for=condition=Succeeded --timeout=120 $BUILDRUN_NAME
+          kubectl wait --for=condition=Succeeded --timeout=120s $BUILDRUN_NAME
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
