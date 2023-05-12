@@ -48,10 +48,10 @@ jobs:
           CONTAINER_NAME=quarkus-shipwright-hello
           CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
           
-          kubectl create -f k8s/shipwright/unsecure/pvc.yml
-          kubectl apply  -f k8s/shipwright/unsecure/clusterbuildstrategy.yml
-          kubectl apply  -f k8s/shipwright/unsecure/build.yml
-          kubectl create -f k8s/shipwright/unsecure/buildrun.yml
+          kubectl create -f ./k8s/shipwright/unsecured/pvc.yml
+          kubectl apply  -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
+          kubectl apply  -f ./k8s/shipwright/unsecured/build.yml
+          kubectl create -f ./k8s/shipwright/unsecured/buildrun.yml
           
           # Wait for the build
           TASKRUN_NAME=$(kubectl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
