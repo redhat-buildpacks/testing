@@ -31,6 +31,8 @@ spec:
     - # TODO: Should be defined using ENV_VARS. To be reviewed
       name: BP_MAVEN_BUILD_ARGUMENTS
       value: "package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+    - name: PROCESS_TYPE
+      value: ""
     - name: ENV_VARS
       values:
         - value: BP_NATIVE_IMAGE=false
