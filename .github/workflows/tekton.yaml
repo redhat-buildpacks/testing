@@ -51,7 +51,7 @@ jobs:
           apiVersion: v1
           kind: PersistentVolumeClaim
           metadata:
-            name: env-vars-ws-pvc
+            name: ws-pvc
           spec:
             accessModes:
               - ReadWriteOnce
@@ -114,11 +114,11 @@ jobs:
               - name: source-ws
                 subPath: source
                 persistentVolumeClaim:
-                  claimName: env-vars-ws-pvc
+                  claimName: ws-pvc
               - name: cache-ws
                 subPath: cache
                 persistentVolumeClaim:
-                  claimName: env-vars-ws-pvc
+                  claimName: ws-pvc
           EOF
           
           # Wait for the build

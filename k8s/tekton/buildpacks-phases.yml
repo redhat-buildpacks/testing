@@ -126,19 +126,6 @@ spec:
       securityContext:
         privileged: true
 
-    # Copy stack.toml so that it will be accessible to the exporter, since the lifecycle image will not contain it.
-    # - name: copy-stack-toml
-    #   image: $(params.BUILDER_IMAGE)
-    #   imagePullPolicy: Always
-    #   command: ["/bin/sh"]
-    #   args:
-    #     - "-c"
-    #     - >
-    #       cp /cnb/stack.toml /layers/
-    #   volumeMounts:
-    #     - name: layers-dir
-    #       mountPath: /layers
-
     - name: analyze
       image: $(params.LIFECYCLE_IMAGE)
       imagePullPolicy: Always
@@ -157,7 +144,6 @@ spec:
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
-
 
     - name: detect
       image: $(params.BUILDER_IMAGE)

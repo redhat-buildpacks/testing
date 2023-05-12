@@ -163,13 +163,13 @@ RUN_IMAGE=paketobuildpacks/run:tiny
 kubectl delete task/buildpacks-phases
 kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
 kubectl delete PipelineRun/buildpacks-phases
-kubectl delete pvc/env-vars-ws-pvc
+kubectl delete pvc/ws-pvc
 cat <<EOF | kubectl apply -f -
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: env-vars-ws-pvc
+  name: ws-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -232,11 +232,11 @@ spec:
     - name: source-ws
       subPath: source
       persistentVolumeClaim:
-        claimName: env-vars-ws-pvc
+        claimName: ws-pvc
     - name: cache-ws
       subPath: cache
       persistentVolumeClaim:
-        claimName: env-vars-ws-pvc
+        claimName: ws-pvc
 EOF
 ```
 Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns
