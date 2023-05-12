@@ -17,8 +17,8 @@
 * [2. Pack client](#2-pack-client)
 * [3. Tekton and Pipeline as a Code](#3-tekton-and-pipeline-as-a-code)
 * [4. Shipwright and Buildpack](#4-shipwright-and-buildpack)
+  * [Secured container registry](#secured-container-registry)
   * [All steps](#all-steps)
-
 
 ## How to build a runtime using buildpack
 
@@ -252,13 +252,77 @@ See the project documentation for more information: https://github.com/shipwrigh
 
 To use shipwright, it is needed to have a k8s cluster, local docker registry and tekton installed (v0.41.+)
 ```bash
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --secure-registry
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.44.0/release.yaml
 ```
 Next, deploy the latest release of shipwright
 ```bash
 kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ```
+
+Next, install the `Buildpacks BuildStrategy` using the following command:
+```bash
+kubectl delete -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
+kubectl apply -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
+```
+
+As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the [imgpkg](https://carvel.dev/imgpkg/docs/v0.36.x/install/) tool:
+```bash
+imgpkg copy -i docker.io/paketobuildpacks/builder:full --to-tar ./k8s/builder-full.tar 
+imgpkg copy -i docker.io/paketobuildpacks/builder:base --to-tar ./k8s/builder-base.tar
+
+imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
+  --registry-username admin --registry-password snowdrop \
+  --tar ./k8s/builder-full.tar \
+  --to-repo kind-registry.local:5000/paketobuildpacks/builder
+  
+imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
+  --registry-username admin --registry-password snowdrop \
+  --tar ./k8s/builder-base.tar \
+  --to-repo kind-registry.local:5000/paketobuildpacks/builder
+```
+>**Tip**: Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
+>
+Create the `Build` CR using as source the Quarkus Getting started repository:
+
+```bash
+kubectl delete -f k8s/shipwright/unsecured/build.yml
+kubectl apply -f k8s/shipwright/unsecured/build.yml
+```
+To view the Build which you just created:
+
+```bash
+kubectl get build -n demo
+NAME                      REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDSTRATEGYNAME   CREATIONTIME
+buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildpacks          6s
+```
+
+Submit a `BuildRun`:
+
+```bash
+kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo
+kubectl create -f k8s/shipwright/unsecured/buildrun.yml
+```
+Wait until your BuildRun is completed, and then you can view it as follows:
+
+```bash
+kubectl get buildruns -n demo
+NAME                              SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
+buildpack-quarkus-buildrun-vp2gb   True        Succeeded   2m22s       9s
+```
+When the task is finished and no error is reported, then launch the container
+```bash
+docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
+```
+### Secured container registry
+
+If you prefer to use a secure registry, then some additional steps are needed such as
+
+Install a secured container registry
+```bash
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --secure-registry --registry-name=kind-registry.local
+```
+>**Note**: To install a secured (HTTPS and authentication) docker registry, pass the parameter: --secure-registry
 
 Generate a docker-registry secret
 
@@ -286,56 +350,30 @@ kubectl delete configmap certificate-registry -n demo
 kubectl create configmap certificate-registry -n demo \
   --from-file=kind-registry.crt=$HOME/.registry/certs/kind-registry.local/client.crt 
 ```
-
-Next, install the `Buildpacks BuildStrategy` using the following command:
-```bash
-kubectl delete -f k8s/shipwright/secured/clusterbuildstrategy.yml
-kubectl apply -f k8s/shipwright/secured/clusterbuildstrategy.yml
-```
-
-As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the [imgpkg](https://carvel.dev/imgpkg/docs/v0.36.x/install/) tool:
-```bash
-imgpkg copy -i docker.io/paketobuildpacks/builder:full --to-tar ./k8s/builder-full.tar 
-imgpkg copy -i docker.io/paketobuildpacks/builder:base --to-tar ./k8s/builder-base.tar
-
-imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
-  --registry-username admin --registry-password snowdrop \
-  --tar ./k8s/builder-full.tar \
-  --to-repo kind-registry.local:5000/paketobuildpacks/builder
-  
-imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
-  --registry-username admin --registry-password snowdrop \
-  --tar ./k8s/builder-base.tar \
-  --to-repo kind-registry.local:5000/paketobuildpacks/builder
-```
->**Tip**: Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
->
-Create the `Build` CR using as source the Quarkus Getting started repository:
-
-```bash
-kubectl delete -f k8s/shipwright/secured/build.yml
-kubectl apply -f k8s/shipwright/secured/build.yml
-```
-To view the Build which you just created:
-
-```bash
-kubectl get build -n demo
-NAME                      REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDSTRATEGYNAME   CREATIONTIME
-buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildpacks          6s
-```
-
-Submit a `BuildRun`:
-
-```bash
-kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo
-kubectl create -f k8s/shipwright/secured/buildrun.yml
-```
-Wait until your BuildRun is completed, and then you can view it as follows:
-
-```bash
-kubectl get buildruns -n demo
-NAME                              SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
-buildpack-quarkus-buildrun-vp2gb   True        Succeeded   2m22s       9s
+Deploy the `ClusterBuildStrategy` file from the secured folder as it includes a new volume to mount the certificate
+```yaml
+apiVersion: shipwright.io/v1alpha1
+kind: ClusterBuildStrategy
+metadata:
+  name: buildpacks
+spec:
+  volumes:
+    - name: certificate-registry
+      configMap:
+        name: certificate-registry
+...
+parameters:
+  - name: certificate-path
+    description: Path to self signed certificate(s)
+...
+- name: export
+  image: $(params.CNB_LIFECYCLE_IMAGE)
+  imagePullPolicy: Always
+...
+volumeMounts:
+- mountPath: /selfsigned-certificates
+  name: certificate-registry
+  readOnly: true
 ```
 
 ### All steps
