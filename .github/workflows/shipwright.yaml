@@ -87,13 +87,39 @@ jobs:
           
           # Wait for the build
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          kubectl wait --for=condition=Succeeded --timeout=900s $BUILDRUN_NAME
+          kubectl wait --for=condition=Succeeded --timeout=120 $BUILDRUN_NAME
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
 
-      - name: Print BuildRun logs no matter if it fails or success
+      - name: Print Taskrun's Pod logs no matter if it fails or success
         if: failure() || success()
         run: |
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          kubectl logs $BUILDRUN_NAME
+          kubectl describe $BUILDRUN_NAME
+          
+          POD_NAME=$(kubectl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          
+          echo ">>>>>>>>>>>>> step-source-default"
+          kubectl logs $POD_NAME -c step-source-default
+          
+          echo ">>>>>>>>>>>>> step-prepare"
+          kubectl logs $POD_NAME -c step-prepare
+
+          echo ">>>>>>>>>>>>> step-analyze"          
+          kubectl logs $POD_NAME -c step-analyze
+
+          echo ">>>>>>>>>>>>> step-detect"          
+          kubectl logs $POD_NAME -c step-restore
+
+          echo ">>>>>>>>>>>>> step-restore"          
+          kubectl logs $POD_NAME -c step-restore
+          
+          echo ">>>>>>>>>>>>> step-build-and-push"         
+          kubectl logs $POD_NAME -c step-build-and-push
+          
+          echo ">>>>>>>>>>>>> step-export"
+          kubectl logs $POD_NAME -c step-export
+
+          echo ">>>>>>>>>>>>> step-results"
+          kubectl logs $POD_NAME -c step-results
