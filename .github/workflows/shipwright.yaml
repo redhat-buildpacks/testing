@@ -59,12 +59,12 @@ jobs:
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
-      - name: Log the execution of the pipelinerun
+      - name: Log the execution of the TaskRun
         if: success()
         run: |
           TASKRUN_NAME=$(kubctl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           tkn taskrun logs $TASKRUN_NAME
-      - name: (Only if it failed) Print Pipeline Task logs
+      - name: (Only if it failed) Print TaskRun logs
         if: failure()
         run: |
           PODNAME=$(kubctl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo -oname)
