@@ -62,12 +62,12 @@ jobs:
       - name: Log the execution of the TaskRun
         if: success()
         run: |
-          BUILDRUN_NAME=$(kubectl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           tkn taskrun logs $BUILDRUN_NAME
       - name: (Only if it failed) Print TaskRun logs
         if: failure()
         run: |
           #PODNAME=$(kubectl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           #kubectl logs $PODNAME --all-containers --ignore-errors
-          BUILDRUN_NAME=$(kubectl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           tkn taskrun logs $BUILDRUN_NAME
