@@ -43,7 +43,7 @@ jobs:
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
           CONTAINER_NAME=quarkus-shipwright-hello
-          CONTAINER_IMAGE=localhost:5000/$CONTAINER_NAME:1.0
+          CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
           
           kubectl create -f ./k8s/shipwright/unsecured/pvc.yml
           kubectl apply  -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
@@ -69,7 +69,7 @@ jobs:
               - name: RUN_IMAGE
                 value: paketobuildpacks/run:tiny
               - name: APP_IMAGE
-                value: $CONTAINER_IMAGE
+                value: ${CONTAINER_IMAGE}
               - name: PROCESS_TYPE
                 value: ""
               - name: ENV_VARS
@@ -87,7 +87,7 @@ jobs:
           
           # Wait for the build
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          kubectl wait --for=condition=Succeeded --timeout=120s $BUILDRUN_NAME
+          kubectl wait --for=condition=Succeeded --timeout=600s $BUILDRUN_NAME
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
