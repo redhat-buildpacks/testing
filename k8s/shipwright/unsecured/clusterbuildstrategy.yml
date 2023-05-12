@@ -205,7 +205,6 @@ spec:
         - "-layers=/layers"
         - "-group=/layers/group.toml"
         - "-plan=/layers/plan.toml"
-        - "-platform=$(params.PLATFORM_DIR)"
       env:
         - name: CNB_PLATFORM_API
           value: $(params.CNB_PLATFORM_API)
@@ -224,13 +223,7 @@ spec:
           mountPath: /platform
         - name: empty-dir
           mountPath: /tekton/home
-      resources:
-        limits:
-          cpu: 500m
-          memory: 1Gi
-        requests:
-          cpu: 250m
-          memory: 65Mi
+
     - name: export
       image: $(params.CNB_LIFECYCLE_IMAGE)
       imagePullPolicy: Always
