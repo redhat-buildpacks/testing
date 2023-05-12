@@ -82,7 +82,7 @@ jobs:
               name: buildpacks
               kind: ClusterBuildStrategy
             output:
-              image: CONTAINER_IMAGE
+              image: $CONTAINER_IMAGE
           EOF
           kubectl create -f ./k8s/shipwright/unsecured/buildrun.yml
           
