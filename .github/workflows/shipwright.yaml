@@ -39,9 +39,6 @@ jobs:
           
           kubectl apply -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
           kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=90s
-          
-          wget https://github.com/tektoncd/cli/releases/download/v${{ matrix.tekton-client-version }}/tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
-          sudo rpm -Uvh tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
@@ -64,4 +61,4 @@ jobs:
         if: failure() || success()
         run: |
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          tkn taskrun logs $BUILDRUN_NAME
+          kubectl logs buildrun/$BUILDRUN_NAME
