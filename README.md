@@ -3,8 +3,10 @@
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg"></a>
  <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml" alt="Test Pack CLI Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg"></a>
-<a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml" alt="Test Tekton Status">
+<a href="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml" alt="Test Tekton Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg"></a>
+<a href="https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml" alt="Test Shipwright Status">
+ <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml/badge.svg"></a>
  <a href="https://github.com/redhat-buildpacks/testing/pulse" alt="Activity">
  <img src="https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing"/></a>
 </p>
@@ -253,7 +255,7 @@ See the project documentation for more information: https://github.com/shipwrigh
 To use shipwright, it is needed to have a k8s cluster, local docker registry and tekton installed (v0.41.+)
 ```bash
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
-kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.44.0/release.yaml
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.47.0/release.yaml
 ```
 Next, deploy the latest release of shipwright
 ```bash
@@ -331,7 +333,7 @@ Generate a docker-registry secret
 ```bash
 REGISTRY_HOST="kind-registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
 kubectl create ns demo
-kubectl create secret docker-registry registry-creds -n demo \
+kubectl create secret docker-registry registry-creds \
   --docker-server="${REGISTRY_HOST}" \
   --docker-username="${REGISTRY_USER}" \
   --docker-password="${REGISTRY_PASSWORD}"
@@ -346,8 +348,8 @@ kubectl apply -f k8s/shipwright/secured/sa.yml
 Add the selfsigned certificate to a configMap. It will be mounted as a volume to set the env var `SSL_CERT_DIR` used by the go-containerregistry lib (of lifecycle)
 to access the registry using the HTTPS/TLS protocol.
 ```bash
-kubectl delete configmap certificate-registry -n demo
-kubectl create configmap certificate-registry -n demo \
+kubectl delete configmap certificate-registry
+kubectl create configmap certificate-registry \
   --from-file=kind-registry.crt=$HOME/.registry/certs/kind-registry.local/client.crt 
 ```
 Deploy the `ClusterBuildStrategy` file from the secured folder as it includes a new volume to mount the certificate
@@ -386,7 +388,7 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 
 Next, install Tekton and Shipwright
 ```bash
-kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.44.0/release.yaml
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.47.0/release.yaml
 kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ```
 
@@ -401,11 +403,10 @@ imgpkg copy --registry-insecure \
   --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 
-And deploy in a demo namespace the needed resources
+And deploy the needed resources
 ```bash
 DIR="unsecured"
-kubectl create ns demo --dry-run=client -o yaml | k apply -f -
-kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
+kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
 kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete -f k8s/shipwright/${DIR}/pvc.yml
@@ -426,15 +427,14 @@ imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client
   --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 
-And deploy in a demo namespace the needed resources
+And deploy the needed resources
 ```bash
 DIR="secured"
-kubectl create ns demo --dry-run=client -o yaml | k apply -f -
-kubectl create configmap certificate-registry -n demo \
+kubectl create configmap certificate-registry \
   --from-file=kind-registry.crt=./k8s/shipwright/${DIR}/binding/ca-certificates/kind-registry.local.crt
   
 REGISTRY_HOST="kind-registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
-kubectl create secret docker-registry registry-creds -n demo \
+kubectl create secret docker-registry registry-creds \
   --docker-server="${REGISTRY_HOST}" \
   --docker-username="${REGISTRY_USER}" \
   --docker-password="${REGISTRY_PASSWORD}"
@@ -448,10 +448,9 @@ kubectl create -f k8s/shipwright/${DIR}/buildrun.yml
 To clean up
 ```bash
 DIR="unsecured"
-kubectl delete secret registry-creds -n demo
-kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
+kubectl delete secret registry-creds
+kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
 kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete -f k8s/shipwright/${DIR}/pvc.yml
-kubectl delete ns demo
 ```

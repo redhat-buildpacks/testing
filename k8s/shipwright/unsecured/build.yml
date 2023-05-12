@@ -2,7 +2,6 @@ apiVersion: shipwright.io/v1alpha1
 kind: Build
 metadata:
   name: buildpack-quarkus-build
-  namespace: demo
 spec:
   source:
     url: https://github.com/quarkusio/quarkus-quickstarts
