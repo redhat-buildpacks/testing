@@ -1,4 +1,4 @@
-name: "Test using Shipwright"
+name: "Test using Tekton"
 on:
   workflow_dispatch:
   pull_request:

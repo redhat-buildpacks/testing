@@ -274,17 +274,11 @@ kubectl apply -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
 
 As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the [imgpkg](https://carvel.dev/imgpkg/docs/v0.36.x/install/) tool:
 ```bash
-imgpkg copy -i docker.io/paketobuildpacks/builder:full --to-tar ./k8s/builder-full.tar 
-imgpkg copy -i docker.io/paketobuildpacks/builder:base --to-tar ./k8s/builder-base.tar
+BUILDER_VERSION=0.1.361-tiny
+imgpkg copy -i docker.io/paketobuildpacks/builder:$BUILDER_VERSION --to-tar ./k8s/builder-$BUILDER_VERSION.tar
 
-imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
-  --registry-username admin --registry-password snowdrop \
-  --tar ./k8s/builder-full.tar \
-  --to-repo kind-registry.local:5000/paketobuildpacks/builder
-  
-imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
-  --registry-username admin --registry-password snowdrop \
-  --tar ./k8s/builder-base.tar \
+imgpkg copy \
+  --tar ./k8s/builder-$BUILDER_VERSION.tar \
   --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 >**Tip**: Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
@@ -404,8 +398,9 @@ And finally, deploy the resources using either an `unsecured` or `secured` conta
 
 Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
 ```bash
+BUILDER_VERSION=0.1.361-tiny
 imgpkg copy --registry-insecure \
-  --tar ./k8s/builder-base.tar \
+  --tar ./k8s/builder-$BUILDER_VERSION.tar \
   --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 
@@ -427,9 +422,10 @@ kubectl create -f k8s/shipwright/${DIR}/buildrun.yml
 
 Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
 ```bash
+BUILDER_VERSION=0.1.361-tiny
 imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
   --registry-username admin --registry-password snowdrop \
-  --tar ./k8s/builder-base.tar \
+  --tar ./k8s/builder-$BUILDER_VERSION.tar \
   --to-repo kind-registry.local:5000/paketobuildpacks/builder
 ```
 
