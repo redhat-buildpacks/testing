@@ -365,10 +365,17 @@ imgpkg copy --registry-insecure \
 
 And deploy in a demo namespace the needed resources
 ```bash
-kubectl create ns demo
-kubectl apply  -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
-kubectl apply  -f k8s/shipwright/unsecured/build.yml
-kubectl create -f k8s/shipwright/unsecured/buildrun.yml
+DIR="unsecured"
+kubectl create ns demo --dry-run=client -o yaml | k apply -f -
+kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
+kubectl delete -f k8s/shipwright/${DIR}/build.yml
+kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
+kubectl delete -n demo -f k8s/shipwright/${DIR}/pvc.yml
+
+kubectl create -n demo -f k8s/shipwright/${DIR}/pvc.yml
+kubectl apply  -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
+kubectl apply  -f k8s/shipwright/${DIR}/build.yml
+kubectl create -f k8s/shipwright/${DIR}/buildrun.yml
 ```
 
 2. Secured
@@ -383,7 +390,7 @@ imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client
 
 And deploy in a demo namespace the needed resources
 ```bash
-kubectl create ns demo
+kubectl create ns demo --dry-run=client -o yaml | k apply -f -
 kubectl create configmap certificate-registry -n demo \
   --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt
   
@@ -403,7 +410,6 @@ To clean up
 ```bash
 DIR="unsecured"
 kubectl delete secret registry-creds -n demo
-kubectl delete -f k8s/shipwright/${DIR}/sa.yml
 kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
 kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
