@@ -43,7 +43,7 @@ jobs:
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
           CONTAINER_NAME=quarkus-shipwright-hello
-          CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
+          CONTAINER_IMAGE=localhost:5000/$CONTAINER_NAME:1.0
           
           kubectl create -f ./k8s/shipwright/unsecured/pvc.yml
           kubectl apply  -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
