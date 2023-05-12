@@ -299,10 +299,12 @@ NAME                      REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDS
 buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildpacks          6s
 ```
 
-Submit a `BuildRun`:
+Trigger a `BuildRun`:
 
 ```bash
+kubectl delete -f k8s/shipwright/unsecured/pvc.yml
 kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
+kubectl create -f k8s/shipwright/unsecured/pvc.yml
 kubectl create -f k8s/shipwright/unsecured/buildrun.yml
 ```
 Wait until your BuildRun is completed, and then you can view it as follows:

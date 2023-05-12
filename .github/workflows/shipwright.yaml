@@ -67,5 +67,5 @@ jobs:
       - name: (Only if it failed) Print TaskRun logs
         if: failure()
         run: |
-          PODNAME=$(kubectl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo -oname)
+          PODNAME=$(kubectl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           kubectl logs $PODNAME --all-containers --ignore-errors
