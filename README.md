@@ -254,7 +254,7 @@ See the project documentation for more information: https://github.com/shipwrigh
 
 To use shipwright, it is needed to have a k8s cluster, local docker registry and tekton installed (v0.41.+)
 ```bash
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.47.0/release.yaml
 ```
 Next, deploy the latest release of shipwright
@@ -294,7 +294,7 @@ kubectl apply -f k8s/shipwright/unsecured/build.yml
 To view the Build which you just created:
 
 ```bash
-kubectl get build -n demo
+kubectl get build
 NAME                      REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDSTRATEGYNAME   CREATIONTIME
 buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildpacks          6s
 ```
@@ -302,13 +302,13 @@ buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildp
 Submit a `BuildRun`:
 
 ```bash
-kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo
+kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
 kubectl create -f k8s/shipwright/unsecured/buildrun.yml
 ```
 Wait until your BuildRun is completed, and then you can view it as follows:
 
 ```bash
-kubectl get buildruns -n demo
+kubectl get buildruns
 NAME                              SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
 buildpack-quarkus-buildrun-vp2gb   True        Succeeded   2m22s       9s
 ```
