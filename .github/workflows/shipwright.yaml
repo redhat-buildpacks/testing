@@ -54,7 +54,7 @@ jobs:
           kubectl create -f k8s/shipwright/unsecure/buildrun.yml
           
           # Wait for the build
-          TASKRUN_NAME=$(k get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          TASKRUN_NAME=$(kubectl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           kubectl wait --for=condition=Succeeded --timeout=600s taskRun/$TASKRUN_NAME
 
           # Test application
@@ -62,10 +62,10 @@ jobs:
       - name: Log the execution of the pipelinerun
         if: success()
         run: |
-          TASKRUN_NAME=$(k get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          TASKRUN_NAME=$(kubctl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           tkn taskrun logs $TASKRUN_NAME
       - name: (Only if it failed) Print Pipeline Task logs
         if: failure()
         run: |
-          PODNAME=$(k get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo -oname)
+          PODNAME=$(kubctl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -n demo -oname)
           kubectl logs $PODNAME --all-containers --ignore-errors
