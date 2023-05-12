@@ -7,6 +7,26 @@ spec:
   source:
     url: https://github.com/quarkusio/quarkus-quickstarts
     contextDir: getting-started
+  paramValues:
+    #
+    - name: SOURCE_SUBPATH
+      value: getting-started
+    # Parameters defined to use Lifecycle: 0.16 and Platform API: 0.11
+    - name: CNB_PLATFORM_API
+      value: "0.11"
+    - name: CNB_BUILDER_IMAGE
+      value: paketobuildpacks/builder:0.1.361-tiny
+    - name: CNB_LIFECYCLE_IMAGE
+      value: buildpacksio/lifecycle:0.16.3
+    - name: RUN_IMAGE
+      value: paketobuildpacks/run:tiny
+    - name: APP_IMAGE
+      value: kind-registry.local:5000/quarkus-hello
+    - name: ENV_VARS
+      values:
+        - value: BP_NATIVE_IMAGE=false
+        - value: BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
+        - value: BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
   strategy:
     name: buildpacks
     kind: ClusterBuildStrategy
