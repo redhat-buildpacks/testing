@@ -99,27 +99,4 @@ jobs:
           kubectl describe $BUILDRUN_NAME
           
           POD_NAME=$(kubectl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          
-          echo ">>>>>>>>>>>>> step-source-default"
-          kubectl logs $POD_NAME -c step-source-default
-          
-          echo ">>>>>>>>>>>>> step-prepare"
-          kubectl logs $POD_NAME -c step-prepare
-
-          echo ">>>>>>>>>>>>> step-analyze"          
-          kubectl logs $POD_NAME -c step-analyze
-
-          echo ">>>>>>>>>>>>> step-detect"          
-          kubectl logs $POD_NAME -c step-restore
-
-          echo ">>>>>>>>>>>>> step-restore"          
-          kubectl logs $POD_NAME -c step-restore
-          
-          echo ">>>>>>>>>>>>> step-build-and-push"         
-          kubectl logs $POD_NAME -c step-build-and-push
-          
-          echo ">>>>>>>>>>>>> step-export"
-          kubectl logs $POD_NAME -c step-export
-
-          echo ">>>>>>>>>>>>> step-results"
-          kubectl logs $POD_NAME -c step-results
+          kubectl logs $POD_NAME --all-containers
