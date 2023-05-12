@@ -1,12 +1,16 @@
 <p align="center">
  <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml" alt="Test Quarkus Extension Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg"></a>
+
  <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml" alt="Test Pack CLI Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg"></a>
-<a href="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml" alt="Test Tekton Status">
+
+ <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml" alt="Test Tekton Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg"></a>
-<a href="https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml" alt="Test Shipwright Status">
+
+ <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml" alt="Test Shipwright Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml/badge.svg"></a>
+
  <a href="https://github.com/redhat-buildpacks/testing/pulse" alt="Activity">
  <img src="https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing"/></a>
 </p>
