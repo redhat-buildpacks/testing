@@ -370,9 +370,9 @@ kubectl create ns demo --dry-run=client -o yaml | k apply -f -
 kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
 kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
-kubectl delete -n demo -f k8s/shipwright/${DIR}/pvc.yml
+kubectl delete -f k8s/shipwright/${DIR}/pvc.yml
 
-kubectl create -n demo -f k8s/shipwright/${DIR}/pvc.yml
+kubectl create -f k8s/shipwright/${DIR}/pvc.yml
 kubectl apply  -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl apply  -f k8s/shipwright/${DIR}/build.yml
 kubectl create -f k8s/shipwright/${DIR}/buildrun.yml
@@ -390,9 +390,10 @@ imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client
 
 And deploy in a demo namespace the needed resources
 ```bash
+DIR="secured"
 kubectl create ns demo --dry-run=client -o yaml | k apply -f -
 kubectl create configmap certificate-registry -n demo \
-  --from-file=kind-registry.crt=./k8s/shipwright/secured/binding/ca-certificates/kind-registry.local.crt
+  --from-file=kind-registry.crt=./k8s/shipwright/${DIR}/binding/ca-certificates/kind-registry.local.crt
   
 REGISTRY_HOST="kind-registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
 kubectl create secret docker-registry registry-creds -n demo \
@@ -400,10 +401,10 @@ kubectl create secret docker-registry registry-creds -n demo \
   --docker-username="${REGISTRY_USER}" \
   --docker-password="${REGISTRY_PASSWORD}"
 
-kubectl apply  -f k8s/shipwright/secured/sa.yml  
-kubectl apply  -f k8s/shipwright/secured/clusterbuildstrategy.yml
-kubectl apply  -f k8s/shipwright/secured/build.yml
-kubectl create -f k8s/shipwright/secured/buildrun.yml
+kubectl apply  -f k8s/shipwright/${DIR}/sa.yml  
+kubectl apply  -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
+kubectl apply  -f k8s/shipwright/${DIR}/build.yml
+kubectl create -f k8s/shipwright/${DIR}/buildrun.yml
 ```
 
 To clean up
@@ -413,5 +414,6 @@ kubectl delete secret registry-creds -n demo
 kubectl delete -n demo buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
 kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
+kubectl delete -f k8s/shipwright/${DIR}/pvc.yml
 kubectl delete ns demo
 ```
