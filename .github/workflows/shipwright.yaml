@@ -54,16 +54,16 @@ jobs:
           kubectl create -f ./k8s/shipwright/unsecured/buildrun.yml
           
           # Wait for the build
-          TASKRUN_NAME=$(kubectl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          kubectl wait --for=condition=Succeeded --timeout=600s taskRun/$TASKRUN_NAME
+          BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          kubectl wait --for=condition=Succeeded --timeout=600s buildrun/$BUILDRUN_NAME
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
       - name: Log the execution of the TaskRun
         if: success()
         run: |
-          TASKRUN_NAME=$(kubectl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          tkn taskrun logs $TASKRUN_NAME
+          BUILDRUN_NAME=$(kubectl get taskrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          tkn taskrun logs $BUILDRUN_NAME
       - name: (Only if it failed) Print TaskRun logs
         if: failure()
         run: |
