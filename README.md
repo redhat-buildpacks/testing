@@ -83,8 +83,11 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 To validate this scenario we will use the [pack client](https://buildpacks.io/docs/tools/pack/).
 
-To build properly the Quarkus container, we must pass some `BP_***` variables to configure [Java Buildpacks](https://github.com/paketo-buildpacks/java)
-as you can hereafter:
+To build properly the Quarkus container, we must configure the following buildpack:
+- [Java Buildpacks](https://github.com/paketo-buildpacks/java)
+- [Native Build](https://github.com/paketo-buildpacks/native-image)
+
+For that purpose, we use some build-time environment variables `-e` to configure the maven or native build:
 ```bash
 REGISTRY_HOST="kind-registry.local:5000"
 docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
@@ -93,7 +96,6 @@ pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
      -e BP_NATIVE_IMAGE="false" \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
-     --builder paketobuildpacks/builder:tiny \
      --path ./quarkus-quickstarts/getting-started
 ```
 
