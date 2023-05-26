@@ -38,6 +38,9 @@ spec:
     - name: CACHE_IMAGE
       description: The name of the persistent app cache image (if no cache workspace is provided).
       default: ""
+    - name: CACHE_DIR_NAME
+      description: Directory to cache files
+      default: cache
     - name: PROCESS_TYPE
       description: The default process type to set on the image.
       default: ""
@@ -81,6 +84,7 @@ spec:
         #!/usr/bin/env bash
         set -e
 
+        # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
           echo "> Setting permissions on '$(workspaces.cache.path)'..."
           chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$(workspaces.cache.path)"
@@ -122,6 +126,8 @@ spec:
           mountPath: /layers
         - name: $(params.PLATFORM_DIR)
           mountPath: /platform
+        - name: $(params.CACHE_DIR_NAME)
+          mountPath: /tmp/cache
       securityContext:
         privileged: true
 
