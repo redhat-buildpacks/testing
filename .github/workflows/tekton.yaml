@@ -98,9 +98,9 @@ jobs:
                       value: ${CONTAINER_IMAGE}
                     - name: SOURCE_SUBPATH
                       value: getting-started
-                    - name: BUILDER_IMAGE
+                    - name: CNB_BUILDER_IMAGE
                       value: ${{ matrix.builder-image }}
-                    - name: LIFECYCLE_IMAGE
+                    - name: CNB_LIFECYCLE_IMAGE
                       value: ${{ matrix.lifecycle-image }}
                     - name: RUN_IMAGE
                       value: ${{ matrix.run-image }}

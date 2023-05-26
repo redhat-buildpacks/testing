@@ -136,11 +136,14 @@ VM_IP=127.0.0.1
 kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
 ```
 
-When the platform is ready, you can install the Tekton `Tasks` to git clone, able to perform a buildpacks build and to execute the phases individually
+When the platform is ready, you can install needed Tekton `Tasks`:
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
-# TODO: Dont install it now as it is outdated and do not work with lifecycle 1.16
-# kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/buildpacks-phases/0.2/buildpacks-phases.yaml
+```
+
+>**Warning**: Don't install the buildpacks-phases version 0.2 from the catalog as it is outdated and do not work with lifecycle 1.16
+```bash
+kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
 ```
 
 Set the following variables:
@@ -169,7 +172,6 @@ LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.3
 RUN_IMAGE=paketobuildpacks/run:tiny
 
 kubectl delete task/buildpacks-phases
-kubectl apply -f ./k8s/tekton/buildpacks-phases.yml
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/ws-pvc
 cat <<EOF | kubectl apply -f -
@@ -223,9 +225,9 @@ spec:
             value: ${IMAGE_NAME}
           - name: SOURCE_SUBPATH
             value: getting-started
-          - name: BUILDER_IMAGE
+          - name: CNB_BUILDER_IMAGE
             value: ${BUILDER_IMAGE}
-          - name: LIFECYCLE_IMAGE
+          - name: CNB_LIFECYCLE_IMAGE
             value: ${LIFECYCLE_IMAGE}
           - name: RUN_IMAGE
             value: ${RUN_IMAGE}  

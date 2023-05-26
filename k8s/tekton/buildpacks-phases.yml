@@ -38,9 +38,6 @@ spec:
     - name: CACHE_IMAGE
       description: The name of the persistent app cache image (if no cache workspace is provided).
       default: ""
-    - name: CACHE_DIR_NAME
-      description: Directory to cache files
-      default: cache
     - name: PROCESS_TYPE
       description: The default process type to set on the image.
       default: ""
@@ -126,8 +123,6 @@ spec:
           mountPath: /layers
         - name: $(params.PLATFORM_DIR)
           mountPath: /platform
-        - name: $(params.CACHE_DIR_NAME)
-          mountPath: /tmp/cache
       securityContext:
         privileged: true
 
@@ -176,8 +171,6 @@ spec:
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
-        - name: cache-dir
-          mountPath: $(params.CACHE_DIR_NAME)
 
     - name: build
       image: $(params.CNB_BUILDER_IMAGE)
@@ -215,8 +208,6 @@ spec:
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
-        - name: cache-dir
-          mountPath: $(params.CACHE_DIR_NAME)
 
     - name: results
       image: docker.io/library/bash:5.1.4@sha256:b208215a4655538be652b2769d82e576bc4d0a2bb132144c060efc5be8c3f5d6
