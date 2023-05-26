@@ -42,7 +42,7 @@ spec:
       default: cache
     - name: PROCESS_TYPE
       description: The default process type to set on the image.
-      default: "web"
+      default: ""
     - name: SOURCE_SUBPATH
       description: A subpath within the `source` input where the source to build is located.
       default: ""

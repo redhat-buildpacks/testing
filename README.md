@@ -234,8 +234,6 @@ spec:
               - BP_NATIVE_IMAGE=false
               - BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
               - BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
-          - name: PROCESS_TYPE
-            value: ""
   workspaces:
     - name: source-ws
       subPath: source
