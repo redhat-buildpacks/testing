@@ -223,6 +223,7 @@ spec:
           mountPath: /layers
         - name: cache-dir
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
+
     - name: results
       image: docker.io/library/bash:5.1.4
       args:

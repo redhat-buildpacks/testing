@@ -137,10 +137,6 @@ spec:
       command: ["/cnb/lifecycle/analyzer"]
       args:
         - "-layers=/layers"
-        # Argument removed as it is not supported with lifecycle 0.16
-        # - "-group=/layers/group.toml"
-        # Argument removed as it is not supported with lifecycle 0.16
-        # - "-cache-dir=$(workspaces.cache.path)"
         - "-run-image=$(params.RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-uid=$(params.USER_ID)"
@@ -180,6 +176,8 @@ spec:
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
+        - name: cache-dir
+          mountPath: $(params.CACHE_DIR_NAME)
 
     - name: build
       image: $(params.CNB_BUILDER_IMAGE)
@@ -217,6 +215,8 @@ spec:
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
+        - name: cache-dir
+          mountPath: $(params.CACHE_DIR_NAME)
 
     - name: results
       image: docker.io/library/bash:5.1.4@sha256:b208215a4655538be652b2769d82e576bc4d0a2bb132144c060efc5be8c3f5d6
