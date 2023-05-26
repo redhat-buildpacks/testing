@@ -15,7 +15,7 @@ spec:
   parameters:
     - name: CNB_PLATFORM_API
       description: Platform API Version supported
-      default: ""
+      default: "0.10"
     - name: CNB_BUILDER_IMAGE
       description: Builder image containing the buildpacks
       default: ""
