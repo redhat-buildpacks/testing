@@ -124,7 +124,7 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 
 to install the latest official release (or a specific release)
 ```bash
-kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.47.0/release.yaml
+kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.48.0/release.yaml
 ```
 and optionally, you can also install the Tekton dashboard
 ```bash
@@ -261,7 +261,7 @@ See the project documentation for more information: https://github.com/shipwrigh
 To use shipwright, it is needed to have a k8s cluster, local docker registry and tekton installed (v0.41.+)
 ```bash
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
-kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.47.0/release.yaml
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.48.0/release.yaml
 ```
 Next, deploy the latest release of shipwright
 ```bash
@@ -390,7 +390,7 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 
 Next, install Tekton and Shipwright
 ```bash
-kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.47.0/release.yaml
+kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.48.0/release.yaml
 kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ```
 

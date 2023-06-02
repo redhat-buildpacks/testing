@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        tekton-version: [ 'v0.47.0' ]
+        tekton-version: [ 'v0.48.0' ]
         shipwright-version: [ 'v0.11.0' ]
         tekton-client-version: [ '0.31.0']
         builder-image: [ 'paketobuildpacks/builder:0.1.361-tiny' ]
