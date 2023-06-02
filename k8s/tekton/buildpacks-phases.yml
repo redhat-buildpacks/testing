@@ -142,7 +142,7 @@ spec:
           mountPath: /layers
 
     - name: detect
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/detector"]
       args:
