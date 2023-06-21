@@ -31,7 +31,7 @@
 The goal of this project is to test/experiment different approaches to build a runtime using:
 
 - [Quarkus buildpacks](#1-quarkus-buildpacks)
-- [pack](#2-pack-client) build client
+- [pack](#2-pack-client) build client (version >= 0.29)
 - [Shipwright](#3-shipwright-and-buildpack)
 - [Tekton & Pipeline As a Code](#4-tekton-and-pipeline-as-a-code)
 
