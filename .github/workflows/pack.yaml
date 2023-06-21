@@ -20,6 +20,7 @@ jobs:
         uses: Sgitario/setup-container-registry@v1
 
       - name: Install Pack
+        # Version installed: 0.29 (June 2023)
         run: |
           sudo add-apt-repository ppa:cncf-buildpacks/pack-cli
           sudo apt-get update
