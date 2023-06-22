@@ -93,7 +93,7 @@ EOF
 
 function bearerAuth() {
   cat <<EOF > auth.json
-{"image-registry.openshift-image-registry.svc:5000":"Bearer $(echo "$(oc whoami -t)" | base64)"}
+{"image-registry.openshift-image-registry.svc:5000":"Bearer $(echo "$(oc whoami -t)")"}
 EOF
   kubectl delete cm registry-creds; kubectl create cm registry-creds --from-file=auth.json
 
