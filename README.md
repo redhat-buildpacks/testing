@@ -244,7 +244,7 @@ spec:
     - name: cache-ws
       subPath: cache
       persistentVolumeClaim:
-        claimName: ws-pvc
+        claimName: ws-pvc  
 EOF
 ```
 Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns

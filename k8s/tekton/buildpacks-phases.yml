@@ -130,6 +130,12 @@ spec:
       image: $(params.CNB_LIFECYCLE_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/analyzer"]
+      env:
+        - name: CNB_REGISTRY_AUTH
+          valueFrom:
+            configMapKeyRef:
+              name: registry-creds
+              key: auth.json
       args:
         - "-layers=/layers"
         - "-run-image=$(params.RUN_IMAGE)"
