@@ -100,18 +100,18 @@ done
 
 # Loop until the status is not null
 while [[ -z "$(tkn taskrun describe buildpacks-phases-buildpacks -ojson | jq '.status.steps[] | select(.container == "step-analyze" and has("terminated"))')" ]]; do
-    echo "Waiting for step analyze to start..."
+    echo "Waiting for step analyze to start & exit..."
     sleep 5
 done
 
-echo "##############################################################################"
-echo "Taskrun status reason for buildpacks-phases-buildpacks: "
+echo "########################################################"
+echo "Taskrun status reason: "
 #tkn taskrun describe buildpacks-phases-buildpacks -ojson | jq '.status.steps[] | select(.container == "step-analyze") | .terminated.reason'
 kubectl -n default logs buildpacks-phases-buildpacks-pod -c step-analyze
-echo "##############################################################################"
+echo "########################################################"
 
-echo "##############################################################################"
-echo "Tkn taskrun ..."
-echo "##############################################################################"
-tkn taskrun describe buildpacks-phases-buildpacks
+echo "#####################################################"
+echo "To get Tkn taskrun information, execute this command:"
+echo "tkn taskrun describe buildpacks-phases-buildpacks"
+echo "#####################################################"
 
