@@ -135,11 +135,12 @@ function checkResult() {
     echo "#####################################################"
 }
 
-cleanUp
 generatePipelineRun
 
+cleanUp
 basicAuth
 checkResult
 
+cleanUp
 bearerAuth
 checkResult
