@@ -79,7 +79,7 @@ EOF
 }
 function basicAuth() {
   cat <<EOF > auth.json
-{"image-registry.openshift-image-registry.svc:5000":"Basic $(echo "kubeadmin:$(oc whoami -t)" | base64)"}
+{"image-registry.openshift-image-registry.svc:5000":"Basic $(echo "kubeadmin:$(oc whoami -t)" | tr -d '\n' | base64)"}
 EOF
   kubectl delete cm registry-creds; kubectl create cm registry-creds --from-file=auth.json
 
@@ -106,8 +106,9 @@ EOF
 }
 
 function cleanUp() {
-  kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/testing/7615593bf80940f8410335decc9eccf6d9eeca18/k8s/tekton/buildpacks-phases.yml
-  kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/7615593bf80940f8410335decc9eccf6d9eeca18/k8s/tekton/buildpacks-phases.yml
+  #kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/testing/7615593bf80940f8410335decc9eccf6d9eeca18/k8s/tekton/buildpacks-phases.yml
+  #kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/7615593bf80940f8410335decc9eccf6d9eeca18/k8s/tekton/buildpacks-phases.yml
+  kubectl delete -f ./tekton/buildpacks-phases.yml; kubectl apply -f ./tekton/buildpacks-phases.yml
   kubectl delete PipelineRun/buildpacks-phases
   kubectl delete pvc/ws-pvc
 }
