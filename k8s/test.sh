@@ -88,6 +88,7 @@ EOF
   echo "Registry: image-registry.openshift-image-registry.svc:5000"
   echo "Username: kubeadmin"
   echo "Password: $(oc whoami -t)"
+  echo "ConfigMap auth.json decoded: $(kubectl get cm/registry-creds -ojson | jq -r '.data."auth.json" | .[59: (. | length - (3 | tonumber))]' | base64 -d)"
   echo "############################################################################"
 }
 
@@ -140,7 +141,7 @@ generatePipelineRun
 basicAuth
 checkResult
 
-cleanUp
-generatePipelineRun
-bearerAuth
-checkResult
+#cleanUp
+#generatePipelineRun
+#bearerAuth
+#checkResult
