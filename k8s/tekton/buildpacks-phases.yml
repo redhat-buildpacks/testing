@@ -63,7 +63,10 @@ spec:
   results:
     - name: APP_IMAGE_DIGEST
       description: The digest of the built `APP_IMAGE`.
-
+    - name: IMAGE_URL
+      description: The URL of the built `APP_IMAGE`. Used by RHTAP.
+    - name: IMAGE_DIGEST
+      description: The digest of the built `APP_IMAGE`. Used by RHTAP.
   stepTemplate:
     env:
       - name: CNB_PLATFORM_API
@@ -221,6 +224,9 @@ spec:
         #!/usr/bin/env bash
         set -e
         cat /layers/report.toml | grep "digest" | cut -d'"' -f2 | cut -d'"' -f2 | tr -d '\n' | tee $(results.APP_IMAGE_DIGEST.path)
+        cat $(results.APP_IMAGE_DIGEST.path) | tee "$(results.IMAGE_DIGEST.path)"
+        
+        echo -n "$(params.APP_IMAGE)" | tee "$(results.IMAGE_URL.path)"
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
