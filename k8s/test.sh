@@ -1,7 +1,7 @@
 BUILDER_IMAGE=paketobuildpacks/builder:0.1.361-tiny
 LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.3
 RUN_IMAGE=paketobuildpacks/run:tiny
-IMAGE_NAME=image-registry.openshift-image-registry.svc:5000/quarkus-hello
+IMAGE_NAME=image-registry.openshift-image-registry.svc:5000/default/quarkus-hello
 
 function generatePipelineRun() {
     cat <<EOF | kubectl apply -f -
@@ -108,6 +108,8 @@ EOF
 function cleanUp() {
   kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/testing/CNB_REGISTRY_AUTH/k8s/tekton/buildpacks-phases.yml
   kubectl apply -f  https://raw.githubusercontent.com/redhat-buildpacks/testing/CNB_REGISTRY_AUTH/k8s/tekton/buildpacks-phases.yml
+  #kubectl delete -f ./tekton/buildpacks-phases.yml
+  #kubectl apply -f ./tekton/buildpacks-phases.yml
   kubectl delete PipelineRun/buildpacks-phases
   kubectl delete pvc/ws-pvc
 }
@@ -136,12 +138,12 @@ function checkResult() {
     echo "#####################################################"
 }
 
-cleanUp
-generatePipelineRun
-basicAuth
-checkResult
-
 #cleanUp
 #generatePipelineRun
-#bearerAuth
+#basicAuth
 #checkResult
+
+cleanUp
+generatePipelineRun
+bearerAuth
+checkResult

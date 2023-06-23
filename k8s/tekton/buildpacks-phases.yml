@@ -136,6 +136,8 @@ spec:
             configMapKeyRef:
               name: registry-creds
               key: auth.json
+        - name: GODEBUG
+          value: http2debug=2
       args:
         - "-layers=/layers"
         - "-run-image=$(params.RUN_IMAGE)"
