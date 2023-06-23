@@ -123,8 +123,6 @@ spec:
           mountPath: /layers
         - name: $(params.PLATFORM_DIR)
           mountPath: /platform
-      securityContext:
-        privileged: true
 
     - name: analyze
       image: $(params.CNB_LIFECYCLE_IMAGE)
