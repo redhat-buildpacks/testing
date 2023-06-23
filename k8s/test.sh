@@ -1,7 +1,9 @@
 BUILDER_IMAGE=paketobuildpacks/builder:0.1.361-tiny
 LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.3
 RUN_IMAGE=paketobuildpacks/run:tiny
-IMAGE_NAME=image-registry.openshift-image-registry.svc:5000/default/quarkus-hello
+NAMESPACE=${NAMESPACE:-default}
+PROJECT=${PROJECT:-quarkus-hello}
+IMAGE_NAME=image-registry.openshift-image-registry.svc:5000/$NAMESPACE/$PROJECT
 
 function generatePipelineRun() {
     cat <<EOF | kubectl apply -f -
