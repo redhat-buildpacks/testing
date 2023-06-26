@@ -75,6 +75,9 @@ jobs:
           run-image = "quay.io/midawson/ubi8-paketo-run"
           EOF
           
+          cat builder.toml
+          ls -la ${{ github.workspace }}/ubi-nodejs-extension
+          
           pack builder create $CONTAINER_IMAGE --config $BUILDER_PATH --publish
           
           echo "Build the nodejs app"
