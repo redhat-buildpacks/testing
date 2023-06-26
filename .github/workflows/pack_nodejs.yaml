@@ -88,4 +88,4 @@ jobs:
           pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --env BP_NODE_VERSION=16 --builder $BUILDER_IMAGE --network host -v
           
           echo "Run the nodejs rest http application ..."
-          ./github/testNodeHello.sh $CONTAINER_NAME $CONTAINER_IMAGE
+          .github/testNodeHello.sh $CONTAINER_NAME $CONTAINER_IMAGE
