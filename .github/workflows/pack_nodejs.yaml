@@ -47,7 +47,7 @@ jobs:
           
           echo "Build the nodejs app"
           git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
-          pack build test-app --path ./nodejs-rest-http --builder $CONTAINER_IMAGE --network host -v 
+          pack build test-app --path ./nodejs-rest-http --env BP_NODE_VERSION=~16 --builder $CONTAINER_IMAGE --network host -v 
           
           echo "Run the nodejs rest http application ..."
           docker run -p 8080:8080 test-app
