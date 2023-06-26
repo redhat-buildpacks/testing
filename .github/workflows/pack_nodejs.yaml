@@ -40,6 +40,7 @@ jobs:
           pack config experimental true
           
           echo "Creating the builder image and push it"
+          ls -la /home/runner/
           pack builder create $CONTAINER_IMAGE --config $BUILDER_PATH
           docker push $CONTAINER_IMAGE
           
