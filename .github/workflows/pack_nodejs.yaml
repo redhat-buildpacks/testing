@@ -11,9 +11,9 @@ jobs:
     if: contains(github.event.head_commit.message, 'pack_nodejs_test')
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        builder-image: [ 'paketobuildpacks/builder:tiny' ]
+    #strategy:
+    #  matrix:
+    #    builder-image: [ 'paketobuildpacks/builder:tiny' ]
     steps:
       - uses: actions/checkout@v3
 
@@ -27,7 +27,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install pack-cli
 
-      - name: Test Nodejs UBI extension ${{ matrix.builder-image }}
+      - name: Test Nodejs UBI extension
         run: |
           CONTAINER_NAME=quarkus-pack-hello
           CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
