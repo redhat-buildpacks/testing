@@ -1,10 +1,11 @@
-name: "Test using Pack CLI"
+name: "Test using Pack CLI & nodejs"
 on:
   workflow_dispatch:
   pull_request:
   push:
     branches:
       - main
+      - nodejs-ubi-extension
 jobs:
   linux-pack-build:
     if: contains(github.event.head_commit.message, 'pack_nodejs_test')
