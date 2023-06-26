@@ -43,7 +43,6 @@ jobs:
           
           echo "Creating the builder image and push it"
           pack builder create $CONTAINER_IMAGE --config $BUILDER_PATH --publish
-          #docker push $CONTAINER_IMAGE
           
           echo "Build the nodejs app"
           git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
