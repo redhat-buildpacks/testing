@@ -1,0 +1,51 @@
+name: "Test using Pack CLI"
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+jobs:
+  linux-pack-build:
+    if: contains(github.event.head_commit.message, 'pack_nodejs')
+    name: Linux - Pack CLI build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        builder-image: [ 'paketobuildpacks/builder:tiny' ]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Container Registry
+        uses: Sgitario/setup-container-registry@v1
+
+      - name: Install Pack
+        # Version installed: 0.29 (June 2023)
+        run: |
+          sudo add-apt-repository ppa:cncf-buildpacks/pack-cli
+          sudo apt-get update
+          sudo apt-get install pack-cli
+
+      - name: Test Nodejs UBI extension ${{ matrix.builder-image }}
+        run: |
+          CONTAINER_NAME=quarkus-pack-hello
+          CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
+          BUILDER_PATH=.github/nodejs_ubi_builder.toml
+
+          # Checkout
+          git clone https://github.com/paketo-community/ubi-nodejs-extension.git
+
+          echo "Enable experimental features in pack"
+          pack config experimental true
+          
+          echo "Creating the builder image and push it"
+          pack builder create $CONTAINER_IMAGE --publish --config $BUILDER_PATH
+          
+          echo "Build the nodejs app"
+          #pack build test-app --path ./app-dir --builder localhost:5000/test-builder --network host -v 
+          #where test-app will be the name of the image built and app-dir is directory that contains your Node.js application.
+          #Replace localhost:5000 with the host:port for the public repository if you are not using a local repostiory.
+          
+          echo "Run your application with ..."
+          # docker run -p 8080:8080 test-app 
+          # replacing 8080:8080 with the port on which your application listens.
