@@ -40,7 +40,8 @@ jobs:
           pack config experimental true
           
           echo "Creating the builder image and push it"
-          pack builder create $CONTAINER_IMAGE --publish --config $BUILDER_PATH
+          pack builder create $CONTAINER_IMAGE --config $BUILDER_PATH
+          docker push $CONTAINER_IMAGE
           
           echo "Build the nodejs app"
           pack build test-app --path ./app-dir --builder $CONTAINER_IMAGE --network host -v 
