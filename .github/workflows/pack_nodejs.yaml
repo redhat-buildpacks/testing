@@ -19,6 +19,8 @@ jobs:
 
       - name: Setup Container Registry
         uses: Sgitario/setup-container-registry@v1
+        with:
+          host: container-registry.local
 
       - name: Install Pack
         # Version installed: 0.29 (June 2023)
@@ -47,6 +49,5 @@ jobs:
           git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
           pack build test-app --path ./nodejs-rest-http --builder $CONTAINER_IMAGE --network host -v 
           
-          echo "Run your application with ..."
-          # docker run -p 8080:8080 test-app 
-          # replacing 8080:8080 with the port on which your application listens.
+          echo "Run the nodejs rest http application ..."
+          docker run -p 8080:8080 test-app
