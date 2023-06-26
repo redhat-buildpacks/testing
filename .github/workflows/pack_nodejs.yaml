@@ -1,4 +1,4 @@
-name: "Test using Pack CLI & nodejs"
+name: "Test Nodejs ubi extension with Pack CLI"
 on:
   workflow_dispatch:
   pull_request:
