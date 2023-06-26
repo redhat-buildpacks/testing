@@ -36,7 +36,7 @@ jobs:
         run: |
           CONTAINER_NAME=nodejs-pack-test
           CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
-          #BUILDER_PATH=.github/nodejs_ubi_builder.toml
+          BUILDER_IMAGE=$CONTAINER_REGISTRY_URL/nodejs-ubi-extension-builder
 
           # Checkout
           git clone https://github.com/paketo-community/ubi-nodejs-extension.git
@@ -81,11 +81,11 @@ jobs:
           run-image = "quay.io/midawson/ubi8-paketo-run"
           EOF
           
-          pack builder create $CONTAINER_IMAGE --config $BUILDER_PATH --publish
+          pack builder create $BUILDER_IMAGE --config $BUILDER_PATH --publish
           
           echo "Build the nodejs app"
           git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
-          pack build test-app --path ./nodejs-rest-http --env BP_NODE_VERSION=16 --builder $CONTAINER_IMAGE --network host -v 
+          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --env BP_NODE_VERSION=16 --builder $BUILDER_IMAGE --network host -v
           
           echo "Run the nodejs rest http application ..."
-          docker run -p 8080:8080 test-app
+          ./github/testNodeHello.sh $CONTAINER_NAME $CONTAINER_IMAGE
