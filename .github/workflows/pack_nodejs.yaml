@@ -7,7 +7,7 @@ on:
       - main
 jobs:
   linux-pack-build:
-    if: contains(github.event.head_commit.message, 'pack_nodejs')
+    if: contains(github.event.head_commit.message, 'pack_nodejs_test')
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
     strategy:
@@ -42,9 +42,7 @@ jobs:
           pack builder create $CONTAINER_IMAGE --publish --config $BUILDER_PATH
           
           echo "Build the nodejs app"
-          #pack build test-app --path ./app-dir --builder localhost:5000/test-builder --network host -v 
-          #where test-app will be the name of the image built and app-dir is directory that contains your Node.js application.
-          #Replace localhost:5000 with the host:port for the public repository if you are not using a local repostiory.
+          pack build test-app --path ./app-dir --builder $CONTAINER_IMAGE --network host -v 
           
           echo "Run your application with ..."
           # docker run -p 8080:8080 test-app 
