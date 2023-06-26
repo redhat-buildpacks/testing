@@ -42,7 +42,7 @@ jobs:
           pack config experimental true
           
           echo "Build the detect and generate binaries of the extension
-          ./scripts/build.sh
+          ${{ github.workspace }}/ubi-nodejs-extension/scripts/build.sh
           
           echo "Creating the builder image and push it"
           BUILDER_PATH=./builder.toml
@@ -77,9 +77,6 @@ jobs:
           build-image = "quay.io/midawson/ubi8-paketo-build"
           run-image = "quay.io/midawson/ubi8-paketo-run"
           EOF
-          
-          cat builder.toml
-          ls -la ${{ github.workspace }}/ubi-nodejs-extension
           
           pack builder create $CONTAINER_IMAGE --config $BUILDER_PATH --publish
           
