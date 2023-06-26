@@ -11,6 +11,9 @@ jobs:
     if: contains(github.event.head_commit.message, 'pack_nodejs_test')
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        pack_cli_version: [ 'v0.30.0-pre2' ]
     steps:
       - uses: actions/checkout@v3
 
@@ -22,10 +25,7 @@ jobs:
       - name: Install Pack
         # Version needed: 0.30
         run: |
-          # sudo add-apt-repository ppa:cncf-buildpacks/pack-cli
-          # sudo apt-get update
-          # sudo apt-get install pack-cli
-          (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.30.0-pre2/pack-v0.30.0-pre2-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+          (curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ pack_cli_version }}/pack-${{ pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
           echo "Pack version"
           pack version
 
