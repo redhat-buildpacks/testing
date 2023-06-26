@@ -33,7 +33,7 @@ jobs:
         run: |
           CONTAINER_NAME=quarkus-pack-hello
           CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
-          BUILDER_PATH=.github/nodejs_ubi_builder.toml
+          #BUILDER_PATH=.github/nodejs_ubi_builder.toml
 
           # Checkout
           git clone https://github.com/paketo-community/ubi-nodejs-extension.git
@@ -42,6 +42,38 @@ jobs:
           pack config experimental true
           
           echo "Creating the builder image and push it"
+          BUILDER_PATH=./builder.toml
+          cat <<EOF > builder.toml
+          description = "Sample builder that uses ubi Node.js extension to support Node.js apps"
+  
+          [[buildpacks]]
+          uri = "docker://gcr.io/paketo-buildpacks/nodejs:1.4.0"
+          version = "1.4.0"
+          
+          [lifecycle]
+          version = "0.17.0-pre.2"
+          
+          [[order]]
+          [[order.group]]
+          id = "paketo-buildpacks/nodejs"
+          version = "1.4.0"
+          
+          [[extensions]]
+          id = "redhat-runtimes/nodejs"
+          version = "0.0.1"
+          uri = "file:///${{ github.workspace }}/ubi-nodejs-extension"
+          
+          [[order-extensions]]
+          [[order-extensions.group]]
+          id = "redhat-runtimes/nodejs"
+          version = "0.0.1"
+          
+          [stack]
+          id = "ubi8-paketo"
+          build-image = "quay.io/midawson/ubi8-paketo-build"
+          run-image = "quay.io/midawson/ubi8-paketo-run"
+          EOF
+          
           pack builder create $CONTAINER_IMAGE --config $BUILDER_PATH --publish
           
           echo "Build the nodejs app"
