@@ -5,6 +5,9 @@
  <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml" alt="Test Pack CLI Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg"></a>
 
+ <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml" alt="Test Nodejs UBI extension Pack CLI Status">
+ <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml/badge.svg"></a>
+
  <a href="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml" alt="Test Tekton Status">
  <img src="https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg"></a>
 
