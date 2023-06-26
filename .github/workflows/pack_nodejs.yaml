@@ -41,7 +41,7 @@ jobs:
           echo "Enable experimental features in pack"
           pack config experimental true
           
-          echo "Build the detect and generate binaries of the extension
+          echo "Build the detect and generate binaries of the extension"
           ${{ github.workspace }}/ubi-nodejs-extension/scripts/build.sh
           
           echo "Creating the builder image and push it"
