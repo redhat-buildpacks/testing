@@ -43,6 +43,7 @@ jobs:
           
           echo "Creating the builder image and push it"
           BUILDER_PATH=./builder.toml
+          
           cat <<EOF > builder.toml
           description = "Sample builder that uses ubi Node.js extension to support Node.js apps"
   
