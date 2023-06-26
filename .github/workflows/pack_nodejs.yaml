@@ -23,11 +23,12 @@ jobs:
           host: container-registry.local
 
       - name: Install Pack
-        # Version installed: 0.29 (June 2023)
+        # Version needed: 0.30
         run: |
-          sudo add-apt-repository ppa:cncf-buildpacks/pack-cli
-          sudo apt-get update
-          sudo apt-get install pack-cli
+          # sudo add-apt-repository ppa:cncf-buildpacks/pack-cli
+          # sudo apt-get update
+          # sudo apt-get install pack-cli
+          (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.30.0-pre2/pack-v0.30.0-pre2-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
 
       - name: Test Nodejs UBI extension
         run: |
