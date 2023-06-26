@@ -44,7 +44,8 @@ jobs:
           docker push $CONTAINER_IMAGE
           
           echo "Build the nodejs app"
-          pack build test-app --path ./app-dir --builder $CONTAINER_IMAGE --network host -v 
+          git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
+          pack build test-app --path ./nodejs-rest-http --builder $CONTAINER_IMAGE --network host -v 
           
           echo "Run your application with ..."
           # docker run -p 8080:8080 test-app 
