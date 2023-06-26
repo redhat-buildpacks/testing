@@ -15,7 +15,7 @@ version = "1.4.0"
 [[extensions]]
 id = "redhat-runtimes/nodejs"
 version = "0.0.1"
-uri = "file:///${{ github.workspace }}/ubi-nodejs-extension"
+uri = "./ubi-nodejs-extension"
 
 [[order-extensions]]
 [[order-extensions.group]]
