@@ -29,6 +29,8 @@ jobs:
           # sudo apt-get update
           # sudo apt-get install pack-cli
           (curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.30.0-pre2/pack-v0.30.0-pre2-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+          echo "Pack version"
+          pack version
 
       - name: Test Nodejs UBI extension
         run: |
