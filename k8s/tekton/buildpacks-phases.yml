@@ -132,6 +132,7 @@ spec:
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/analyzer"]
       args:
+        - "-log-level=debug"
         - "-layers=/layers"
         - "-run-image=$(params.RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
