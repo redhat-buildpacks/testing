@@ -25,7 +25,8 @@
 * [1. Quarkus Buildpacks](#1-quarkus-buildpacks)
 * [2. Pack client](#2-pack-client)
 * [3. Tekton](#3-tekton)
-* [4. Shipwright and Buildpack](#4-shipwright-and-buildpack)
+* [4. RHTAP PipelineRun](#3-rhtap)
+* [5. Shipwright and Buildpack](#4-shipwright-and-buildpack)
   * [Secured container registry](#secured-container-registry)
   * [All steps](#all-steps)
 
@@ -257,7 +258,11 @@ When the task is finished and no error is reported, then launch the container
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 ```
 
-## 4. Shipwright and Buildpack
+## 4. RHTAP
+
+TODO
+
+## 5. Shipwright and Buildpack
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
