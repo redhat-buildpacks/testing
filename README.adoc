@@ -354,11 +354,12 @@ http :8080/hello
 http :8080/hello/greeting/charles
 ----
 
-* Rename the PipelineRun template file
+* Get the RHTAP pipelineRun and rename the template file
 
 [,bash]
 ----
-mv .tekton/template-push.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+mkdir .tekton
+cp tekton/pipelinerun-rhtap-buildpack.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 git add .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 git commit -asm "Add the PipelineRun"
 git push
