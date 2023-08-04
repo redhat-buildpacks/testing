@@ -404,6 +404,7 @@ apiVersion: appstudio.redhat.com/v1alpha1
 kind: Component
 metadata:
   annotations:
+    appstudio.openshift.io/pac-provision: request
     image.redhat.com/generate: '{"visibility":"public"}'
   name: $COMPONENT_NAME
 spec:
