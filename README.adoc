@@ -1,6 +1,4 @@
-https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing[\]]
-
-= Table of Contents
+= How to build a runtime using buildpack
 :icons: font
 :revdate: {docdate}
 :toc: left
@@ -13,7 +11,9 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-== How to build a runtime using buildpack
+https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing[\]]
+
+== Introduction
 
 The goal of this project is to test/experiment different approaches to build a runtime using:
 
