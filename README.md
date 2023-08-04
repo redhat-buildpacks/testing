@@ -24,7 +24,7 @@
 * [0. Common steps](#0-common-steps)
 * [1. Quarkus Buildpacks](#1-quarkus-buildpacks)
 * [2. Pack client](#2-pack-client)
-* [3. Tekton and Pipeline as a Code](#3-tekton-and-pipeline-as-a-code)
+* [3. Tekton](#3-tekton)
 * [4. Shipwright and Buildpack](#4-shipwright-and-buildpack)
   * [Secured container registry](#secured-container-registry)
   * [All steps](#all-steps)
@@ -115,7 +115,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 ```
 
 
-## 3. Tekton and Pipeline as a Code
+## 3. Tekton
 
 See the project documentation for more information: https://tekton.dev/
 
