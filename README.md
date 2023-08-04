@@ -25,7 +25,7 @@
 * [1. Quarkus Buildpacks](#1-quarkus-buildpacks)
 * [2. Pack client](#2-pack-client)
 * [3. Tekton](#3-tekton)
-* [4. RHTAP PipelineRun](#3-rhtap)
+* [4. RHTAP](#4-rhtap)
 * [5. Shipwright and Buildpack](#4-shipwright-and-buildpack)
   * [Secured container registry](#secured-container-registry)
   * [All steps](#all-steps)
