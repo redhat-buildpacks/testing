@@ -319,6 +319,7 @@ APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
 COMPONENT_NAME="quarkus-hello"
 PAC_NAME=$COMPONENT_NAME
 PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
+PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
 TENANT_NAMESPACE="<YOUR_TENANT_NAMESPACE>"
 REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
 BUILD_ID=1 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
@@ -375,6 +376,8 @@ sed -i.bak "s/#PAC_NAME#/$PAC_NAME/g" $PAC_YAML_FILE
 sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
 sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
 sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
+sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
+sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
 rm $PAC_YAML_FILE.bak
 git commit -sm "Add the tekton push file" .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 git push
