@@ -300,7 +300,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 
 - Have https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/getting-started/get-started/[access] to RHTAP - https://console.redhat.com/preview/hac/
 - Have kubectl (or oc client) installed on your machine
-- Added the kubernetes context of appstudio to your local ~/.kube/config file and been authenticated using https://docs.google.com/document/d/1hFvQDH1H6MGNqTGfcZpyl2h8OIaynP8sokZohCS0Su0/edit#heading=h.bksi3q7km0i[oidc login]
+- Added the kubernetes context of `AppStudio` to your local ~/.kube/config file and been authenticated using https://docs.google.com/document/d/1hFvQDH1H6MGNqTGfcZpyl2h8OIaynP8sokZohCS0Su0/edit#heading=h.bksi3q7km0i[oidc login]
 - Add the `AppStudio` GitHub application to your GitHub Org and select it to be used for all the repositories. More information is available https://pipelinesascode.com/docs/install/github_apps/[here].
 
 == Env variables
