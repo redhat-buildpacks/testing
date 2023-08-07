@@ -298,8 +298,8 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 
 == Prerequisite
 
-- Have access to RHTAP: https://console.redhat.com/preview/hac/
-- Have kubectl and oc clients installed on your machine
+- Have https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/getting-started/get-started/[access] to RHTAP - https://console.redhat.com/preview/hac/
+- Have kubectl (or oc client) installed on your machine
 - Switched to the kubernetes context of appstudio
 - Add the `AppStudio` GitHub application to your GitHubOrg and select it to be used for all the repositories
 
