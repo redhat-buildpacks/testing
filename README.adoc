@@ -312,7 +312,7 @@ Feel free to change them according to your GitHub organisation, tenant namespace
 [,bash]
 ----
 GITHUB_ORG_NAME=halkyonio
-GITHUB_REPO_TEMPLATE=rhtap-templates
+GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/templates.git
 GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
 GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
 BRANCH=main
@@ -338,7 +338,10 @@ To create a new GitHub repository and import the needed files, perform the follo
 [,bash]
 ----
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
-gh repo create --template https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_TEMPLATE --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --public
+gh repo create \
+  --template $GITHUB_REPO_TEMPLATE \
+  --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
+  --public
 
 rm -rf $GITHUB_REPO_DEMO_NAME
 git clone git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
@@ -442,7 +445,6 @@ for entity in pods deployments routes services taskruns pipelineruns application
 [,bash]
 ----
 kubectl delete application/$GITHUB_REPO_DEMO_NAME
-rm $BRANCH.zip; rm -r $GITHUB_REPO_TEMPLATE-$BRANCH
 ----
 
 == Todo
