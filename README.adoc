@@ -339,7 +339,7 @@ To create a new GitHub repository and import the needed files, perform the follo
 ----
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
 gh repo create \
-  --template $GITHUB_REPO_TEMPLATE \
+  -p $GITHUB_REPO_TEMPLATE \
   --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
   --public
 
