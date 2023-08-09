@@ -7,7 +7,6 @@ on:
       - main
 jobs:
   linux-jvm-build:
-    if: contains(github.event.head_commit.message, 'quarkus_test')
     name: Linux - JVM build
     runs-on: ubuntu-latest
     strategy:

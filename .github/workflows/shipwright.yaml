@@ -7,7 +7,6 @@ on:
       - main
 jobs:
   linux-shipwright-build:
-    if: contains(github.event.head_commit.message, 'shipwright_test')
     name: Linux - Shipwright build
     runs-on: ubuntu-latest
     strategy:
