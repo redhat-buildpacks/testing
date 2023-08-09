@@ -17,7 +17,7 @@ jobs:
       matrix:
         # Reverted v0.30.0-rc1 to v0.30.0-pre2 as we got
         # [detector] failed to satisfy "node" dependency version constraint "18 || 16": no compatible versions on "ubi8-paketo" stack. Supported versions are: []
-        pack_cli_version: [ 'v0.30.0-pre2' ]
+        pack_cli_version: [ 'v0.30.0-rc1' ]
     steps:
       - uses: actions/checkout@v3
 
@@ -62,7 +62,7 @@ jobs:
           # Changed 0.17.0 -> 0.17.0-pre.2
           # as we got as error
           # [detector] failed to satisfy "node" dependency version constraint "18 || 16": no compatible versions on "ubi8-paketo" stack. Supported versions are: []
-          version = "0.17.0-pre.2"
+          version = "0.17.0"
           
           [[order]]
           [[order.group]]
