@@ -296,7 +296,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 
 == 4. RHTAP
 
-== Prerequisite
+=== Prerequisite
 
 - Have https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/getting-started/get-started/[access] to RHTAP - https://console.redhat.com/preview/hac/
 - Have kubectl (or oc client) installed on your machine
@@ -304,7 +304,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 - Add the `AppStudio` GitHub application to your GitHub Org and select it to be used for all the repositories. More information is available https://pipelinesascode.com/docs/install/github_apps/[here].
 - (optional). https://tekton.dev/docs/cli/[Install] the Tekton client
 
-== Env variables
+=== Env variables
 
 In order to play/execute the commands defined hereafter, it is needed to define some env variables.
 Feel free to change them according to your GitHub organisation, tenant namespace, etc
@@ -326,7 +326,7 @@ REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_N
 BUILD_ID=1 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
 ----
 
-== HowTo
+=== HowTo
 
 To create a new GitHub repository and import the needed files, perform the following actions:
 
@@ -447,13 +447,13 @@ for entity in pods deployments routes services taskruns pipelineruns application
 kubectl delete application/$GITHUB_REPO_DEMO_NAME
 ----
 
-== Todo
+=== Todo
 
 - Try to make a test using our own quay.io credentials and repository using REGISTRY_URL=quay.io/$GITHUB_ORG_NAME
 
-== Issue
+=== Issue
 
-=== Full image path not supported
+==== Full image path not supported
 
 The lifecycle component and most probably google container library (used by lifecycle to access the registry) do not support such advanced feature: https://kubernetes.io/docs/concepts/containers/images/#kubelet-credential-provider
 The consequence is that if several secrets are attached to the `appstudio-pipeline` service account and subsequently by the pod running lifecycle, then
