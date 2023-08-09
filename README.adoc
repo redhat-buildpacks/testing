@@ -19,12 +19,45 @@ https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/
 
 == Introduction
 
-The goal of this project is to test/experiment different approaches to build a runtime using:
+The goal of this project is to test/validate different approaches to build a runtime using:
 
 * <<1-quarkus-buildpacks,Quarkus buildpacks>>
-* <<2-pack-client,pack>> build client (version >= 0.29)
+* <<2-pack-client,pack>> build client
 * <<3-shipwright-and-buildpack,Shipwright>>
 * <<4-tekton-and-pipeline-as-a-code,Tekton & Pipeline As a Code>>
+
+== Project Compatibility Matrix
+
+|===
+| Version | Tool/Feature | Compatible | Note
+
+| https://github.com/buildpacks/lifecycle/releases/tag/v0.17.0[0.17.0]
+| Lifecycle
+| Yes
+| Todo
+
+| https://github.com/buildpacks/pack/releases/tag/v0.30.0-rc1[v0.30.0-rc1]
+| Pack cli
+| Yes
+| Todo
+
+| https://github.com/paketo-buildpacks/builder-jammy-tiny[0.0.175]
+| Paketo Builder Tiny (jammy)
+| Yes
+| Change this builder image with the ubi image
+
+| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.0.3[0.0.3]
+| Paketo Node.js Extension for ubi
+| Yes
+| Todo
+
+| https://github.com/paketo-community/ubi-java-extension[n/a]
+| Paketo Java Extension for ubi
+| No
+| Todo
+
+
+|===
 
 == 0. Common steps
 
