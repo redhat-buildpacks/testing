@@ -199,7 +199,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1000
+        # Update the user id to use new paketo builder
+        runAsUser: 1001
         runAsGroup: 1000
       command: ["/cnb/lifecycle/builder"]
       args:
