@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        builder-image: [ 'paketobuildpacks/builder:tiny' ]
+        builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
     steps:
       - uses: actions/checkout@v3
 
