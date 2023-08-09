@@ -30,38 +30,37 @@ The goal of this project is to test/validate different approaches to build a run
 == Project Compatibility Matrix
 
 |===
-| Version | Tool/Feature | Compatible | Note
+| Tool/Image | Version | Compatible | Note
 
-| https://github.com/buildpacks/lifecycle/releases/tag/v0.17.0[0.17.0]
 | Lifecycle
+| https://github.com/buildpacks/lifecycle/releases/tag/v0.17.0[0.17.0]
 | Yes
 | Todo
 
-| https://github.com/buildpacks/pack/releases/tag/v0.30.0-rc1[v0.30.0-rc1]
 | Pack cli
+| https://github.com/buildpacks/pack/releases/tag/v0.30.0-rc1[v0.30.0-rc1]
 | Yes
 | Todo
 
-| https://github.com/paketo-buildpacks/builder-jammy-tiny[0.0.175]
 | Paketo Builder Tiny (jammy) builder
+| https://github.com/paketo-buildpacks/builder-jammy-tiny[0.0.175]
 | Yes
 | Change this builder image with the ubi image
 
-| https://github.com/paketo-community/builder-ubi-base/releases/tag/0.0.1[0.0.1]
 | Paketo community UBI builder
+| https://github.com/paketo-community/builder-ubi-base/releases/tag/0.0.1[0.0.1]
 | No
 | To be included part of the GitHub actions matrix
 
-| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.0.3[0.0.3]
 | Paketo Node.js Extension for ubi
+| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.0.3[0.0.3]
 | Yes
 | Todo
 
-| https://github.com/paketo-community/ubi-java-extension[n/a]
 | Paketo Java Extension for ubi
+| https://github.com/paketo-community/ubi-java-extension[n/a]
 | No
 | To be tested when released
-
 
 |===
 
