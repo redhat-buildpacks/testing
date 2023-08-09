@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        builder-image: [ 'paketobuildpacks/builder:tiny' ]
+        builder-image: [ 'paketobuildpacks/builder:0.1.361-tiny' ]
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}
