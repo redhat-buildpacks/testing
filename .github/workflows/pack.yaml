@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
+        pack_cli_version: [ 'v0.30.0-rc1' ]
     steps:
       - uses: actions/checkout@v3
 
@@ -23,11 +24,9 @@ jobs:
         uses: Sgitario/setup-container-registry@v1
 
       - name: Install Pack
-        # Version installed: 0.29 (June 2023)
+        # Version needed: >= 0.30 (Aug 2023)
         run: |
-          sudo add-apt-repository ppa:cncf-buildpacks/pack-cli
-          sudo apt-get update
-          sudo apt-get install pack-cli
+          curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
