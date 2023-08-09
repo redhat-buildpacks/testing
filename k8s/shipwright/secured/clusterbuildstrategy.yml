@@ -200,8 +200,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: $(params.USER_ID)
-        runAsGroup: $(params.GROUP_ID)
+        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/builder"]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
@@ -234,6 +234,7 @@ spec:
         requests:
           cpu: 250m
           memory: 65Mi
+
     - name: export
       image: $(params.CNB_LIFECYCLE_IMAGE)
       imagePullPolicy: Always
@@ -261,6 +262,7 @@ spec:
         - mountPath: /selfsigned-certificates
           name: certificate-registry
           readOnly: true
+
     - name: results
       image: docker.io/library/bash:5.1.4
       args:

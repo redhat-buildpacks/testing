@@ -181,8 +181,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: $(params.USER_ID)
-        runAsGroup: $(params.GROUP_ID)
+        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/builder"]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
