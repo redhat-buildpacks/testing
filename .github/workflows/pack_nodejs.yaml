@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        pack_cli_version: [ 'v0.30.0-pre2' ]
+        pack_cli_version: [ 'v0.30.0-rc1' ]
     steps:
       - uses: actions/checkout@v3
 
