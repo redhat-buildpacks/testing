@@ -37,6 +37,11 @@ The goal of this project is to test/validate different approaches to build a run
 | Yes
 | -
 
+| Platform
+| https://github.com/buildpacks/spec/blob/platform/0.12/platform.md[0.12.0]
+| Yes
+| -
+
 | Pack cli
 | https://github.com/buildpacks/pack/releases/tag/v0.30.0-rc1[v0.30.0-rc1]
 | Yes
