@@ -63,7 +63,8 @@ jobs:
           [[extensions]]
           id = "redhat-runtimes/nodejs"
           version = "0.0.1"
-          uri = "file:///${{ github.workspace }}/ubi-nodejs-extension"
+          uri = "https://github.com/paketo-community/ubi-nodejs-extension/archive/main.tar.gz"
+          #uri = "file:///${{ github.workspace }}/ubi-nodejs-extension"
           
           [[order-extensions]]
           [[order-extensions.group]]
