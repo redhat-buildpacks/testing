@@ -22,9 +22,10 @@ https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/
 The goal of this project is to test/validate different approaches to build a runtime using:
 
 * <<1-quarkus-buildpacks,Quarkus buildpacks>>
-* <<2-pack-client,pack>> build client
-* <<3-shipwright-and-buildpack,Shipwright>>
-* <<4-tekton-and-pipeline-as-a-code,Tekton & Pipeline As a Code>>
+* <<2-pack-client,Pack>> client
+* <<3-tekton,Tekton>> Pipeline
+* <<4-RHTAP,Red Hat Trusted Application Pipeline>>
+* <<5-shipwright,Shipwright>>
 
 == Project Compatibility Matrix
 
@@ -514,7 +515,7 @@ kubectl get secret $SECRET_NAME -n $TENANT_NAMESPACE$$ -o json | jq --arg new_va
 ----
 
 
-== 5. Shipwright and Buildpack
+== 5. Shipwright
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
