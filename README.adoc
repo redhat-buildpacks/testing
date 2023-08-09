@@ -11,7 +11,11 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack_nodejs.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml/badge.svg[\]] https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing[\]]
+https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg[]]
+https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg[]]
+https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg[]]
+https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/shipwright.yaml/badge.svg[]]
+https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/github/commit-activity/m/redhat-buildpacks/testing[]]
 
 == Introduction
 
@@ -59,8 +63,7 @@ Add first the following Quarkus extension to the Quarkus Getting started example
 quarkus extension add 'container-image-buildpack'
 ----
 
-Do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.175` and where you pass the needed `+BP_***+` env variables in order to configure
-properly the Quarkus mavn build:
+Do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.175` and where you pass the needed `+BP_***+` env variables in order to configure properly the Quarkus maven build:
 
 [,bash]
 ----
@@ -204,6 +207,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 [,bash]
 ----
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
+
 BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.175
 LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.17.0
 RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
