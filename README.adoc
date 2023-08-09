@@ -190,7 +190,7 @@ The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image]
 [,text]
 ----
 Lifecycle:
-  Version: 0.16.3
+  Version: 0.16.5
   Buildpack APIs:
     Deprecated: 0.2, 0.3, 0.4, 0.5, 0.6
     Supported: 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
@@ -205,7 +205,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 BUILDER_IMAGE=paketobuildpacks/builder:0.1.361-tiny
-LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.3
+LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.5
 RUN_IMAGE=paketobuildpacks/run:tiny
 
 kubectl delete task/buildpacks-phases

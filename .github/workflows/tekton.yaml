@@ -7,7 +7,6 @@ on:
       - main
 jobs:
   linux-tekton-build:
-    if: contains(github.event.head_commit.message, 'tekton_test')
     name: Linux - Tekton build
     runs-on: ubuntu-latest
     strategy:
@@ -16,7 +15,7 @@ jobs:
         tekton-version: [ 'v0.48.0' ]
         tekton-client-version: [ '0.31.0']
         builder-image: [ 'paketobuildpacks/builder:0.1.361-tiny' ]
-        lifecycle-image: [ 'buildpacksio/lifecycle:0.16.3' ]
+        lifecycle-image: [ 'buildpacksio/lifecycle:0.16.5' ]
         run-image: [ 'paketobuildpacks/run:tiny' ]
     steps:
       - uses: actions/checkout@v3
