@@ -43,9 +43,14 @@ The goal of this project is to test/validate different approaches to build a run
 | Todo
 
 | https://github.com/paketo-buildpacks/builder-jammy-tiny[0.0.175]
-| Paketo Builder Tiny (jammy)
+| Paketo Builder Tiny (jammy) builder
 | Yes
 | Change this builder image with the ubi image
+
+| https://github.com/paketo-community/builder-ubi-base/releases/tag/0.0.1[0.0.1]
+| Paketo community UBI builder
+| No
+| To be included part of the GitHub actions matrix
 
 | https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.0.3[0.0.3]
 | Paketo Node.js Extension for ubi
@@ -55,7 +60,7 @@ The goal of this project is to test/validate different approaches to build a run
 | https://github.com/paketo-community/ubi-java-extension[n/a]
 | Paketo Java Extension for ubi
 | No
-| Todo
+| To be tested when released
 
 
 |===
