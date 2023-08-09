@@ -80,7 +80,7 @@ jobs:
           
           echo "Build the nodejs app"
           git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
-          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --env BP_NODE_VERSION="~16" --builder $BUILDER_IMAGE --network host -v
+          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --builder $BUILDER_IMAGE --network host -v
           
           echo "Run the nodejs http application & tst ..."
           .github/testNodeHello.sh $CONTAINER_NAME $CONTAINER_IMAGE
