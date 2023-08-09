@@ -24,7 +24,7 @@ The goal of this project is to test/validate different approaches to build a run
 * <<1-quarkus-buildpacks,Quarkus buildpacks>>
 * <<2-pack-client,Pack>> client
 * <<3-tekton,Tekton>> Pipeline
-* <<4-RHTAP,Red Hat Trusted Application Pipeline>>
+* <<4-rhtap,Red Hat Trusted Application Pipeline (aka RHTAP)>>
 * <<5-shipwright,Shipwright>>
 
 == Project Compatibility Matrix
