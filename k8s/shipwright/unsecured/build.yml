@@ -14,11 +14,11 @@ spec:
     - name: CNB_PLATFORM_API
       value: "0.11"
     - name: CNB_BUILDER_IMAGE
-      value: paketobuildpacks/builder:0.1.361-tiny
+      value: paketobuildpacks/builder-jammy-tiny:0.0.175
     - name: CNB_LIFECYCLE_IMAGE
-      value: buildpacksio/lifecycle:0.16.3
+      value: buildpacksio/lifecycle:0.17.0
     - name: RUN_IMAGE
-      value: paketobuildpacks/run:tiny
+      value: paketobuildpacks/run-jammy-tiny:latest
     - name: APP_IMAGE
       value: kind-registry.local:5000/quarkus-hello
     - name: PROCESS_TYPE

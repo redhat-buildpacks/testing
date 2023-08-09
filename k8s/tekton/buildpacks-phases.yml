@@ -34,7 +34,7 @@ spec:
       description: The name of where to store the app image.
     - name: RUN_IMAGE
       description: Reference to a run image to use.
-      default: "paketobuildpacks/run:tiny"
+      default: "paketobuildpacks/run-jammy-tiny:latest"
     - name: CACHE_IMAGE
       description: The name of the persistent app cache image (if no cache workspace is provided).
       default: ""
@@ -53,7 +53,7 @@ spec:
       default: empty-dir
     - name: USER_ID
       description: The user ID of the builder image user.
-      default: "1000"
+      default: "1001"
     - name: GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
@@ -70,7 +70,7 @@ spec:
   stepTemplate:
     env:
       - name: CNB_PLATFORM_API
-        value: "0.10"
+        value: "0.12"
       - name: HOME
         value: $(params.USER_HOME)
 
@@ -204,7 +204,6 @@ spec:
         - "-process-type=$(params.PROCESS_TYPE)"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
-        - "-stack=/layers/stack.toml"
         - "$(params.APP_IMAGE)"
       volumeMounts:
         - name: layers-dir
