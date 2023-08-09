@@ -53,9 +53,10 @@ spec:
     - name: PLATFORM_DIR
       description: The name of the platform directory.
       default: empty-dir
-    - name: USER_ID
+    - # Update the user id to use new paketo builder image till we can use: https://github.com/shipwright-io/community/blob/main/ships/0036-runAs-for-supporting-steps.md
+      name: USER_ID
       description: The user ID of the builder image user.
-      default: "1000"
+      default: "1001"
     - name: GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
@@ -199,9 +200,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        # Update the user id to use new paketo builder
-        runAsUser: 1001
-        runAsGroup: 1000
+        runAsUser: $(params.USER_ID)
+        runAsGroup: $(params.GROUP_ID)
       command: ["/cnb/lifecycle/builder"]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
