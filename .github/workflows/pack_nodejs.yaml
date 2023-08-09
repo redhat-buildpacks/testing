@@ -49,8 +49,8 @@ jobs:
           description = "Sample builder that uses ubi Node.js extension to support Node.js apps"
   
           [[buildpacks]]
-          uri = "docker://gcr.io/paketo-buildpacks/nodejs:1.4.0"
-          version = "1.4.0"
+          uri = "docker://gcr.io/paketo-buildpacks/nodejs:1.8.0"
+          version = "1.8.0"
           
           [lifecycle]
           version = "0.17.0"
@@ -58,7 +58,7 @@ jobs:
           [[order]]
           [[order.group]]
           id = "paketo-buildpacks/nodejs"
-          version = "1.4.0"
+          version = "1.8.0"
           
           [[extensions]]
           id = "paketo-community/ubi-nodejs-extension"
@@ -80,7 +80,7 @@ jobs:
           
           echo "Build the nodejs app"
           git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
-          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --env BP_NODE_VERSION=16 --builder $BUILDER_IMAGE --network host -v
+          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --env BP_NODE_VERSION="~16" --builder $BUILDER_IMAGE --network host -v
           
           echo "Run the nodejs http application & tst ..."
           .github/testNodeHello.sh $CONTAINER_NAME $CONTAINER_IMAGE
