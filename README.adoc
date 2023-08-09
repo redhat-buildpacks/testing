@@ -63,14 +63,13 @@ Add first the following Quarkus extension to the Quarkus Getting started example
 quarkus extension add 'container-image-buildpack'
 ----
 
-Do the build using as builder image `paketobuildpacks/builder:0.1.361-tiny` and where you pass the needed `+BP_***+` env variables in order to configure
-properly the Quarkus mavn build:
+Do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.175` and where you pass the needed `+BP_***+` env variables in order to configure properly the Quarkus maven build:
 
 [,bash]
 ----
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder:0.1.361-tiny \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.175 \
  -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
  -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
  -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
@@ -101,7 +100,7 @@ For that purpose, we use some build-time environment variables `-e` to configure
 REGISTRY_HOST="kind-registry.local:5000"
 docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
 pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
-     --builder paketobuildpacks/builder:0.1.361-tiny \
+     --builder paketobuildpacks/builder-jammy-tiny:0.0.175 \
      -e BP_NATIVE_IMAGE="false" \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
@@ -194,13 +193,13 @@ The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image]
 [,text]
 ----
 Lifecycle:
-  Version: 0.16.5
+  Version: 0.17.0
   Buildpack APIs:
     Deprecated: 0.2, 0.3, 0.4, 0.5, 0.6
-    Supported: 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
+    Supported: 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10
   Platform APIs:
     Deprecated: 0.3, 0.4, 0.5, 0.6
-    Supported: 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10, 0.11
+    Supported: 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10, 0.11, 0.12
 ----
 
 It is time to create a `Pipelinerun` to build the Quarkus application
@@ -208,9 +207,10 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 [,bash]
 ----
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
-BUILDER_IMAGE=paketobuildpacks/builder:0.1.361-tiny
-LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.16.5
-RUN_IMAGE=paketobuildpacks/run:tiny
+
+BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.175
+LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.17.0
+RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
 kubectl delete task/buildpacks-phases
 kubectl delete PipelineRun/buildpacks-phases
@@ -300,7 +300,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 
 == 4. RHTAP
 
-== Prerequisite
+=== Prerequisite
 
 - Have https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/getting-started/get-started/[access] to RHTAP - https://console.redhat.com/preview/hac/
 - Have kubectl (or oc client) installed on your machine
@@ -308,7 +308,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 - Add the `AppStudio` GitHub application to your GitHub Org and select it to be used for all the repositories. More information is available https://pipelinesascode.com/docs/install/github_apps/[here].
 - (optional). https://tekton.dev/docs/cli/[Install] the Tekton client
 
-== Env variables
+=== Env variables
 
 In order to play/execute the commands defined hereafter, it is needed to define some env variables.
 Feel free to change them according to your GitHub organisation, tenant namespace, etc
@@ -330,7 +330,7 @@ REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_N
 BUILD_ID=1 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
 ----
 
-== HowTo
+=== HowTo
 
 To create a new GitHub repository and import the needed files, perform the following actions:
 
@@ -451,13 +451,13 @@ for entity in pods deployments routes services taskruns pipelineruns application
 kubectl delete application/$GITHUB_REPO_DEMO_NAME
 ----
 
-== Todo
+=== Todo
 
 - Try to make a test using our own quay.io credentials and repository using REGISTRY_URL=quay.io/$GITHUB_ORG_NAME
 
-== Issue
+=== Issue
 
-=== Full image path not supported
+==== Full image path not supported
 
 The lifecycle component and most probably google container library (used by lifecycle to access the registry) do not support such advanced feature: https://kubernetes.io/docs/concepts/containers/images/#kubelet-credential-provider
 The consequence is that if several secrets are attached to the `appstudio-pipeline` service account and subsequently by the pod running lifecycle, then

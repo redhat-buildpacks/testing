@@ -5,6 +5,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '*.adoc'        # Ignores .adoc files at the root of the repository
+      - '*.md'          # Ignores .md files at the root of the repository
+      - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
   linux-jvm-build:
     name: Linux - JVM build
@@ -12,7 +16,7 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        builder-image: [ 'paketobuildpacks/builder:0.1.361-tiny' ]
+        builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}

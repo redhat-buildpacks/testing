@@ -1,0 +1,95 @@
+name: "Test Nodejs ubi extension with Pack CLI"
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.adoc'        # Ignores .adoc files at the root of the repository
+      - '*.md'          # Ignores .md files at the root of the repository
+      - '**/*.md'       # Ignores .md files within subdirectories
+jobs:
+  linux-pack-build:
+    name: Linux - Pack CLI build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Reverted v0.30.0-rc1 to v0.30.0-pre2 as we got
+        # [detector] failed to satisfy "node" dependency version constraint "18 || 16": no compatible versions on "ubi8-paketo" stack. Supported versions are: []
+        pack_cli_version: [ 'v0.30.0-rc1' ]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Container Registry
+        uses: Sgitario/setup-container-registry@v1
+        with:
+          host: container-registry.local
+
+      - name: Install Pack
+        # Version needed: 0.30
+        run: |
+          (curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+          echo "Pack version"
+          pack version
+
+      - name: Test Nodejs UBI extension
+        run: |
+          CONTAINER_NAME=nodejs-pack-test
+          CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
+          BUILDER_IMAGE=$CONTAINER_REGISTRY_URL/nodejs-ubi-extension-builder
+
+          # Checkout
+          git clone https://github.com/paketo-community/ubi-nodejs-extension.git
+
+          echo "Enable experimental features in pack"
+          pack config experimental true
+          
+          echo "Build the detect and generate binaries of the extension"
+          ${{ github.workspace }}/ubi-nodejs-extension/scripts/build.sh
+          
+          echo "Creating the builder image and push it"
+          BUILDER_PATH=./builder.toml
+          
+          cat <<EOF > builder.toml
+          description = "Sample builder that uses ubi Node.js extension to support Node.js apps"
+  
+          [[buildpacks]]
+          uri = "docker://gcr.io/paketo-buildpacks/nodejs:1.8.0"
+          version = "1.8.0"
+          
+          [lifecycle]
+          # Changed 0.17.0 -> 0.17.0-pre.2
+          # as we got as error
+          # [detector] failed to satisfy "node" dependency version constraint "18 || 16": no compatible versions on "ubi8-paketo" stack. Supported versions are: []
+          version = "0.17.0"
+          
+          [[order]]
+          [[order.group]]
+          id = "paketo-buildpacks/nodejs"
+          version = "1.8.0"
+          
+          [[extensions]]
+          id = "paketo-community/ubi-nodejs-extension"
+          version = "0.0.1"
+          uri = "file:///${{ github.workspace }}/ubi-nodejs-extension"
+          
+          [[order-extensions]]
+          [[order-extensions.group]]
+          id = "paketo-community/ubi-nodejs-extension"
+          version = "0.0.1"
+          
+          [stack]
+          id = "io.buildpacks.stacks.ubi8"
+          build-image = "paketocommunity/build-ubi-base"
+          run-image = "paketocommunity/run-ubi-base"
+          EOF
+          
+          pack builder create $BUILDER_IMAGE --config $BUILDER_PATH --publish
+          
+          echo "Build the nodejs app"
+          git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
+          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --builder $BUILDER_IMAGE --network host -v
+          
+          echo "Run the nodejs http application & tst ..."
+          .github/testNodeHello.sh $CONTAINER_NAME $CONTAINER_IMAGE

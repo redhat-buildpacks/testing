@@ -15,13 +15,13 @@ spec:
   parameters:
     - name: CNB_PLATFORM_API
       description: Platform API Version supported
-      default: "0.10"
+      default: "0.12"
     - name: CNB_BUILDER_IMAGE
       description: Builder image containing the buildpacks
       default: ""
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
-      default: "docker.io/buildpacksio/lifecycle:0.10.2@sha256:1bf8d3fc41d2fdf0ee4abdad50038ab8902ef58c74f5bcfc432c26767d889ed0"
+      default: "docker.io/buildpacksio/lifecycle:0.17.0@sha256:a55d870a2c026228aeddd999a4efe290122aab33b5afc1dd15c7780db2f61d90"
     - name: APP_IMAGE
       description: The name of where to store the app image.
     - name: RUN_IMAGE
@@ -46,9 +46,10 @@ spec:
     - name: PLATFORM_DIR
       description: The name of the platform directory.
       default: empty-dir
-    - name: USER_ID
+    - # Update the user id to use new paketo builder image till we can use: https://github.com/shipwright-io/community/blob/main/ships/0036-runAs-for-supporting-steps.md
+      name: USER_ID
       description: The user ID of the builder image user.
-      default: "1000"
+      default: "1001"
     - name: GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
@@ -180,8 +181,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
+        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/builder"]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"

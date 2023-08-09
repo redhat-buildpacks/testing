@@ -5,6 +5,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '*.adoc'        # Ignores .adoc files at the root of the repository
+      - '*.md'          # Ignores .md files at the root of the repository
+      - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
   linux-shipwright-build:
     name: Linux - Shipwright build
@@ -15,9 +19,9 @@ jobs:
         tekton-version: [ 'v0.48.0' ]
         shipwright-version: [ 'v0.11.0' ]
         tekton-client-version: [ '0.31.0']
-        builder-image: [ 'paketobuildpacks/builder:0.1.361-tiny' ]
-        lifecycle-image: [ 'buildpacksio/lifecycle:0.16.5' ]
-        run-image: [ 'paketobuildpacks/run:tiny' ]
+        builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
+        lifecycle-image: [ 'buildpacksio/lifecycle:0.17.0' ]
+        run-image: [ 'paketobuildpacks/run-jammy-tiny:latest' ]
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}
@@ -63,11 +67,11 @@ jobs:
               - name: CNB_PLATFORM_API
                 value: "0.11"
               - name: CNB_BUILDER_IMAGE
-                value: paketobuildpacks/builder:0.1.361-tiny
+                value: paketobuildpacks/builder-jammy-tiny:0.0.175
               - name: CNB_LIFECYCLE_IMAGE
-                value: buildpacksio/lifecycle:0.16.5
+                value: buildpacksio/lifecycle:0.17.0
               - name: RUN_IMAGE
-                value: paketobuildpacks/run:tiny
+                value: paketobuildpacks/run-jammy-tiny:latest
               - name: APP_IMAGE
                 value: ${CONTAINER_IMAGE}
               - name: PROCESS_TYPE
