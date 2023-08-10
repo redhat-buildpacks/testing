@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v3
       - name: yaml-to-json
         run: |
-          yq -P -o=json config.yaml > config.json
+          yq -P -o=json ${{ github.workspace }}/config.yml > ${{ github.workspace }}/config.json
       - id: set-matrix
         run: |
-          echo "matrix=$(jq -c . < ./config.json)" >> $GITHUB_OUTPUT
+          echo "matrix=$(jq -c . < ${{ github.workspace }}/config.json)" >> $GITHUB_OUTPUT
