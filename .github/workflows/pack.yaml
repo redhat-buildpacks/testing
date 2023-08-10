@@ -10,20 +10,24 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: populate-config-matrix
+      run: |
+        yq -P -o=json ${{ github.workspace }}/config.yml > ${{ github.workspace }}/config.json
+    - id: set-matrix
+      run: |
+        echo "matrix=$(jq -c . < ${{ github.workspace }}/config.json)" >> $GITHUB_OUTPUT
   linux-pack-build:
     name: Linux - Pack CLI build
+    needs: configure
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
-
-      - name: populate-config-matrix
-        run: |
-          yq -P -o=json ${{ github.workspace }}/config.yml > ${{ github.workspace }}/config.json
-      - id: set-matrix
-        run: |
-          echo "matrix=$(jq -c . < ${{ github.workspace }}/config.json)" >> $GITHUB_OUTPUT  
 
       - name: Setup Container Registry
         uses: Sgitario/setup-container-registry@v1
