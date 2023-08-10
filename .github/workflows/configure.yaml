@@ -1,0 +1,25 @@
+name: "Test using Pack CLI"
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.adoc'        # Ignores .adoc files at the root of the repository
+      - '*.md'          # Ignores .md files at the root of the repository
+      - '**/*.md'       # Ignores .md files within subdirectories
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout to repository
+        uses: actions/checkout@v3
+      - name: yaml-to-json
+        run: |
+          yq -P -o=json config.yaml > config.json
+      - id: set-matrix
+        run: |
+          echo "matrix=$(jq -c . < ./config.json)" >> $GITHUB_OUTPUT
