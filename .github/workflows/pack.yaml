@@ -10,8 +10,19 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
-  get-config-keys:
-    uses: ./.github/workflows/configure.yaml
+  configure:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout to repository
+        uses: actions/checkout@v3
+      - name: yaml-to-json
+        run: |
+          yq -P -o=json ${{ github.workspace }}/config.yml > ${{ github.workspace }}/config.json
+      - id: set-matrix
+        run: |
+          echo "matrix=$(jq -c . < ${{ github.workspace }}/config.json)" >> $GITHUB_OUTPUT
   linux-pack-build:
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
