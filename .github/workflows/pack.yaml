@@ -14,9 +14,9 @@ jobs:
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
-        pack_cli_version: [ 'v0.30.0-rc1' ]
+      matrix: ${{ fromYaml(file('matrix.yaml')) }}
+        #builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
+        #pack_cli_version: [ 'v0.30.0-rc1' ]
     steps:
       - uses: actions/checkout@v3
 

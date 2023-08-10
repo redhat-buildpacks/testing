@@ -30,7 +30,7 @@ The goal of this project is to test/validate different approaches to build a run
 == Project Compatibility Matrix
 
 |===
-| Tool/Image | Version | Compatible | Note
+| Tool/Image | Version | Tested | Note
 
 | Lifecycle
 | https://github.com/buildpacks/lifecycle/releases/tag/v0.17.0[0.17.0]
