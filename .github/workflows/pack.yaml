@@ -12,13 +12,13 @@ on:
 jobs:
   configure:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - uses: actions/checkout@v3
-    - name: populate-config-matrix
-      run: |
-        yq -P -o=json ${{ github.workspace }}/config.yml > ${{ github.workspace }}/config.json
     - id: set-matrix
       run: |
+        yq -P -o=json ${{ github.workspace }}/config.yml > ${{ github.workspace }}/config.json
         echo "matrix=$(jq -c . < ${{ github.workspace }}/config.json)" >> $GITHUB_OUTPUT
   linux-pack-build:
     name: Linux - Pack CLI build
