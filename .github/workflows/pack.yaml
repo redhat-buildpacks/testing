@@ -10,9 +10,9 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
-  linux-pack-build:
-    #needs: configure
+  get-config-keys:
     uses: ./.github/workflows/configure.yaml
+  linux-pack-build:
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
     strategy:
