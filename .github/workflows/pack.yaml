@@ -11,7 +11,8 @@ on:
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
   linux-pack-build:
-    needs: configure
+    #needs: configure
+    uses: ./.github/workflows/configure.yaml
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
     strategy:
