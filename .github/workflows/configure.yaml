@@ -1,5 +1,7 @@
-name: "Test using Pack CLI"
-on: [workflow_call]  # allow this workflow to be called from other workflows
+name: "Job parsing the config and share it using GITHUB_OUTPUT"
+
+on:
+  workflow_call:  # allow this workflow to be called from other workflows
 
 jobs:
   configure:
