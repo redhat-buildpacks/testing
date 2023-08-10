@@ -15,8 +15,7 @@ jobs:
     name: Linux - Tekton build
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}
