@@ -4,3 +4,16 @@ include:
 
    # Version needed >= 0.30 to be able to use lifecycle 0.17 and to play with extensions
    pack_cli_version: 'v0.30.0-rc1'
+
+   # Quarkus java parameter
+   java:
+    - 17
+
+   # Shipwright and Tekton parameters
+   tekton-version: [ 'v0.48.0' ]
+   shipwright-version: [ 'v0.11.0' ]
+   tekton-client-version: [ '0.31.0' ]
+
+   # Buildpacks parameters
+   lifecycle-image: [ 'buildpacksio/lifecycle:0.17.0' ]
+   run-image: [ 'paketobuildpacks/run-jammy-tiny:latest' ]

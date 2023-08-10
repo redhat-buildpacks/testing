@@ -11,12 +11,11 @@ on:
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
   linux-jvm-build:
+    needs: configure
     name: Linux - JVM build
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        java: [ 17 ]
-        builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
+      matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}

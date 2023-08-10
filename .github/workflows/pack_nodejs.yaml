@@ -11,11 +11,11 @@ on:
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
   linux-pack-build:
+    needs: configure
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        pack_cli_version: [ 'v0.30.0-rc1' ]
+      matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
 
