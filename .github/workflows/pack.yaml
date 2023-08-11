@@ -24,7 +24,7 @@ jobs:
     needs: configure-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.configure-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
 
