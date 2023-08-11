@@ -74,7 +74,7 @@ To play with the different scenarios, git clone this Quarkus https://github.com/
 
 [,bash]
 ----
-git clone https://github.com/quarkusio/quarkus-quickstarts.git
+git clone --depth 1 --branch 3.2.3.Final https://github.com/quarkusio/quarkus-quickstarts.git
 cd quarkus-quickstarts/getting-started
 mvn quarkus:dev
 ----

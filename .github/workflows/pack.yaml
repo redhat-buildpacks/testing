@@ -35,7 +35,7 @@ jobs:
           CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
 
           # Checkout
-          git clone https://github.com/quarkusio/quarkus-quickstarts.git
+          git clone --depth 1 --branch ${{ quarkus_version }} https://github.com/quarkusio/quarkus-quickstarts.git
 
           # Build image and push to the container registry
           pack build $CONTAINER_IMAGE \

@@ -6,6 +6,8 @@ include:
    pack_cli_version: "v0.30.0-rc1"
 
    # Quarkus java parameter
+   quarkus_version: "3.2.3.Final"
+
    # Changed ['11', '17'] to '17' as shipwright job reports:
    # Error: The template is not valid. .github/workflows/shipwright.yaml (Line: 34, Col: 25): A sequence was not expected
    java: "17"
