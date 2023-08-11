@@ -21,13 +21,30 @@ https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/
 
 The goal of this project is to test/validate different approaches to build a runtime using:
 
-* <<1-quarkus-buildpacks,Quarkus buildpacks>>
+* <<1-quarkus-buildpacks,Quarkus Java Buildpack>>
 * <<2-pack-client,Pack>> client
 * <<3-tekton,Tekton>> Pipeline
 * <<4-rhtap,Red Hat Trusted Application Pipeline (aka RHTAP)>>
 * <<5-shipwright,Shipwright>>
 
 == Project Testing Matrix
+
+The following table details the versions of the different tools/images used within the GitHub e2e workflows
+like also within the examples presented within the page.
+
+The project currently verifies the following scenario:
+
+- link:.github/workflows/quarkus.yaml[Quarkus HelloWord build using Java Buildpack library]
+- link:.github/workflows/pack.yaml[Quarkus HelloWord build using Pack client]
+- link:.github/workflows/pack_nodejs.yaml[Node.js Hello using extension and pack]
+- link:.github/workflows/tekton.yaml[Quarkus HelloWorld & Tekton Pipeline]
+- link:.github/workflows/shipwright.yaml[Quarkus HelloWorld & Shipwright]
+
+[IMPORTANT]
+====
+The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using RHTAP is not implemented as GitHub Workflow !
+====
+
 
 |===
 | Tool/Image | Version | Tested | Note
