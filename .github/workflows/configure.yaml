@@ -6,10 +6,10 @@ on:
     outputs:
       matrix:
         description: "Matrix of configurations"
-        value: ${{ jobs.reuse.outputs.matrix }}
+        value: ${{ jobs.generate-json-matrix.outputs.matrix }}
 
 jobs:
-  configure-matrix:
+  generate-json-matrix:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
