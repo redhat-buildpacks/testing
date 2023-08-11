@@ -1,7 +1,12 @@
-name: "Job parsing the config and share it using GITHUB_OUTPUT"
+name: "Reusable workflow parsing the YAML config and share the matrix using GITHUB_OUTPUT"
 
 on:
-  workflow_call:  # allow this workflow to be called from other workflows
+  workflow_call:
+    # Map the workflow outputs to job outputs
+    outputs:
+      matrix:
+        description: "Matrix of configurations"
+        value: ${{ jobs.reuse.outputs.matrix }}
 
 jobs:
   configure-matrix:
@@ -11,6 +16,8 @@ jobs:
     steps:
       - name: Checkout to repository
         uses: actions/checkout@v3
+
       - id: set-matrix
+        name: Convert the YAML config JSON and pass it as matrix's value to matrix GITHUB_OUTPUT
         run: |
           echo "matrix=$(yq -P -o=json ${{ github.workspace }}/config.yml | jq -c .)" >> $GITHUB_OUTPUT
