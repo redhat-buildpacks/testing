@@ -6,6 +6,7 @@ spec:
   source:
     url: https://github.com/quarkusio/quarkus-quickstarts
     contextDir: getting-started
+    revision: 3.2.3.Final
   paramValues:
     #
     - name: SOURCE_SUBPATH
