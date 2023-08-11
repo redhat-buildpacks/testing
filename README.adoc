@@ -30,7 +30,7 @@ The goal of this project is to test/validate different approaches to build a run
 == Project Testing Matrix
 
 The following table details the versions of the different tools/images used within the GitHub e2e workflows
-like also within the examples presented within the page.
+like also within the examples presented within this project.
 
 The project currently verifies the following scenario:
 
