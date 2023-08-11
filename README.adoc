@@ -27,7 +27,7 @@ The goal of this project is to test/validate different approaches to build a run
 * <<4-rhtap,Red Hat Trusted Application Pipeline (aka RHTAP)>>
 * <<5-shipwright,Shipwright>>
 
-== Project Compatibility Matrix
+== Project Testing Matrix
 
 |===
 | Tool/Image | Version | Tested | Note
