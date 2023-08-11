@@ -6,9 +6,7 @@ include:
    pack_cli_version: 'v0.30.0-rc1'
 
    # Quarkus java parameter
-   java:
-    - 11
-    - 17
+   java: ['11','17']
 
    # Shipwright and Tekton parameters
    tekton-version: [ 'v0.48.0' ]
