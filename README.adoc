@@ -21,13 +21,30 @@ https://github.com/redhat-buildpacks/testing/pulse[image:https://img.shields.io/
 
 The goal of this project is to test/validate different approaches to build a runtime using:
 
-* <<1-quarkus-buildpacks,Quarkus buildpacks>>
+* <<1-quarkus-buildpacks,Quarkus Java Buildpack>>
 * <<2-pack-client,Pack>> client
 * <<3-tekton,Tekton>> Pipeline
 * <<4-rhtap,Red Hat Trusted Application Pipeline (aka RHTAP)>>
 * <<5-shipwright,Shipwright>>
 
 == Project Testing Matrix
+
+The following table details the versions of the different tools/images used within the GitHub e2e workflows
+like also within the examples presented within the page.
+
+The project currently verifies the following scenario:
+
+- link:.github/workflows/quarkus.yaml[Quarkus HelloWord build using Java Buildpack library]
+- link:.github/workflows/pack.yaml[Quarkus HelloWord build using Pack client]
+- link:.github/workflows/pack_nodejs.yaml[Node.js Hello using extension and pack]
+- link:.github/workflows/tekton.yaml[Quarkus HelloWorld & Tekton Pipeline]
+- link:.github/workflows/shipwright.yaml[Quarkus HelloWorld & Shipwright]
+
+[IMPORTANT]
+====
+The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using RHTAP is not implemented as GitHub Workflow !
+====
+
 
 |===
 | Tool/Image | Version | Tested | Note
@@ -48,13 +65,13 @@ The goal of this project is to test/validate different approaches to build a run
 | -
 
 | Paketo Builder Tiny (jammy) builder
-| https://github.com/paketo-buildpacks/builder-jammy-tiny[0.0.175]
+| https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.176[0.0.176]
 | Yes
-| -
+| Package lifecycle 0.17.0
 
 | Paketo community UBI builder
 | https://github.com/paketo-community/builder-ubi-base/releases/tag/0.0.1[0.0.1]
-| No
+| Yes
 | Only support Node.js buildpacks.
 
 | Paketo Node.js Extension for ubi
@@ -105,13 +122,13 @@ Add first the following Quarkus extension to the Quarkus Getting started example
 quarkus extension add 'container-image-buildpack'
 ----
 
-Do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.175` and where you pass the needed `+BP_***+` env variables in order to configure properly the Quarkus maven build:
+Do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.176` and where you pass the needed `+BP_***+` env variables in order to configure properly the Quarkus maven build:
 
 [,bash]
 ----
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.175 \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.176 \
  -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
  -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
  -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
@@ -142,7 +159,7 @@ For that purpose, we use some build-time environment variables `-e` to configure
 REGISTRY_HOST="kind-registry.local:5000"
 docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
 pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
-     --builder paketobuildpacks/builder-jammy-tiny:0.0.175 \
+     --builder paketobuildpacks/builder-jammy-tiny:0.0.176 \
      -e BP_NATIVE_IMAGE="false" \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
@@ -250,7 +267,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
-BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.175
+BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.176
 LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.17.0
 RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
