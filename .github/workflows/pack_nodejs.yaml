@@ -10,8 +10,16 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
+  configure:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: set-matrix
+        run: |
+          echo "matrix=$(yq -P -o=json ${{ github.workspace }}/config.yml | jq -c .)" >> $GITHUB_OUTPUT
   linux-pack-build:
-    needs: configure
     name: Linux - Pack CLI build
     runs-on: ubuntu-latest
     strategy:
