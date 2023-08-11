@@ -20,4 +20,7 @@ jobs:
       - id: set-matrix
         name: Convert the YAML config JSON and pass it as matrix's value to matrix GITHUB_OUTPUT
         run: |
-          echo "matrix=$(yq -P -o=json ${{ github.workspace }}/config.yml | jq -c .)" >> $GITHUB_OUTPUT
+          #echo "matrix=$(yq -P -o=json ${{ github.workspace }}/config.yml | jq -c .)" >> $GITHUB_OUTPUT
+          matrix="matrix=$(yq -P -o=json ${{ github.workspace }}/config.yml | jq -c .)"
+          echo $matrix
+          echo $matrix >> $GITHUB_OUTPUT
