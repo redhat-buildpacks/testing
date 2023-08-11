@@ -10,13 +10,15 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
+  configure-matrix:
+    uses: ./.github/workflows/configure.yaml
+
   linux-jvm-build:
     name: Linux - JVM build
+    needs: configure-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        java: [ 17 ]
-        builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
+      matrix: ${{ fromJSON(needs.configure-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}

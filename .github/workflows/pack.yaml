@@ -10,14 +10,15 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
+  configure-matrix:
+    uses: ./.github/workflows/configure.yaml
+
   linux-pack-build:
     name: Linux - Pack CLI build
+    needs: configure-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        $extend: *matrix_template
-        #builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
-        #pack_cli_version: [ 'v0.30.0-rc1' ]
+      matrix: ${{ fromJSON(needs.configure-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
 
@@ -25,7 +26,6 @@ jobs:
         uses: Sgitario/setup-container-registry@v1
 
       - name: Install Pack
-        # Version needed: >= 0.30 (Aug 2023)
         run: |
           curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
 

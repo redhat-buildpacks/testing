@@ -10,18 +10,15 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
+  configure-matrix:
+    uses: ./.github/workflows/configure.yaml
+
   linux-shipwright-build:
     name: Linux - Shipwright build
+    needs: configure-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        java: [ 17 ]
-        tekton-version: [ 'v0.48.0' ]
-        shipwright-version: [ 'v0.11.0' ]
-        tekton-client-version: [ '0.31.0']
-        builder-image: [ 'paketobuildpacks/builder-jammy-tiny:0.0.175' ]
-        lifecycle-image: [ 'buildpacksio/lifecycle:0.17.0' ]
-        run-image: [ 'paketobuildpacks/run-jammy-tiny:latest' ]
+      matrix: ${{ fromJSON(needs.configure-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK ${{ matrix.java }}
@@ -33,7 +30,7 @@ jobs:
 
       - name: Setup Kind with Registry
         run: |
-          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
+          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/kind.sh" | bash -s install --registry-name kind-registry.local
 
       - name: Setup Tekton & Shipwright
         run: |
