@@ -10,9 +10,8 @@ spec:
     #
     - name: SOURCE_SUBPATH
       value: getting-started
-    # Parameters defined to use Lifecycle: 0.16 and Platform API: 0.11
     - name: CNB_PLATFORM_API
-      value: "0.11"
+      value: "0.12"
     - name: CNB_BUILDER_IMAGE
       value: paketobuildpacks/builder-jammy-tiny:0.0.175
     - name: CNB_LIFECYCLE_IMAGE
