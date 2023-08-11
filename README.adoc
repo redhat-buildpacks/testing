@@ -71,7 +71,7 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 
 | Paketo community UBI builder
 | https://github.com/paketo-community/builder-ubi-base/releases/tag/0.0.1[0.0.1]
-| No
+| Yes
 | Only support Node.js buildpacks.
 
 | Paketo Node.js Extension for ubi
