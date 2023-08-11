@@ -30,7 +30,8 @@ jobs:
 
       - name: Setup Kind with Registry
         run: |
-          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/kind.sh" | bash -s install --registry-name kind-registry.local
+          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/kind.sh" | bash -s install
+          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 
       - name: Setup Tekton
         run: |

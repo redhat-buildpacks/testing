@@ -109,6 +109,7 @@ You can create a kubernetes `kind` cluster and an unsecure or secured HTTPS dock
 [,bash]
 ----
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 ----
 
 NOTE: Use the command `+... | bash -s -h+` to see the usage and notice end of the execution of the script where you can find the selfsigned certificate
@@ -195,7 +196,8 @@ To use Tekton, it is needed to have a k8s cluster (>= 1.24) & local docker regis
 
 [,bash]
 ----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 ----
 
 WARNING: Append as suffix to the local registry name `*.local` otherwise buildpacks lifecycle will report this error during analyse phase `+failed to get previous image: connect to repo store 'kind-registry:5000/buildpack/app': Get "https://kind-registry:5000/v2/": http: server gave HTTP response to HTTPS client+`
@@ -548,7 +550,8 @@ To use shipwright, it is needed to have a k8s cluster, local docker registry and
 
 [,bash]
 ----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --registry-name kind-registry.local
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.48.0/release.yaml
 ----
 
@@ -635,7 +638,8 @@ Install a secured container registry
 
 [,bash]
 ----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --secure-registry --registry-name=kind-registry.local
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local --secure-registry --registry-name=kind-registry.local
 ----
 
 NOTE: To install a secured (HTTPS and authentication) docker registry, pass the parameter: --secure-registry
@@ -707,7 +711,8 @@ Setup first the kind cluster and docker registry
 
 [,bash]
 ----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install --delete-kind-cluster
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install
 ----
 
 NOTE: To install a secured (HTTPS and authentication) docker registry, pass the parameter: --secure-registry
