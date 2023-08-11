@@ -37,7 +37,7 @@ jobs:
           CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
 
           # Checkout
-          git clone --depth 1 --branch ${{ quarkus_version }} https://github.com/quarkusio/quarkus-quickstarts.git
+          git clone --depth 1 --branch ${{ matrix.quarkus_version }} https://github.com/quarkusio/quarkus-quickstarts.git
           cd quarkus-quickstarts/getting-started
 
           # Add quarkus-container-image-buildpack extension
