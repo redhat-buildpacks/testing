@@ -11,7 +11,7 @@ on:
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
   configure-matrix:
-    uses: ./.github/workflows/configure.yml
+    uses: ./.github/workflows/configure.yaml
 
   linux-pack-build:
     name: Linux - Pack CLI build
