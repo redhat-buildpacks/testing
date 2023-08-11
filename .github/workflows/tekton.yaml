@@ -10,7 +10,7 @@ on:
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
 jobs:
-  configure:
+  configure-matrix:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -21,6 +21,7 @@ jobs:
           echo "matrix=$(yq -P -o=json ${{ github.workspace }}/config.yml | jq -c .)" >> $GITHUB_OUTPUT
   linux-tekton-build:
     name: Linux - Tekton build
+    needs: configure-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJSON(needs.configure.outputs.matrix) }}
