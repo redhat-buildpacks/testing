@@ -215,6 +215,10 @@ spec:
         echo "CNB_USER_ID:  $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)"
         echo "CNB_GROUP_ID: $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)"
 
+      volumeMounts:
+        - name: empty-dir
+          mountPath: /tekton/home
+
     - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
