@@ -27,6 +27,8 @@ spec:
   params:
     - name: CNB_BUILDER_IMAGE
       description: The image on which builds will run (must include lifecycle and compatible buildpacks).
+    - name: CNB_BUILD_IMAGE
+      description: Reference to the current build image in an OCI registry (if used <kaniko-dir> must be provided)
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing sensitive phases.
       default: docker.io/buildpacksio/lifecycle:0.10.2@sha256:1bf8d3fc41d2fdf0ee4abdad50038ab8902ef58c74f5bcfc432c26767d889ed0
@@ -178,6 +180,7 @@ spec:
       command: ["/cnb/lifecycle/restorer"]
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
+        - "-build-image=$(params.CNB_BUILD_IMAGE)"
         - "-group=/layers/group.toml"
         - "-layers=/layers"
         - "-cache-dir=$(workspaces.cache.path)"
