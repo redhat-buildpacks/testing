@@ -33,6 +33,9 @@ spec:
     - name: CNB_EXPERIMENTAL_MODE
       description: Boolean parameter able to enable/disable experimental features such as - extensions, etc
       default: "false"
+    - name: CNB_LOG_LEVEL
+      description: Logging level
+      default: "info"
     - name: APP_IMAGE
       description: The name of where to store the app image.
     - name: RUN_IMAGE
@@ -135,7 +138,7 @@ spec:
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/analyzer"]
       args:
-        - "-log-level=debug"
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-layers=/layers"
         - "-run-image=$(params.RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
@@ -174,6 +177,18 @@ spec:
         - "-layers=/layers"
         - "-cache-dir=$(workspaces.cache.path)"
         - "-cache-image=$(params.CACHE_IMAGE)"
+        - "-uid=$(params.USER_ID)"
+        - "-gid=$(params.GROUP_ID)"
+      volumeMounts:
+        - name: layers-dir
+          mountPath: /layers
+
+    - name: extender
+      image: $(params.CNB_LIFECYCLE_IMAGE)
+      imagePullPolicy: Always
+      command: ["/cnb/lifecycle/extender"]
+      args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
       volumeMounts:
