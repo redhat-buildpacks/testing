@@ -23,10 +23,9 @@ spec:
     - name: cache
       description: Directory where cache is stored (when no cache image is provided).
       optional: true
-    - name: uid
-      description: UID specified within the builder image packaging the extensions
-    - name: gid
-      description: GID specified within the builder image packaging the extensions
+    - name: identifier
+      description: Identifier (uid/gid) if defined part of the builder extensions image
+      optional: true
 
   params:
     - name: CNB_BUILDER_IMAGE
@@ -113,8 +112,8 @@ spec:
         echo "CNB_USER_ID: ${CNB_USER_ID}"
         echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
         
-        echo $CNB_USER_ID | tee "$(workspaces.uid.path)"
-        echo $CNB_GROUP_ID | tee "$(workspaces.gid.path)"
+        echo $CNB_USER_ID | tee "$(workspaces.identifier.uid)"
+        echo $CNB_GROUP_ID | tee "$(workspaces.identifier.gid)"
 
     - name: prepare
       image: quay.io/swsmirror/bash
@@ -125,8 +124,8 @@ spec:
         #!/usr/bin/env bash
         set -e
         
-        echo "Extension UID: $(workspaces.uid.path)"
-        echo "Extension UID: $(workspaces.gid.path)"
+        echo "Extension UID: $(workspaces.identifier.uid)"
+        echo "Extension UID: $(workspaces.identifier.gid)"
 
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
