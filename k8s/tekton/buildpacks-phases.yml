@@ -201,6 +201,9 @@ spec:
         - "-generated=/layers/generated"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
