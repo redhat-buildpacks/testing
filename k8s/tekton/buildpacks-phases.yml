@@ -210,9 +210,9 @@ spec:
           echo "Image does not have the specified label."
         fi
         
-        # | tee "$(results.CNB_USER_ID.path)"
-        # | tee "$(results.CNB_GROUP_ID.path)"
-        echo "CNB_USER_ID: $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))' | cut -d '=' -f 2)"
+        # | tee "$(rresults.CNB_USER_ID.path)"
+        # | tee "$(rresults.CNB_GROUP_ID.path)"
+        echo "CNB_USER_ID:  $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)"
         echo "CNB_GROUP_ID: $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)"
 
     - name: extender
