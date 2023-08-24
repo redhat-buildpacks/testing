@@ -40,7 +40,7 @@ spec:
       default: "info"
     - name: APP_IMAGE
       description: The name of where to store the app image.
-    - name: RUN_IMAGE
+    - name: CNB_RUN_IMAGE
       description: Reference to a run image to use.
       default: "paketobuildpacks/run-jammy-tiny:latest"
     - name: CACHE_IMAGE
@@ -147,7 +147,7 @@ spec:
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-layers=/layers"
-        - "-run-image=$(params.RUN_IMAGE)"
+        - "-run-image=$(params.CNB_RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
