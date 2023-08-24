@@ -192,6 +192,29 @@ spec:
         - name: kaniko-dir
           mountPath: /kaniko
 
+    - name: builder-extension
+      image: quay.io/skopeo/stable
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        
+        BUILDER_IMAGE=quay.io/ch007m/nodejs-ubi-extension-builder
+        EXT_LABEL_1="io.buildpacks.extension.layers"
+        EXT_LABEL_2="io.buildpacks.buildpack.order-extensions"
+        
+        skopeo inspect "docker://$BUILDER_IMAGE" > MANIFEST
+  
+        if cat MANIFEST | jq -e '.Labels | has("'${EXT_LABEL_1}'") and has("'${EXT_LABEL_2}'")' > /dev/null; then
+          echo "Image: $IMAGE_NAME has the specified label: $EXT_LABEL_1 and $EXT_LABEL_2."
+        else
+          echo "Image does not have the specified label."
+        fi
+        
+        # | tee "$(results.CNB_USER_ID.path)"
+        # | tee "$(results.CNB_GROUP_ID.path)"
+        echo "CNB_USER_ID: $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))' | cut -d '=' -f 2)"
+        echo "CNB_GROUP_ID: $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)"
+
     - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
