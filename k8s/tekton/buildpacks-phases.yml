@@ -193,7 +193,7 @@ spec:
           mountPath: /kaniko
 
     - name: builder-extension
-      image: quay.io/skopeo/stable
+      image: registry.access.redhat.com/ubi9/skopeo
       script: |
         #!/usr/bin/env bash
         set -e
