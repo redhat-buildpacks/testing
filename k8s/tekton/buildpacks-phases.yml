@@ -95,8 +95,11 @@ spec:
           echo "> Setting permissions on '$(workspaces.cache.path)'..."
           chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$(workspaces.cache.path)"
         fi
+        
+        echo "Creating .docker folder"
+        mkdir -p "/tekton/home/.docker"
 
-        for path in "/tekton/home" "/layers" "$(workspaces.source.path)"; do
+        for path in "/tekton/home" "/tekton/home/.docker" "/layers" "$(workspaces.source.path)"; do
           echo "> Setting permissions on '$path'..."
           chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$path"
         done
