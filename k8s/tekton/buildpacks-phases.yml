@@ -79,6 +79,8 @@ spec:
     env:
       - name: CNB_PLATFORM_API
         value: "0.12"
+      - name: CNB_EXPERIMENTAL_MODE
+        value: $(params.CNB_EXPERIMENTAL_MODE)
       - name: HOME
         value: $(params.USER_HOME)
 
@@ -158,9 +160,6 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/detector"]
-      env:
-        - name: CNB_EXPERIMENTAL_MODE
-          value: $(params.CNB_EXPERIMENTAL_MODE)
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
