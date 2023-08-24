@@ -23,6 +23,10 @@ spec:
     - name: cache
       description: Directory where cache is stored (when no cache image is provided).
       optional: true
+    - name: uid
+      description: UID specified within the builder image packaging the extensions
+    - name: gid
+      description: GID specified within the builder image packaging the extensions
 
   params:
     - name: CNB_BUILDER_IMAGE
@@ -75,10 +79,6 @@ spec:
       description: The URL of the built `APP_IMAGE`. Used by RHTAP.
     - name: IMAGE_DIGEST
       description: The digest of the built `APP_IMAGE`. Used by RHTAP.
-    - name: EXT_IMAGE_UID
-      description: UID defined within the builder image packaging the extensions
-    - name: EXT_IMAGE_GID
-      description: GID defined within the builder image packaging the extensions
   stepTemplate:
     env:
       - name: CNB_PLATFORM_API
@@ -113,8 +113,8 @@ spec:
         echo "CNB_USER_ID: ${CNB_USER_ID}"
         echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
         
-        echo $CNB_USER_ID | tee "$(results.EXT_IMAGE_UID.path)"
-        echo $CNB_GROUP_ID | tee "$(results.EXT_IMAGE_GID.path)"
+        echo $CNB_USER_ID | tee "$(workspaces.uid.path)"
+        echo $CNB_GROUP_ID | tee "$(workspaces.gid.path)"
 
     - name: prepare
       image: quay.io/swsmirror/bash
@@ -125,8 +125,8 @@ spec:
         #!/usr/bin/env bash
         set -e
         
-        echo "Extension UID: $(steps.check-image-builder-extension.EXT_IMAGE_UID.path)"
-        echo "Extension UID: $(steps.check-image-builder-extension.EXT_IMAGE_GID.path)"
+        echo "Extension UID: $(workspaces.uid.path)"
+        echo "Extension UID: $(workspaces.gid.path)"
 
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
