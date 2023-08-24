@@ -141,7 +141,7 @@ spec:
           mountPath: /platform
 
     - name: analyze
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/analyzer"]
       args:
@@ -176,7 +176,7 @@ spec:
           mountPath: /tekton/home
 
     - name: restore
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/restorer"]
       args:
@@ -231,7 +231,7 @@ spec:
           mountPath: /tekton/home
 
     - name: export
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/exporter"]
       args:
