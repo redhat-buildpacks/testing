@@ -33,8 +33,8 @@ spec:
       description: The image to use when executing sensitive phases.
       default: docker.io/buildpacksio/lifecycle:0.10.2@sha256:1bf8d3fc41d2fdf0ee4abdad50038ab8902ef58c74f5bcfc432c26767d889ed0
     - name: CNB_EXPERIMENTAL_MODE
-      description: Boolean parameter able to enable/disable experimental features such as - extensions, etc
-      default: "false"
+      description: Environment variable to control ALL experimental features by the platform.
+      default: "warn"
     - name: CNB_LOG_LEVEL
       description: Logging level
       default: "info"
