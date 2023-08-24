@@ -202,9 +202,9 @@ spec:
         EXT_LABEL_1="io.buildpacks.extension.layers"
         EXT_LABEL_2="io.buildpacks.buildpack.order-extensions"
         
-        skopeo inspect "docker://$BUILDER_IMAGE" > MANIFEST
+        IMG_MANIFEST=$(skopeo inspect "docker://$BUILDER_IMAGE")
   
-        if cat MANIFEST | jq -e '.Labels | has("'${EXT_LABEL_1}'") and has("'${EXT_LABEL_2}'")' > /dev/null; then
+        if echo $IMG_MANIFEST | jq -e '.Labels | has("'${EXT_LABEL_1}'") and has("'${EXT_LABEL_2}'")' > /dev/null; then
           echo "Image: $IMAGE_NAME has the specified label: $EXT_LABEL_1 and $EXT_LABEL_2."
         else
           echo "Image does not have the specified label."
@@ -212,12 +212,8 @@ spec:
         
         # | tee "$(rresults.CNB_USER_ID.path)"
         # | tee "$(rresults.CNB_GROUP_ID.path)"
-        echo "CNB_USER_ID:  $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)"
-        echo "CNB_GROUP_ID: $(cat MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)"
-
-      volumeMounts:
-        - name: empty-dir
-          mountPath: /tekton/home
+        echo "CNB_USER_ID:  $(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)"
+        echo "CNB_GROUP_ID: $(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)"
 
     - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
