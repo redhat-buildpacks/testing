@@ -199,6 +199,8 @@ spec:
           mountPath: /layers
         - name: kaniko-dir
           mountPath: /kaniko
+        - name: empty-dir
+          mountPath: /tekton/home
 
     - name: build
       image: $(params.CNB_BUILDER_IMAGE)
@@ -255,4 +257,4 @@ spec:
     - name: layers-dir
       emptyDir: {}
     - name: kaniko-dir
-      emptyDir: { }
+      emptyDir: {}
