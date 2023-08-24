@@ -198,8 +198,9 @@ spec:
       command: ["/cnb/lifecycle/extender"]
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
-        - "-uid=0"
-        - "-gid=0"
+        - "-generated=/layers/generated"
+        - "-uid=$(params.USER_ID)"
+        - "-gid=$(params.GROUP_ID)"
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
