@@ -160,6 +160,7 @@ spec:
         - name: CNB_EXPERIMENTAL_MODE
           value: $(params.CNB_EXPERIMENTAL_MODE)
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-group=/layers/group.toml"
         - "-plan=/layers/plan.toml"
@@ -176,6 +177,7 @@ spec:
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/restorer"]
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-group=/layers/group.toml"
         - "-layers=/layers"
         - "-cache-dir=$(workspaces.cache.path)"
@@ -207,6 +209,7 @@ spec:
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/builder"]
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-layers=/layers"
         - "-group=/layers/group.toml"
@@ -224,6 +227,7 @@ spec:
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/exporter"]
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-layers=/layers"
         - "-group=/layers/group.toml"
