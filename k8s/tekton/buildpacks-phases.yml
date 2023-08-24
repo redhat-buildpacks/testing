@@ -190,6 +190,8 @@ spec:
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
+        - name: kaniko-dir
+          mountPath: /kaniko
 
     - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
