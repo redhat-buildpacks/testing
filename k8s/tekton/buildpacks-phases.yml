@@ -196,7 +196,7 @@ spec:
       image: quay.io/ch007m/extended-skopeo
       script: |
         #!/usr/bin/env bash
-        set -e
+        set -ex
         
         BUILDER_IMAGE=quay.io/ch007m/nodejs-ubi-extension-builder
         EXT_LABEL_1="io.buildpacks.extension.layers"
