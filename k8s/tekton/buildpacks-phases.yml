@@ -112,8 +112,8 @@ spec:
         echo "CNB_USER_ID: ${CNB_USER_ID}"
         echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
         
-        echo $CNB_USER_ID | tee "$(workspaces.identifier.uid)"
-        echo $CNB_GROUP_ID | tee "$(workspaces.identifier.gid)"
+        echo $CNB_USER_ID > "$(workspaces.identifier.uid)"
+        echo $CNB_GROUP_ID > "$(workspaces.identifier.gid)"
 
     - name: prepare
       image: quay.io/swsmirror/bash
