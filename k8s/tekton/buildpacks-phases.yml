@@ -165,8 +165,6 @@ spec:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-group=/layers/group.toml"
         - "-plan=/layers/plan.toml"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
