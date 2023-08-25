@@ -225,13 +225,12 @@ spec:
         - name: kaniko-dir
           mountPath: /kaniko
 
-    - name: check-volume
-      image: quay.io/swsmirror/bash
-      script: |
-        #!/usr/bin/env bash
-        set -e
-        ls -alR $(workspaces.source.path)
-        ls -alR $(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+    #- name: check-volume
+    #  image: quay.io/swsmirror/bash
+    #  script: |
+    #    #!/usr/bin/env bash
+    #    set -e
+    #    ls -alR $(workspaces.source.path)/$(params.SOURCE_SUBPATH)
 
     - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
