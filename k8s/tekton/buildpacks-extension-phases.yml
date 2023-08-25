@@ -88,32 +88,36 @@ spec:
         value: $(params.USER_HOME)
 
   steps:
-    - name: check-image-builder-extension
-      image: quay.io/ch007m/extended-skopeo
-      script: |
-        #!/usr/bin/env bash
-        set -e
-        
-        BUILDER_IMAGE=quay.io/ch007m/nodejs-ubi-extension-builder
-        EXT_LABEL_1="io.buildpacks.extension.layers"
-        EXT_LABEL_2="io.buildpacks.buildpack.order-extensions"
-        
-        IMG_MANIFEST=$(skopeo inspect "docker://$BUILDER_IMAGE")
-        
-        if echo $IMG_MANIFEST | jq -e '.Labels | has("'${EXT_LABEL_1}'") and has("'${EXT_LABEL_2}'")' > /dev/null; then
-          echo "Image: $IMAGE_NAME has the specified label: $EXT_LABEL_1 and $EXT_LABEL_2."
-        else
-          echo "Image does not have the specified extensions label !"
-        fi
-        
-        CNB_USER_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)
-        CNB_GROUP_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)
-        
-        echo "CNB_USER_ID: ${CNB_USER_ID}"
-        echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
-        
-        echo $CNB_USER_ID  > $(workspaces.shared.path)/uid
-        echo $CNB_GROUP_ID > $(workspaces.shared.path)/gid
+    #
+    # Disabled as fails on RHTAP:
+    # Error executing command: fork/exec /tekton/scripts/script-0-z8h25: exec format error
+    #
+    #- name: check-image-builder-extension
+    #  image: quay.io/ch007m/extended-skopeo
+    #  script: |
+    #    #!/usr/bin/env bash
+    #    set -e
+    #
+    #    BUILDER_IMAGE=quay.io/ch007m/nodejs-ubi-extension-builder
+    #    EXT_LABEL_1="io.buildpacks.extension.layers"
+    #    EXT_LABEL_2="io.buildpacks.buildpack.order-extensions"
+    #
+    #    IMG_MANIFEST=$(skopeo inspect "docker://$BUILDER_IMAGE")
+    #
+    #    if echo $IMG_MANIFEST | jq -e '.Labels | has("'${EXT_LABEL_1}'") and has("'${EXT_LABEL_2}'")' > /dev/null; then
+    #      echo "Image: $IMAGE_NAME has the specified label: $EXT_LABEL_1 and $EXT_LABEL_2."
+    #    else
+    #      echo "Image does not have the specified extensions label !"
+    #    fi
+    #
+    #    CNB_USER_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)
+    #    CNB_GROUP_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)
+    #
+    #    echo "CNB_USER_ID: ${CNB_USER_ID}"
+    #    echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
+    #
+    #    echo $CNB_USER_ID  > $(workspaces.shared.path)/uid
+    #    echo $CNB_GROUP_ID > $(workspaces.shared.path)/gid
 
     - name: prepare
       image: quay.io/swsmirror/bash
@@ -124,8 +128,8 @@ spec:
         #!/usr/bin/env bash
         set -e
         
-        echo "Extension UID: $(workspaces.shared.path)/uid"
-        echo "Extension GID: $(workspaces.shared.path)/gid"
+        #cho "Extension UID: $(workspaces.shared.path)/uid"
+        #echo "Extension GID: $(workspaces.shared.path)/gid"
 
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
