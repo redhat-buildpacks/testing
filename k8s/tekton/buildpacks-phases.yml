@@ -253,25 +253,23 @@ spec:
         - name: empty-dir
           mountPath: /tekton/home
 
-    - name: build
-      image: $(params.CNB_BUILDER_IMAGE)
-      imagePullPolicy: Always
-      command: ["/cnb/lifecycle/builder"]
-      args:
-        - "-log-level=$(params.CNB_LOG_LEVEL)"
-        - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
-        - "-layers=/layers"
-        - "-group=/layers/group.toml"
-        - "-plan=/layers/plan.toml"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
-      volumeMounts:
-        - name: layers-dir
-          mountPath: /layers
-        - name: $(params.PLATFORM_DIR)
-          mountPath: /platform
-        - name: empty-dir
-          mountPath: /tekton/home
+    #- name: build
+    #  image: $(params.CNB_BUILDER_IMAGE)
+    #  imagePullPolicy: Always
+    #  command: ["/cnb/lifecycle/builder"]
+    #  args:
+    #    - "-log-level=$(params.CNB_LOG_LEVEL)"
+    #    - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+    #    - "-layers=/layers"
+    #    - "-group=/layers/group.toml"
+    #    - "-plan=/layers/plan.toml"
+    #  volumeMounts:
+    #    - name: layers-dir
+    #      mountPath: /layers
+    #    - name: $(params.PLATFORM_DIR)
+    #      mountPath: /platform
+    #    - name: empty-dir
+    #      mountPath: /tekton/home
 
     - name: export
       image: $(params.CNB_BUILDER_IMAGE)
