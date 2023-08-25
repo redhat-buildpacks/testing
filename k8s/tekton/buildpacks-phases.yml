@@ -225,12 +225,21 @@ spec:
         - name: kaniko-dir
           mountPath: /kaniko
 
+    - name: check-volume
+      image: quay.io/swsmirror/bash
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        ls -alR $(workspaces.source.path)
+        ls -alR $(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+
     - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/extender"]
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
+        - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-generated=/layers/generated"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
