@@ -21,6 +21,7 @@ include:
    # Buildpacks parameters
    lifecycle-image: "buildpacksio/lifecycle:0.17.0"
    run-image: "paketobuildpacks/run-jammy-tiny:latest"
+   build-image: "paketobuildpacks/build-jammy-tiny:latest"
 
    # Kind parameter
    kind_sha_commit: "main"
