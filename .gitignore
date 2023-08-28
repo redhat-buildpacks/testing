@@ -5,3 +5,4 @@ tmp.json
 
 # Quarkus demo project
 quarkus-quickstarts/
+/auths.json
