@@ -23,9 +23,6 @@ spec:
     - name: cache
       description: Directory where cache is stored (when no cache image is provided).
       optional: true
-    - name: shared
-      description: Directory where information is shared between Buildpack steps
-      optional: true
 
   params:
     - name: CNB_BUILDER_IMAGE
