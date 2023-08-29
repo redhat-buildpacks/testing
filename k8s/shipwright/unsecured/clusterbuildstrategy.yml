@@ -214,7 +214,6 @@ spec:
         - "-process-type=$(params.PROCESS_TYPE)"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
-        - "-stack=/layers/stack.toml"
         - "$(params.APP_IMAGE)"
       env:
         - name: CNB_PLATFORM_API
