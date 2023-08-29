@@ -232,7 +232,7 @@ spec:
         - -c
         - |
           set -e
-          cat /layers/report.toml | grep "digest" | cut -d'"' -f2 | cut -d'"' -f2 | tr -d '\n' > "$(results.APP_IMAGE_DIGEST.path)"
+          cat /layers/report.toml | grep "digest" | cut -d'"' -f2 | cut -d'"' -f2 | tr -d '\n' > $(results.shp-image-digest.path)
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
