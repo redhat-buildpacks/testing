@@ -63,7 +63,7 @@ jobs:
               - name: SOURCE_SUBPATH
                 value: getting-started
               - name: CNB_PLATFORM_API
-                value: "0.11"
+                value: "0.12"
               - name: CNB_BUILDER_IMAGE
                 value: paketobuildpacks/builder-jammy-tiny:0.0.176
               - name: CNB_LIFECYCLE_IMAGE

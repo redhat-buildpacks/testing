@@ -199,6 +199,8 @@ spec:
           mountPath: /platform
         - name: empty-dir
           mountPath: /tekton/home
+        - name: cache-dir
+          mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
     - name: export
       image: $(params.CNB_LIFECYCLE_IMAGE)
@@ -214,7 +216,6 @@ spec:
         - "-process-type=$(params.PROCESS_TYPE)"
         - "-uid=$(params.USER_ID)"
         - "-gid=$(params.GROUP_ID)"
-        - "-stack=/layers/stack.toml"
         - "$(params.APP_IMAGE)"
       env:
         - name: CNB_PLATFORM_API
@@ -231,7 +232,7 @@ spec:
         - -c
         - |
           set -e
-          cat /layers/report.toml | grep "digest" | cut -d'"' -f2 | cut -d'"' -f2 | tr -d '\n' | tee $(results.APP_IMAGE_DIGEST.path)
+          cat /layers/report.toml | grep "digest" | cut -d'"' -f2 | cut -d'"' -f2 | tr -d '\n' > $(results.shp-image-digest.path)
       volumeMounts:
         - name: layers-dir
           mountPath: /layers

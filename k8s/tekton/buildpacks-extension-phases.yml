@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: buildpacks-phases
+  name: buildpacks-extension-phases
   labels:
     app.kubernetes.io/version: "0.3"
   annotations:
@@ -22,6 +22,9 @@ spec:
       description: Directory where application source is located.
     - name: cache
       description: Directory where cache is stored (when no cache image is provided).
+      optional: true
+    - name: shared
+      description: Directory where information is shared between Buildpack steps
       optional: true
 
   params:
@@ -85,6 +88,37 @@ spec:
         value: $(params.USER_HOME)
 
   steps:
+    #
+    # Disabled as fails on RHTAP:
+    # Error executing command: fork/exec /tekton/scripts/script-0-z8h25: exec format error
+    #
+    #- name: check-image-builder-extension
+    #  image: quay.io/ch007m/extended-skopeo
+    #  script: |
+    #    #!/usr/bin/env bash
+    #    set -e
+    #
+    #    BUILDER_IMAGE=quay.io/ch007m/nodejs-ubi-extension-builder
+    #    EXT_LABEL_1="io.buildpacks.extension.layers"
+    #    EXT_LABEL_2="io.buildpacks.buildpack.order-extensions"
+    #
+    #    IMG_MANIFEST=$(skopeo inspect "docker://$BUILDER_IMAGE")
+    #
+    #    if echo $IMG_MANIFEST | jq -e '.Labels | has("'${EXT_LABEL_1}'") and has("'${EXT_LABEL_2}'")' > /dev/null; then
+    #      echo "Image: $IMAGE_NAME has the specified label: $EXT_LABEL_1 and $EXT_LABEL_2."
+    #    else
+    #      echo "Image does not have the specified extensions label !"
+    #    fi
+    #
+    #    CNB_USER_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)
+    #    CNB_GROUP_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)
+    #
+    #    echo "CNB_USER_ID: ${CNB_USER_ID}"
+    #    echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
+    #
+    #    echo $CNB_USER_ID  > $(workspaces.shared.path)/uid
+    #    echo $CNB_GROUP_ID > $(workspaces.shared.path)/gid
+
     - name: prepare
       image: quay.io/swsmirror/bash
       args:
@@ -93,6 +127,9 @@ spec:
       script: |
         #!/usr/bin/env bash
         set -e
+        
+        #cho "Extension UID: $(workspaces.shared.path)/uid"
+        #echo "Extension GID: $(workspaces.shared.path)/gid"
 
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
@@ -192,21 +229,24 @@ spec:
         - name: kaniko-dir
           mountPath: /kaniko
 
-    - name: build
+    - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
-      command: ["/cnb/lifecycle/builder"]
+      command: ["/cnb/lifecycle/extender"]
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
-        - "-layers=/layers"
-        - "-group=/layers/group.toml"
-        - "-plan=/layers/plan.toml"
+        - "-generated=/layers/generated"
+        - "-uid=$(params.USER_ID)"
+        - "-gid=$(params.GROUP_ID)"
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
-        - name: $(params.PLATFORM_DIR)
-          mountPath: /platform
+        - name: kaniko-dir
+          mountPath: /kaniko
         - name: empty-dir
           mountPath: /tekton/home
 

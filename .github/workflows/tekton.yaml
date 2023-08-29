@@ -106,6 +106,8 @@ jobs:
                       value: ${{ matrix.lifecycle-image }}
                     - name: RUN_IMAGE
                       value: ${{ matrix.run-image }}
+                    - name: CNB_BUILD_IMAGE
+                      value: ${{ matrix.build-image }}
                     - name: ENV_VARS
                       value:
                         - BP_NATIVE_IMAGE=false
@@ -136,4 +138,5 @@ jobs:
       - name: (Only if it failed) Print Pipeline Task logs
         if: failure()
         run: |
+          tkn pipelinerun logs buildpacks-phases
           kubectl logs buildpacks-phases-buildpacks-pod --all-containers --ignore-errors
