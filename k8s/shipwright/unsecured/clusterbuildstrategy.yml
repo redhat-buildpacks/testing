@@ -199,6 +199,8 @@ spec:
           mountPath: /platform
         - name: empty-dir
           mountPath: /tekton/home
+        - name: cache-dir
+          mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
     - name: export
       image: $(params.CNB_LIFECYCLE_IMAGE)
