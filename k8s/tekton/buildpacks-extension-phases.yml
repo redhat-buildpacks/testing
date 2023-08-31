@@ -71,6 +71,7 @@ spec:
     - name: USER_HOME
       description: Absolute path to the user's home directory.
       default: /tekton/home
+
   results:
     - name: APP_IMAGE_DIGEST
       description: The digest of the built `APP_IMAGE`.
@@ -78,6 +79,7 @@ spec:
       description: The URL of the built `APP_IMAGE`. Used by RHTAP.
     - name: IMAGE_DIGEST
       description: The digest of the built `APP_IMAGE`. Used by RHTAP.
+
   stepTemplate:
     env:
       - name: CNB_PLATFORM_API
@@ -109,12 +111,13 @@ spec:
         CNB_USER_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)
         CNB_GROUP_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)
     
+        echo "UID/GID discovered from the builder image"
         echo "CNB_USER_ID: ${CNB_USER_ID}"
         echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
     
         # TODO: investigate how we could save/share the UID/GID
-        #echo $CNB_USER_ID  > $(workspaces.shared.path)/uid
-        #echo $CNB_GROUP_ID > $(workspaces.shared.path)/gid
+        echo $CNB_USER_ID  > $(workspaces.shared.path)/uid
+        echo $CNB_GROUP_ID > $(workspaces.shared.path)/gid
 
     - name: prepare
       image: quay.io/swsmirror/bash
@@ -125,13 +128,27 @@ spec:
         #!/usr/bin/env bash
         set -e
         
-        #cho "Extension UID: $(workspaces.shared.path)/uid"
-        #echo "Extension GID: $(workspaces.shared.path)/gid"
-
+        UID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/uid)
+        GID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/gid)
+        
+        if [ -n "$UID_BUILDER_IMAGE" ]; then
+          echo "Builder image UID: $UID_BUILDER_IMAGE"
+          USER_ID=$UID_BUILDER_IMAGE
+        else
+          USER_ID=$(params.USER_ID)
+        fi
+        
+        if [ -n "$GID_BUILDER_IMAGE" ]; then
+          echo "Builder image GID: $GID_BUILDER_IMAGE"
+          GROUP_ID=$GID_BUILDER_IMAGE
+        else
+          GROUP_ID=$(params.GROUP_ID)
+        fi
+        
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
           echo "> Setting permissions on '$(workspaces.cache.path)'..."
-          chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$(workspaces.cache.path)"
+          chown -R "$USER_ID:$GROUP_ID" "$(workspaces.cache.path)"
         fi
         
         echo "Creating .docker folder"
@@ -139,7 +156,7 @@ spec:
 
         for path in "/tekton/home" "/tekton/home/.docker" "/layers" "$(workspaces.source.path)"; do
           echo "> Setting permissions on '$path'..."
-          chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$path"
+          chown -R "$USER_ID:$GROUP_ID" "$path"
         done
 
         echo "> Parsing additional configuration..."
