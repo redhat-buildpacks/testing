@@ -489,7 +489,7 @@ spec:
       #dockerfileUrl: https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/src/main/docker/Dockerfile.jvm.staged
       revision: main
       url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
-  targetPort: 8081
+  targetPort: 8080
 EOF
 ----
 
