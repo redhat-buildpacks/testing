@@ -115,9 +115,8 @@ spec:
         echo "CNB_USER_ID: ${CNB_USER_ID}"
         echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
     
-        # TODO: investigate how we could save/share the UID/GID
-        echo $CNB_USER_ID  > $(workspaces.shared.path)/uid
-        echo $CNB_GROUP_ID > $(workspaces.shared.path)/gid
+        echo $CNB_USER_ID  > $(workspaces.shared.path)/builder_uid
+        echo $CNB_GROUP_ID > $(workspaces.shared.path)/builder_gid
 
     - name: prepare
       image: quay.io/swsmirror/bash
@@ -128,8 +127,8 @@ spec:
         #!/usr/bin/env bash
         set -e
         
-        UID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/uid)
-        GID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/gid)
+        UID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/builder_uid)
+        GID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/builder_gid)
         
         if [ -n "$UID_BUILDER_IMAGE" ]; then
           echo "Builder image UID: $UID_BUILDER_IMAGE"
@@ -144,6 +143,9 @@ spec:
         else
           GROUP_ID=$(params.GROUP_ID)
         fi
+        
+        echo $USER_ID  > $(workspaces.shared.path)/cnb_uid
+        echo $GROUP_ID > $(workspaces.shared.path)/cnb_gid
         
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
@@ -200,8 +202,8 @@ spec:
         - "-layers=/layers"
         - "-run-image=$(params.CNB_RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       volumeMounts:
         - name: layers-dir
