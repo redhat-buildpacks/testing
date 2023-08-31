@@ -3,7 +3,7 @@ include:
    builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.176"
 
    # Version needed >= 0.30 to be able to use lifecycle 0.17 and to play with extensions
-   pack_cli_version: "v0.30.0-rc1"
+   pack_cli_version: "v0.30.0"
 
    # Quarkus java parameter
    quarkus_version: "3.2.3.Final"
