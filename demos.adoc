@@ -1,0 +1,130 @@
+## Demo 1
+
+cd /Users/cmoullia/code/redhat-buildpacks/rhtap-buildpack-demo-1
+
+QUAY_USERNAME="ch007m+workloads_a_a"
+QUAY_PASSWORD="WB1O...4QGE362O2"
+docker logout quay.io
+docker login -u $QUAY_USERNAME -p $QUAY_PASSWORD quay.io
+
+pack build quay.io/ch007m/quarkus-hello --path . \
+  --builder paketobuildpacks/builder-jammy-tiny:0.0.176 \
+  -e BP_NATIVE_IMAGE="false" \
+  -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
+  -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
+  --volume $HOME/.m2:/home/cnb/.m2:rw \
+  --publish
+
+docker pull quay.io/ch007m/quarkus-hello
+docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/quarkus-hello &
+
+http :8080/hello
+http :8080/hello/greeting/rhtap
+
+## Demo 2
+
+cd /Users/cmoullia/code/redhat-buildpacks
+git clone https://github.com/nodeshift-starters/nodejs-rest-http.git; cd nodejs-rest-http
+
+or
+
+cd /Users/cmoullia/code/redhat-buildpacks/rhtap-buildpack-demo-2
+
+pack build quay.io/ch007m/nodejs-pack-test \
+  --path . \
+  --builder paketocommunity/builder-ubi-base \
+  --publish
+
+docker pull quay.io/ch007m/nodejs-pack-test
+docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/nodejs-pack-test &
+
+http :8080/api/greeting name==charles
+
+## Demo 3
+
+cd /Users/cmoullia/code/redhat-buildpacks/
+kctx appstudio
+pass-rh
+echo $(pass github/apps/dabou-1/github_token) | gh auth login --with-token
+
+GITHUB_ORG_NAME=halkyonio
+GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/templates.git
+GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
+GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
+BRANCH=main
+APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
+COMPONENT_NAME="quarkus-hello"
+PAC_NAME=$COMPONENT_NAME
+PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
+PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
+TENANT_NAMESPACE="cmoullia-tenant"
+REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
+BUILD_ID=1
+
+gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
+gh repo create \
+  -p $GITHUB_REPO_TEMPLATE \
+  --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
+  --public
+
+rm -rf $GITHUB_REPO_DEMO_NAME
+git clone git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
+cd $GITHUB_REPO_DEMO_NAME
+
+mkdir .tekton
+cp tekton/pipelinerun-rhtap-buildpack.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+git add .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+
+sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#APPLICATION_NAME#/$APPLICATION_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#COMPONENT_NAME#/$COMPONENT_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#PAC_NAME#/$PAC_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
+sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
+sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
+sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
+rm $PAC_YAML_FILE.bak
+git commit -sm "Add the tekton pipelinerun" .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+git push
+
+kubectl delete application/$GITHUB_REPO_DEMO_NAME
+
+for entity in pods deployments routes services taskruns pipelineruns applications components snapshotenvironmentbinding.appstudio.redhat.com componentdetectionquery.appstudio.redhat.com; do count=$(kubectl -n $TENANT_NAMESPACE get "$entity" -o name | wc -l); echo "$count $entity"; done | sort -n
+
+cat <<EOF | kubectl apply -n $TENANT_NAMESPACE -f -
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Application
+metadata:
+  name: $GITHUB_REPO_DEMO_NAME
+spec:
+  appModelRepository:
+    url: ""
+  displayName: $GITHUB_REPO_DEMO_NAME
+  gitOpsRepository:
+    url: ""
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    appstudio.openshift.io/pac-provision: request
+    image.redhat.com/generate: '{"visibility":"public"}'
+  name: $COMPONENT_NAME
+spec:
+  application: $GITHUB_REPO_DEMO_NAME
+  componentName: $COMPONENT_NAME
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+  source:
+    git:
+      context: ./
+      devfileUrl: https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
+      revision: main
+      url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
+  targetPort: 8080
+EOF
