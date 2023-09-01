@@ -87,11 +87,11 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 
 == 0. Common steps
 
-To play with the different scenarios, git clone this Quarkus https://github.com/snowdrop/quarkus-tap-petclinic/tree/main[runtime] project.
+To play with the different scenarios using the Quarkus runtime, git clone this project locally.
 
 [,bash]
 ----
-git clone --depth 1 --branch 3.2.3.Final https://github.com/quarkusio/quarkus-quickstarts.git
+git clone --depth 1 --branch 3.2.5.Final https://github.com/quarkusio/quarkus-quickstarts.git
 cd quarkus-quickstarts/getting-started
 mvn quarkus:dev
 ----
@@ -112,7 +112,7 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 ----
 
-NOTE: Use the command `+... | bash -s -h+` to see the usage and notice end of the execution of the script where you can find the selfsigned certificate
+NOTE: Use the command `+... | bash -s -h+` to see the usage
 
 == 1. Quarkus Buildpacks
 
