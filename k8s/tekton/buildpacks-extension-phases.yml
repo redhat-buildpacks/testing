@@ -41,6 +41,12 @@ spec:
     - name: CNB_LOG_LEVEL
       description: Logging level
       default: "info"
+    - name: CNB_USER_ID
+      description: The user ID of the builder image user.
+      default: "1001"
+    - name: CNB_GROUP_ID
+      description: The group ID of the builder image user.
+      default: "1000"
     - name: APP_IMAGE
       description: The name of where to store the app image.
     - name: CNB_RUN_IMAGE
@@ -62,12 +68,6 @@ spec:
     - name: PLATFORM_DIR
       description: The name of the platform directory.
       default: empty-dir
-    - name: USER_ID
-      description: The user ID of the builder image user.
-      default: "1001"
-    - name: GROUP_ID
-      description: The group ID of the builder image user.
-      default: "1000"
     - name: USER_HOME
       description: Absolute path to the user's home directory.
       default: /tekton/home
