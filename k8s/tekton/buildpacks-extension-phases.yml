@@ -90,34 +90,6 @@ spec:
         value: $(params.USER_HOME)
 
   steps:
-    - name: check-image-builder-extension
-      image: quay.io/ch007m/extended-skopeo
-      script: |
-        #!/usr/bin/env bash
-        set -e
-        
-        BUILDER_IMAGE=$(params.CNB_BUILDER_IMAGE)
-        EXT_LABEL_1="io.buildpacks.extension.layers"
-        EXT_LABEL_2="io.buildpacks.buildpack.order-extensions"
-        
-        IMG_MANIFEST=$(skopeo inspect --authfile /tekton/creds-secrets/dockercfg/.dockerconfigjson "docker://$BUILDER_IMAGE")
-    
-        if echo $IMG_MANIFEST | jq -e '.Labels | has("'${EXT_LABEL_1}'") and has("'${EXT_LABEL_2}'")' > /dev/null; then
-          echo "Image: $IMAGE_NAME has the specified label: $EXT_LABEL_1 and $EXT_LABEL_2."
-        else
-          echo "Image does not have the specified extensions label !"
-        fi
-    
-        CNB_USER_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_USER_ID="))'  | cut -d '=' -f 2)
-        CNB_GROUP_ID=$(echo $IMG_MANIFEST | jq -r '.Env' | jq -r '.[] | select(test("^CNB_GROUP_ID="))' | cut -d '=' -f 2)
-    
-        echo "UID/GID discovered from the builder image"
-        echo "CNB_USER_ID: ${CNB_USER_ID}"
-        echo "CNB_GROUP_ID: ${CNB_GROUP_ID}"
-    
-        echo $CNB_USER_ID  > $(workspaces.shared.path)/builder_uid
-        echo $CNB_GROUP_ID > $(workspaces.shared.path)/builder_gid
-
     - name: prepare
       image: quay.io/swsmirror/bash
       args:
@@ -125,27 +97,7 @@ spec:
         - "$(params.ENV_VARS[*])"
       script: |
         #!/usr/bin/env bash
-        set -e
-        
-        UID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/builder_uid)
-        GID_BUILDER_IMAGE=$(cat $(workspaces.shared.path)/builder_gid)
-        
-        if [ -n "$UID_BUILDER_IMAGE" ]; then
-          echo "Builder image UID: $UID_BUILDER_IMAGE"
-          USER_ID=$UID_BUILDER_IMAGE
-        else
-          USER_ID=$(params.USER_ID)
-        fi
-        
-        if [ -n "$GID_BUILDER_IMAGE" ]; then
-          echo "Builder image GID: $GID_BUILDER_IMAGE"
-          GROUP_ID=$GID_BUILDER_IMAGE
-        else
-          GROUP_ID=$(params.GROUP_ID)
-        fi
-        
-        echo $USER_ID  > $(workspaces.shared.path)/cnb_uid
-        echo $GROUP_ID > $(workspaces.shared.path)/cnb_gid
+        set -eu
         
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
