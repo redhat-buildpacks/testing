@@ -189,8 +189,8 @@ spec:
         - "-layers=/layers"
         - "-cache-dir=$(workspaces.cache.path)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
@@ -205,8 +205,8 @@ spec:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-generated=/layers/generated"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
       securityContext:
         runAsUser: 0
         runAsGroup: 0
@@ -231,8 +231,8 @@ spec:
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-report=/layers/report.toml"
         - "-process-type=$(params.PROCESS_TYPE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       volumeMounts:
         - name: layers-dir
