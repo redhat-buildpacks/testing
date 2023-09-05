@@ -61,10 +61,10 @@ spec:
       default: empty-dir
     - name: CNB_USER_ID
       description: The user ID of the builder image user.
-      default: "666"
+      default: "1001"
     - name: CNB_GROUP_ID
       description: The group ID of the builder image user.
-      default: "777"
+      default: "1000"
     - name: USER_HOME
       description: Absolute path to the user's home directory.
       default: /tekton/home
