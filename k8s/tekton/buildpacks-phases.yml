@@ -59,10 +59,10 @@ spec:
     - name: PLATFORM_DIR
       description: The name of the platform directory.
       default: empty-dir
-    - name: USER_ID
+    - name: CNB_USER_ID
       description: The user ID of the builder image user.
       default: "1001"
-    - name: GROUP_ID
+    - name: CNB_GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
     - name: USER_HOME
@@ -97,7 +97,7 @@ spec:
         # TODO: To be reviewed and aligned with Shipwright ClusterBuildStrategy
         if [[ "$(workspaces.cache.bound)" == "true" ]]; then
           echo "> Setting permissions on '$(workspaces.cache.path)'..."
-          chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$(workspaces.cache.path)"
+          chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" "$(workspaces.cache.path)"
         fi
         
         echo "Creating .docker folder"
@@ -105,7 +105,7 @@ spec:
 
         for path in "/tekton/home" "/tekton/home/.docker" "/layers" "$(workspaces.source.path)"; do
           echo "> Setting permissions on '$path'..."
-          chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$path"
+          chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" "$path"
         done
 
         echo "> Parsing additional configuration..."
@@ -149,8 +149,8 @@ spec:
         - "-layers=/layers"
         - "-run-image=$(params.CNB_RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       volumeMounts:
         - name: layers-dir
@@ -184,8 +184,8 @@ spec:
         - "-layers=/layers"
         - "-cache-dir=$(workspaces.cache.path)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
@@ -223,8 +223,8 @@ spec:
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-report=/layers/report.toml"
         - "-process-type=$(params.PROCESS_TYPE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       volumeMounts:
         - name: layers-dir
