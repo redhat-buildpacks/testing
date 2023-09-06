@@ -1,0 +1,126 @@
+set -eu
+
+#
+# How to use me ?
+# Use either one of the following commands as argument to either:
+# ./play-with-tekton install-tekton
+# ./play-with-tekton install-tekton-dashboard
+# ./play-with-tekton remove-tekton
+# ./play-with-tekton remove-tekton-dashboard
+# ./play-with-tekton install-pipeline
+# ./play-with-tekton remove-pipeline
+#
+# OR
+# 
+# Execute the default scenario where we re-install: Tasks, Pipelines
+# and use as argument your PipelineRun file
+#
+# ./tekton /$home/path/subpath/pipeline-run-quarkus.yml
+#
+# Do not forget to create a variables.env file
+# containing the registry credentials
+#
+# DOCKER_REG_NAME="https://index.docker.io/v1/"
+# DOCKER_REG_USER="<DOCKER_REG_USERNAME>"
+# DOCKER_REG_PWD="<QUAY_REG_USERNAME>"
+#
+# Quay account where we push the built images
+# QUAY_REG_NAME="quay.io"
+# QUAY_REG_USER="<QUAY_REG_USERNAME>"
+# QUAY_REG_PWD="<QUAY_REG_PWD>"
+#
+SCRIPTS_DIR="$(cd $(dirname "${BASH_SOURCE}") && pwd)"
+source $SCRIPTS_DIR/variables.env
+
+# Tekton version to be installed
+export TEKTON_VERSION=v0.48.0
+export TEKTON_DASHBOARD_VERSION=v0.38.0
+
+# IP address used to create the ingress route to access the dashboard using kind
+export VM_IP=127.0.0.1
+
+# Storageclass needed when deployed on resourcehub ocp's cluster, IBMCLoud, etc
+# Resourcehub ocp cluster storage: nfs
+export STORAGE_CLASS_NAME="managed-nfs-storage"
+
+function install_tekton() {
+  echo "### Installing Tekton"
+  kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${TEKTON_VERSION}/release.yaml
+
+  # Patching needed on kind as we got an affinity error
+  # when workspaces would like to use several PVC
+  # See: https://github.com/tektoncd/pipeline/issues/3545
+  kubectl patch configmap/feature-flags \
+    -n tekton-pipelines \
+    --type merge \
+    -p '{"data":{"disable-affinity-assistant":"true"}}'
+}
+
+function install_tekton_dashboard() {
+  echo "### Installing Tekton Dashboard"
+  kubectl apply -f https://github.com/tektoncd/dashboard/releases/download/${TEKTON_DASHBOARD_VERSION}/release.yaml
+  kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
+}
+
+function remove_tekton() {
+  kubectl delete -f https://github.com/tektoncd/pipeline/releases/download/${TEKTON_VERSION}/release.yaml
+  kubectl delete -f https://github.com/tektoncd/dashboard/releases/download/${TEKTON_DASHBOARD_VERSION}/release.yaml
+}
+
+function remove_tekton_dashboard() {
+  echo "### Removing Tekton Dashboard"
+  kubectl delete ingress tekton-ui -n tekton-pipelines
+  kubectl delete -f https://github.com/tektoncd/dashboard/releases/download/${TEKTON_DASHBOARD_VERSION}/release.yaml
+}
+
+function remove_pipeline() {
+ kubectl delete pr/buildpacks || true
+ kubectl delete pipeline/buildpacks || true
+ kubectl delete secret/dockercfg || true
+ kubectl delete secret/quaycfg || true
+ kubectl delete sa/sa-with-secrets || true
+ kubectl delete task/buildpacks-extension-phases || true
+ kubectl delete task/buildpacks-phases || true
+}
+
+function tkn_logs() {
+  tkn pr logs buildpacks -f
+}
+
+function install_pipeline() {
+ # On some ocp4 clusters, we got this error: https://github.com/tektoncd/catalog/issues/1097
+ # this is why we must use 0.7 and not 0.9 !!
+ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.7/git-clone.yaml
+ # Value commit from the latest SHA commit of this PR: https://github.com/redhat-buildpacks/testing/pull/38
+ SHA_COMMIT=main
+ kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/${SHA_COMMIT}/k8s/tekton/buildpacks-extension-phases.yml
+ kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/${SHA_COMMIT}/k8s/tekton/buildpacks-phases.yml
+
+ kubectl create secret docker-registry quaycfg \
+  --docker-server="${QUAY_REG_NAME}" \
+  --docker-username="${QUAY_REG_USER}" \
+  --docker-password="${QUAY_REG_PWD}"
+
+ kubectl create secret docker-registry dockercfg \
+  --docker-server="${DOCKER_REG_NAME}" \
+  --docker-username="${DOCKER_REG_USER}" \
+  --docker-password="${DOCKER_REG_PWD}"
+
+ kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/main/k8s/tekton/sa-with-reg-creds.yml
+
+ # Pass the file to be installed using its full path
+ kubectl apply -f ${PIPELINE_RUN_FILE}
+}
+
+case $1 in
+  install-tekton)   install_tekton; exit;;
+  install-tekton-dashboard) install_tekton_dashboard; exit;;
+  remove-tekton)    remove_tekton; exit;;
+  remove-tekton-dashboard)    remove_tekton_dashboard; exit;;
+  install-pipeline) install_pipeline; exit;;
+  remove-pipeline)  remove_pipeline; exit;;
+  *)
+     remove_pipeline
+     install_pipeline $1
+     tkn_logs
+esac
