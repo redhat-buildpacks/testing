@@ -37,4 +37,12 @@ spec:
             requests:
               storage: 1Gi
   pipelineRef:
+    resolver: git
+    params:
+      - name: url
+        value: https://github.com/redhat-buildpacks/testing.git
+      - name: revision
+        value: main
+      - name: pathInRepo
+        value: k8s/tekton/buildpack-pipeline.yml
     name: buildpacks-phases
