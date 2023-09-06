@@ -4,6 +4,7 @@ set -eu
 # How to use me ?
 #
 # Use either one of the following commands as argument to either:
+#
 # ./play-with-tekton install-tekton
 # ./play-with-tekton install-tekton-dashboard
 # ./play-with-tekton remove-tekton
@@ -17,6 +18,8 @@ set -eu
 # and pass as argument your PipelineRun file
 #
 # ./tekton /$home/path/subpath/pipeline-run-quarkus.yml
+#
+# You can find some pipeline-run examples here: https://github.com/redhat-buildpacks/testing/tree/main/k8s/tekton/examples :-)
 #
 # Do not forget to create a variables.env file !!
 # containing the registry credentials
