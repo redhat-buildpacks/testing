@@ -2,6 +2,7 @@ set -eu
 
 #
 # How to use me ?
+#
 # Use either one of the following commands as argument to either:
 # ./play-with-tekton install-tekton
 # ./play-with-tekton install-tekton-dashboard
@@ -11,13 +12,13 @@ set -eu
 # ./play-with-tekton remove-pipeline
 #
 # OR
-# 
+#
 # Execute the default scenario where we re-install: Tasks, Pipelines
-# and use as argument your PipelineRun file
+# and pass as argument your PipelineRun file
 #
 # ./tekton /$home/path/subpath/pipeline-run-quarkus.yml
 #
-# Do not forget to create a variables.env file
+# Do not forget to create a variables.env file !!
 # containing the registry credentials
 #
 # DOCKER_REG_NAME="https://index.docker.io/v1/"
