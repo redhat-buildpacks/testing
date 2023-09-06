@@ -4,9 +4,10 @@ metadata:
   name: buildpacks
 spec:
   params:
-    - name: storageClassName
-      type: string
-      default: ""
+    # Deprecated as we cannot set a param to a pipelinerun - workspace - pvc
+    #- name: storageClassName
+    #  type: string
+    #  default: ""
     - name: cnbBuilderImage
       type: string
       default: ""
