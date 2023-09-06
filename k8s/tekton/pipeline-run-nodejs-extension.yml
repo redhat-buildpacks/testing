@@ -45,4 +45,3 @@ spec:
         value: main
       - name: pathInRepo
         value: k8s/tekton/buildpack-pipeline.yml
-    name: buildpacks-phases
