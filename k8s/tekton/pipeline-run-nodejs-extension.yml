@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: buildpacks
+spec:
+  params:
+    - name: gitRepo
+      value: https://github.com/halkyonio/rhtap-buildpack-demo-2.git
+    - name: AppImage
+      value: quay.io/ch007m/nodejs-pack-test
+    - name: cnbBuilderImage
+      value: paketocommunity/builder-ubi-base:latest
+    - name: cnbBuildImage
+      value: paketocommunity/build-ubi-base:latest
+    - name: cnbRunImage
+      value: paketocommunity/run-ubi-base:latest
+    - name: cnbBuildEnvVars
+      value: []
+  serviceAccountName: sa-with-creds
+  workspaces:
+    - name: source-ws
+      subPath: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: cache-ws
+      subPath: cache
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  pipelineRef:
+    name: buildpacks-phases
