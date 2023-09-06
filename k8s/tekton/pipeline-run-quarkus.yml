@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: buildpacks
+spec:
+  params:
+    - name: gitRepo
+      value: https://github.com/quarkusio/quarkus-quickstarts.git
+    - name: sourceSubPath
+      value: getting-started
+    - name: AppImage
+      value: quay.io/ch007m/quarkus-tekton-hello
+    - name: cnbBuilderImage
+      value: paketobuildpacks/builder-jammy-tiny:0.0.176
+    - name: cnbBuildImage
+      value: paketobuildpacks/build-jammy-tiny:latest
+    - name: cnbRunImage
+      value: paketobuildpacks/run-jammy-tiny:latest
+    - name: cnbBuildEnvVars
+      value:
+        - "BP_NATIVE_IMAGE=false"
+        - "BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
+        - "BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+  serviceAccountName: sa-with-creds
+  workspaces:
+    - name: source-ws
+      subPath: source
+      volumeClaimTemplate:
+        spec:
+          #storageClassName: $(params.storageClassName)
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: cache-ws
+      subPath: cache
+      volumeClaimTemplate:
+        spec:
+          #storageClassName: $(params.storageClassName)
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  pipelineRef:
+    name: buildpacks-phases
