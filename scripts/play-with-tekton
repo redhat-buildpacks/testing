@@ -113,7 +113,7 @@ function install_pipeline() {
  kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/main/k8s/tekton/sa-with-reg-creds.yml
 
  # Pass the file to be installed using its full path
- kubectl apply -f ${PIPELINE_RUN_FILE}
+ kubectl apply -f $1
 }
 
 case $1 in
