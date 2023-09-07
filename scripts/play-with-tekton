@@ -97,8 +97,8 @@ function install_pipeline() {
  kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.7/git-clone.yaml
  # Value commit from the latest SHA commit of this PR: https://github.com/redhat-buildpacks/testing/pull/38
  SHA_COMMIT=main
- kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/${SHA_COMMIT}/k8s/tekton/buildpacks-extension-phases.yml
- kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/${SHA_COMMIT}/k8s/tekton/buildpacks-phases.yml
+ kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/templates/${SHA_COMMIT}/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+ kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/templates/${SHA_COMMIT}/tekton/task/buildpacks-extension-phases/01/buildpacks-phases.yaml
 
  kubectl create secret docker-registry quaycfg \
   --docker-server="${QUAY_REG_NAME}" \
