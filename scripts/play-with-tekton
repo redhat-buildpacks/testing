@@ -110,7 +110,7 @@ function install_pipeline() {
   --docker-username="${DOCKER_REG_USER}" \
   --docker-password="${DOCKER_REG_PWD}"
 
- kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/main/k8s/tekton/sa-with-reg-creds.yml
+ kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/main/k8s/tekton/examples/sa-with-reg-creds.yml
 
  # Pass the file to be installed using its full path
  kubectl apply -f $1
