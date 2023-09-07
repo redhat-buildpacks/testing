@@ -48,7 +48,7 @@ jobs:
           CONTAINER_NAME=quarkus-tekton-hello
           CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
 
-          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/templates/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
           cat <<EOF | kubectl apply -f -
           ---
           apiVersion: v1
