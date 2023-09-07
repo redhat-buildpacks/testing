@@ -63,17 +63,14 @@ BUILD_ID=1
 
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
 gh repo create \
-  -p $GITHUB_REPO_TEMPLATE \
-  --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
-  --public
+--clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
+--public
 
 rm -rf $GITHUB_REPO_DEMO_NAME
-git clone git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
-cd $GITHUB_REPO_DEMO_NAME
-
+mkdir $GITHUB_REPO_DEMO_NAME; cd $GITHUB_REPO_DEMO_NAME
 mkdir .tekton
-cp tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
-git add .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
+mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 
 sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
 sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
@@ -85,8 +82,15 @@ sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
 sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
 sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
 rm $PAC_YAML_FILE.bak
-git commit -sm "Add the tekton pipelinerun" .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
-git push
+
+git init
+git add .
+git commit -asm "Adding the tekton pipelinerun"
+git branch -M main
+git remote add origin git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME.git
+git push -u origin main
+
+# TODO: Add code to generate the quarkus application
 
 kubectl delete application/$GITHUB_REPO_DEMO_NAME
 
