@@ -40,8 +40,8 @@ spec:
     resolver: git
     params:
       - name: url
-        value: https://github.com/redhat-buildpacks/testing.git
+        value: https://github.com/redhat-buildpacks/templates.git
       - name: revision
         value: main
       - name: pathInRepo
-        value: k8s/tekton/buildpack-pipeline.yml
+        value: tekton/pipeline/buildpacks/01/buildpacks.yaml
