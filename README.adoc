@@ -430,7 +430,7 @@ http :8080/hello/greeting/charles
 [,bash]
 ----
 mkdir .tekton
-cp tekton/pipelinerun-rhtap-buildpack.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+cp tekton/pipelinerun/rhtap/pipelinerun-buildpacks.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 git add .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 git commit -asm "Add the PipelineRun"
 ----
