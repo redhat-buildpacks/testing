@@ -83,14 +83,20 @@ sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
 sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
 rm $PAC_YAML_FILE.bak
 
+mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
+-DprojectGroupId=me.snowdrop \
+-DprojectArtifactId=hello \
+-DprojectVersion=1.0 \
+-Dextensions='resteasy-reactive,kubernetes,buildpack,tekton'
+
+mv ./hello/{.,}* ./; rm -rf hello
+
 git init
 git add .
-git commit -asm "Adding the tekton pipelinerun"
+git commit -asm "Quarkus and RHTAP Tekton project"
 git branch -M main
 git remote add origin git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME.git
 git push -u origin main
-
-# TODO: Add code to generate the quarkus application
 
 kubectl delete application/$GITHUB_REPO_DEMO_NAME
 
