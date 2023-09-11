@@ -8,11 +8,15 @@ GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/templates.git
 GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
 GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
 BRANCH=main
+
 APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
 COMPONENT_NAME="rhtap-buildpack-demo-1"
+
 PAC_NAME=$COMPONENT_NAME
 PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
 PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
+PAC_REMOTE_PIPELINE=https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipeline/rhtap/01/pipeline-buildpacks.yaml
+
 TENANT_NAMESPACE="cmoullia-tenant"
 REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
 BUILD_ID=0
@@ -48,6 +52,7 @@ sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
 sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
 sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
 sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
+sed -i.bak "s|#PAC_REMOTE_PIPELINE#|$PAC_REMOTE_PIPELINE|g" $PAC_YAML_FILE
 
 sed -i.bak "s|#SOURCE_SUB_PATH#|$SOURCE_SUB_PATH|g" $PAC_YAML_FILE
 sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
