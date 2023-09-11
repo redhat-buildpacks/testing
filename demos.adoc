@@ -59,7 +59,7 @@ PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
 PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
 TENANT_NAMESPACE="cmoullia-tenant"
 REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
-BUILD_ID=1
+BUILD_ID=0
 
 SOURCE_SUB_PATH="."
 CNB_LOG_LEVEL="debug"
@@ -71,15 +71,15 @@ CNB_ENV_VARS="'BP_NATIVE_IMAGE=false', 'BP_MAVEN_BUILT_ARTIFACT=target/quarkus-a
 rm -rf $GITHUB_REPO_DEMO_NAME
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
 gh repo create \
---clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
+--clone git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME.git \
 --public
 
 cd $GITHUB_REPO_DEMO_NAME
-mkdir $GITHUB_REPO_DEMO_NAME; cd $GITHUB_REPO_DEMO_NAME
 mkdir .tekton
-curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
-#curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-ref-template.yaml
-mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+#curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
+#mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-ref-template.yaml
+mv pipelinerun-buildpacks-ref-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 
 sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
 sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
@@ -108,11 +108,11 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
 
 mv ./hello/{.,}* ./; rm -rf hello
 
-git init
+git remote set-url origin $(gh repo view $repo --json sshUrl --jq .sshUrl) https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
+echo ".idea/" >> .gitignore
 git add .
 git commit -asm "Quarkus and RHTAP Tekton project"
-git branch -M main
-git remote add origin git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME.git
+#git branch -M main
 git push -u origin main
 
 kubectl delete application/$GITHUB_REPO_DEMO_NAME
