@@ -53,7 +53,7 @@ GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
 GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
 BRANCH=main
 APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
-COMPONENT_NAME="quarkus-hello"
+COMPONENT_NAME="rhtap-buildpack-demo-1"
 PAC_NAME=$COMPONENT_NAME
 PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
 PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
@@ -61,15 +61,24 @@ TENANT_NAMESPACE="cmoullia-tenant"
 REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
 BUILD_ID=1
 
+SOURCE_SUB_PATH="."
+CNB_LOG_LEVEL="debug"
+CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.176"
+CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
+CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
+CNB_ENV_VARS="'BP_NATIVE_IMAGE=false', 'BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/', 'BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar'"
+
+rm -rf $GITHUB_REPO_DEMO_NAME
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
 gh repo create \
 --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
 --public
 
-rm -rf $GITHUB_REPO_DEMO_NAME
+cd $GITHUB_REPO_DEMO_NAME
 mkdir $GITHUB_REPO_DEMO_NAME; cd $GITHUB_REPO_DEMO_NAME
 mkdir .tekton
 curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
+#curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-ref-template.yaml
 mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 
 sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
@@ -81,13 +90,21 @@ sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
 sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
 sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
 sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
+
+sed -i.bak "s|#SOURCE_SUB_PATH#|$SOURCE_SUB_PATH|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILDER_IMAGE#|$CNB_BUILDER_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILD_IMAGE#|$CNB_BUILD_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_RUN_IMAGE#|$CNB_RUN_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_ENV_VARS#|$CNB_ENV_VARS|g" $PAC_YAML_FILE
+
 rm $PAC_YAML_FILE.bak
 
 mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
 -DprojectGroupId=me.snowdrop \
 -DprojectArtifactId=hello \
 -DprojectVersion=1.0 \
--Dextensions='resteasy-reactive,kubernetes,buildpack,tekton'
+-Dextensions='resteasy-reactive,kubernetes,buildpack'
 
 mv ./hello/{.,}* ./; rm -rf hello
 
