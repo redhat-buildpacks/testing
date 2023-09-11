@@ -4,19 +4,19 @@ CURRENT_DIR=$(pwd)
 TEMP_DIR=~/temp
 
 echo "#############################################################"
-echo "RHTAP Buildpacks demo using a reference to pipelinerun"
+echo "RHTAP Buildpacks demo using a pipelinerun with pipelinespec"
 echo "#############################################################"
 
 sleep 5
 
 GITHUB_ORG_NAME=halkyonio
 GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/templates.git
-GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-2
-GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 2 - using ref to pipelinerun"
+GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
+GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
 BRANCH=main
 
 APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
-COMPONENT_NAME="rhtap-buildpack-demo-2"
+COMPONENT_NAME="rhtap-buildpack-demo-1"
 
 PAC_NAME=$COMPONENT_NAME
 PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
@@ -44,7 +44,8 @@ gh repo create \
 
 pushd $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
 mkdir .tekton
-
+#curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
+#mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-ref-template.yaml
 mv pipelinerun-buildpacks-ref-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 
