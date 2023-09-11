@@ -1,4 +1,4 @@
-set -eux
+set -eu
 
 CURRENT_DIR=$(pwd)
 TEMP_DIR=~/temp
@@ -26,12 +26,13 @@ CNB_ENV_VARS="'BP_NATIVE_IMAGE=false', 'BP_MAVEN_BUILT_ARTIFACT=target/quarkus-a
 
 rm -rf $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes || true
-pwd
+
+cd $TEMP_DIR
 gh repo create \
 --clone git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME.git \
 --public
 
-cd $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
+pushd $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
 mkdir .tekton
 #curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
 #mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
@@ -63,16 +64,19 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
 -DprojectVersion=1.0 \
 -Dextensions='resteasy-reactive,kubernetes,buildpack'
 
-mv ./hello/{.,}* ./; rm -rf hello
+mv ./hello/* ./
+mv ./hello/{.dockerignore,.gitignore,.mvn/*} ./
+rm -rf ./hello
 
-git remote set-url origin $(gh repo view $repo --json sshUrl --jq .sshUrl) https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
+SSH_REPO_NAME=$(gh repo view https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --json sshUrl --jq .sshUrl)
+git remote set-url origin $SSH_REPO_NAME https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
+
 echo ".idea/" >> .gitignore
 git add .
 git commit -asm "Quarkus and RHTAP Tekton project"
-#git branch -M main
 git push -u origin main
 
-kubectl delete application/$GITHUB_REPO_DEMO_NAME
+kubectl delete application/$GITHUB_REPO_DEMO_NAME || true
 
 for entity in pods deployments routes services taskruns pipelineruns applications components snapshotenvironmentbinding.appstudio.redhat.com componentdetectionquery.appstudio.redhat.com; do count=$(kubectl -n $TENANT_NAMESPACE get "$entity" -o name | wc -l); echo "$count $entity"; done | sort -n
 
@@ -113,4 +117,4 @@ spec:
   targetPort: 8080
 EOF
 
-cd $CURRENT_DIR
+popd
