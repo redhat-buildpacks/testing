@@ -35,7 +35,12 @@ CNB_LOG_LEVEL="debug"
 CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.176"
 CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
 CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
-CNB_ENV_VARS="'BP_NATIVE_IMAGE=false', 'BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/', 'BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar'"
+
+CNB_ENV_VARS='
+"BP_NATIVE_IMAGE=false",
+"BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/",
+"BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+'
 
 rm -rf $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes || true
@@ -67,8 +72,14 @@ sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
 sed -i.bak "s|#CNB_BUILDER_IMAGE#|$CNB_BUILDER_IMAGE|g" $PAC_YAML_FILE
 sed -i.bak "s|#CNB_BUILD_IMAGE#|$CNB_BUILD_IMAGE|g" $PAC_YAML_FILE
 sed -i.bak "s|#CNB_RUN_IMAGE#|$CNB_RUN_IMAGE|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_ENV_VARS#|$CNB_ENV_VARS|g" $PAC_YAML_FILE
 
+#
+PAC_FILE_NAME="$GITHUB_REPO_DEMO_NAME-push"
+yq -o=json '.' .tekton/$PAC_FILE_NAME.yaml > .tekton/$PAC_FILE_NAME.json
+jq --argjson array "[$CNB_ENV_VARS]" '(.spec.params[] | select(.name=="cnbBuildEnvVars")).value |= $array' .tekton/$PAC_FILE_NAME.json > temp.json
+cat temp.json | yq -P > .tekton/$PAC_FILE_NAME.yaml
+
+rm {temp.json,.tekton/$PAC_FILE_NAME.json}
 rm $PAC_YAML_FILE.bak
 
 mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
