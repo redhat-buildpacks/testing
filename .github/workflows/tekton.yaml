@@ -108,7 +108,7 @@ jobs:
                       value: ${{ matrix.run-image }}
                     - name: CNB_BUILD_IMAGE
                       value: ${{ matrix.build-image }}
-                    - name: ENV_VARS
+                    - name: CNB_ENV_VARS
                       value:
                         - BP_NATIVE_IMAGE=false
                         - BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
