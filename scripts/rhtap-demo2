@@ -17,6 +17,8 @@ BRANCH=main
 
 APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
 COMPONENT_NAME="rhtap-buildpack-demo-2"
+# Quarkus devfile sample
+DEVFILE_URL=https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
 
 PAC_NAME=$COMPONENT_NAME
 PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
@@ -27,6 +29,7 @@ TENANT_NAMESPACE="cmoullia-tenant"
 REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
 BUILD_ID=0
 
+# Quarkus runtime
 SOURCE_SUB_PATH="."
 CNB_LOG_LEVEL="debug"
 CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.176"
@@ -122,7 +125,7 @@ spec:
   source:
     git:
       context: ./
-      devfileUrl: https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
+      devfileUrl: $DEVFILE_URL
       revision: main
       url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
   targetPort: 8080
