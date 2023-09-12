@@ -3,9 +3,9 @@ set -eu
 CURRENT_DIR=$(pwd)
 TEMP_DIR=~/temp
 
-echo "#############################################################"
-echo "RHTAP Buildpacks demo using a pipelinerun with pipelinespec"
-echo "#############################################################"
+echo "######################################################################"
+echo "RHTAP Buildpacks demo where the pipelinerun includes the pipelinespec"
+echo "######################################################################"
 
 sleep 5
 
@@ -48,8 +48,8 @@ gh repo create \
 pushd $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
 mkdir .tekton
 
-curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-ref-template.yaml
-mv pipelinerun-buildpacks-ref-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
+mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 
 sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
 sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
