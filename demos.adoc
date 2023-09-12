@@ -1,5 +1,6 @@
 ## Demo 1
 
+```bash
 cd /Users/cmoullia/code/redhat-buildpacks/rhtap-buildpack-demo-1
 
 QUAY_USERNAME="ch007m+workloads_a_a"
@@ -14,34 +15,48 @@ pack build quay.io/ch007m/quarkus-hello --path . \
   -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
   --volume $HOME/.m2:/home/cnb/.m2:rw \
   --publish
+```
 
+Let's pull the image
+
+```bash
 docker pull quay.io/ch007m/quarkus-hello
 docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/quarkus-hello &
+```
 
+Test the quarkus application
+```bash
 http :8080/hello
 http :8080/hello/greeting/rhtap
+````
 
 ## Demo 2
 
+```bash
 cd /Users/cmoullia/code/redhat-buildpacks
 git clone https://github.com/nodeshift-starters/nodejs-rest-http.git; cd nodejs-rest-http
-
-or
-
-cd /Users/cmoullia/code/redhat-buildpacks/rhtap-buildpack-demo-2
 
 pack build quay.io/ch007m/nodejs-pack-test \
   --path . \
   --builder paketocommunity/builder-ubi-base \
   --publish
+```
 
+Let's pull the image
+
+```bash
 docker pull quay.io/ch007m/nodejs-pack-test
 docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/nodejs-pack-test &
+```
 
+Test the quarkus application
+```bash
 http :8080/api/greeting name==charles
+```
 
 ## Demo 3
 
+```bash
 cd /Users/cmoullia/code/redhat-buildpacks/
 kctx appstudio
 pass-rh
@@ -155,3 +170,13 @@ spec:
       url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
   targetPort: 8080
 EOF
+```
+
+## Additonal commands
+```bash
+echo "To trigger a build"
+REPO_NAME=rhtap-buildpack-demo-2
+sed -i.bak "s|test-0|test-1|g" .tekton/$REPO_NAME-push.yaml
+cd ../$REPO_NAME; git commit -asm "Trigger a new build: 1"; git push
+```
+
