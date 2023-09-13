@@ -117,4 +117,4 @@ jobs:
         if: failure()
         run: |
           tkn pipelinerun logs buildpacks
-          kubectl logs buildpacks-buildpacks-pod --all-containers --ignore-errors
+          #kubectl logs buildpacks-buildpacks-pod --all-containers --ignore-errors
