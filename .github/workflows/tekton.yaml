@@ -51,79 +51,57 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
           cat <<EOF | kubectl apply -f -
           ---
-          apiVersion: v1
-          kind: PersistentVolumeClaim
-          metadata:
-            name: ws-pvc
-          spec:
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 500Mi
-          ---
           apiVersion: tekton.dev/v1beta1
           kind: PipelineRun
           metadata:
-            name: buildpacks-phases
-            labels:
-              app.kubernetes.io/description: "Buildpacks-PipelineRun"
+            name: buildpacks
           spec:
-            pipelineSpec:
-              workspaces:
-                - name: source-ws
-                - name: cache-ws
-              tasks:
-                - name: fetch-repository
-                  taskRef:
-                    name: git-clone
-                  workspaces:
-                    - name: output
-                      workspace: source-ws
-                  params:
-                    - name: url
-                      value: https://github.com/quarkusio/quarkus-quickstarts.git
-                    - name: deleteExisting
-                      value: "true"
-                - name: buildpacks
-                  taskRef:
-                    name: buildpacks-phases
-                  runAfter:
-                    - fetch-repository
-                  workspaces:
-                    - name: source
-                      workspace: source-ws
-                    - name: cache
-                      workspace: cache-ws
-                  params:
-                    - name: APP_IMAGE
-                      value: ${CONTAINER_IMAGE}
-                    - name: SOURCE_SUBPATH
-                      value: getting-started
-                    - name: CNB_BUILDER_IMAGE
-                      value: ${{ matrix.builder-image }}
-                    - name: CNB_LIFECYCLE_IMAGE
-                      value: ${{ matrix.lifecycle-image }}
-                    - name: RUN_IMAGE
-                      value: ${{ matrix.run-image }}
-                    - name: CNB_BUILD_IMAGE
-                      value: ${{ matrix.build-image }}
-                    - name: CNB_ENV_VARS
-                      value:
-                        - BP_NATIVE_IMAGE=false
-                        - BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
-                        - BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
-                    - name: PROCESS_TYPE
-                      value: ""
+            params:
+              - name: gitRepo
+                value: https://github.com/quarkusio/quarkus-quickstarts.git
+              - name: sourceSubPath
+                value: getting-started
+              - name: AppImage
+                value: quay.io/ch007m/quarkus-tekton-hello
+              - name: cnbBuilderImage
+                value: paketobuildpacks/builder-jammy-tiny:0.0.176
+              - name: cnbBuildImage
+                value: paketobuildpacks/build-jammy-tiny:latest
+              - name: cnbRunImage
+                value: paketobuildpacks/run-jammy-tiny:latest
+              - name: cnbBuildEnvVars
+                value:
+                  - "BP_NATIVE_IMAGE=false"
+                  - "BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
+                  - "BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
             workspaces:
               - name: source-ws
                 subPath: source
-                persistentVolumeClaim:
-                  claimName: ws-pvc
+                volumeClaimTemplate:
+                  spec:
+                    accessModes:
+                      - ReadWriteOnce
+                    resources:
+                      requests:
+                        storage: 1Gi
               - name: cache-ws
                 subPath: cache
-                persistentVolumeClaim:
-                  claimName: ws-pvc
+                volumeClaimTemplate:
+                  spec:
+                    accessModes:
+                      - ReadWriteOnce
+                    resources:
+                      requests:
+                        storage: 1Gi
+            pipelineRef:
+              resolver: git
+              params:
+                - name: url
+                  value: https://github.com/redhat-buildpacks/catalog.git
+                - name: revision
+                  value: main
+                - name: pathInRepo
+                  value: tekton/pipeline/buildpacks/01/buildpacks.yaml
           EOF
           
           # Wait for the build
