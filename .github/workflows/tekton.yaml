@@ -123,12 +123,9 @@ jobs:
       - name: Log the execution of the pipelinerun
         if: success()
         run: |
-          tkn pipelinerun list
-          tkn pipelinerun logs buildpacks
+          tkn pipelinerun logs
       - name: (Only if it failed) Print Pipeline Task logs
         if: failure()
         run: |
-          tkn pr list
-          kubectl get pods
-          tkn pipelinerun logs buildpacks
+          tkn pipelinerun logs
           #kubectl logs buildpacks-buildpacks-pod --all-containers --ignore-errors
