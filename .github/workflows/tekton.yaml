@@ -105,16 +105,16 @@ jobs:
           EOF
           
           # Wait for the build
-          kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks-phases
+          kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks
 
           # Test application
           .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
       - name: Log the execution of the pipelinerun
         if: success()
         run: |
-          tkn pipelinerun logs buildpacks-phases
+          tkn pipelinerun logs buildpacks
       - name: (Only if it failed) Print Pipeline Task logs
         if: failure()
         run: |
-          tkn pipelinerun logs buildpacks-phases
-          kubectl logs buildpacks-phases-buildpacks-pod --all-containers --ignore-errors
+          tkn pipelinerun logs buildpacks
+          kubectl logs buildpacks-buildpacks-pod --all-containers --ignore-errors
