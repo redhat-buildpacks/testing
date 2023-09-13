@@ -17,7 +17,7 @@ set -eu
 # Execute the default scenario where we re-install: Tasks, Pipelines
 # and pass as argument your PipelineRun file
 #
-# ./tekton /$home/path/subpath/pipeline-run-quarkus.yml
+# ./play-with-tekton /$home/path/subpath/pipeline-run-quarkus.yml
 #
 # You can find some pipeline-run examples here: https://github.com/redhat-buildpacks/testing/tree/main/k8s/tekton/examples :-)
 #
