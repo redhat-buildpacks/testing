@@ -62,13 +62,13 @@ jobs:
               - name: sourceSubPath
                 value: getting-started
               - name: AppImage
-                value: quay.io/ch007m/quarkus-tekton-hello
+                value: ${CONTAINER_IMAGE}
               - name: cnbBuilderImage
-                value: paketobuildpacks/builder-jammy-tiny:0.0.176
+                value: ${{ matrix.builder-image }}
               - name: cnbBuildImage
-                value: paketobuildpacks/build-jammy-tiny:latest
+                value: ${{ matrix.build-image }}
               - name: cnbRunImage
-                value: paketobuildpacks/run-jammy-tiny:latest
+                value: ${{ matrix.run-image }}
               - name: cnbBuildEnvVars
                 value:
                   - "BP_NATIVE_IMAGE=false"
