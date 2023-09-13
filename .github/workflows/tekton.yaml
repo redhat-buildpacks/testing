@@ -38,6 +38,15 @@ jobs:
           kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=90s
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
+          
+          # Patching needed on kind as we got an affinity error
+          # when workspaces would like to use several PVC
+          # See: https://github.com/tektoncd/pipeline/issues/3545
+          kubectl patch configmap/feature-flags \
+          -n tekton-pipelines \
+          --type merge \
+          -p '{"data":{"disable-affinity-assistant":"true"}}'
+          
           kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
           
           wget https://github.com/tektoncd/cli/releases/download/v${{ matrix.tekton-client-version }}/tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
