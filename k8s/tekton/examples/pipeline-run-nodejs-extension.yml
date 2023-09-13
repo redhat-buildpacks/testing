@@ -5,7 +5,7 @@ metadata:
 spec:
   params:
     - name: gitRepo
-      value: https://github.com/halkyonio/rhtap-buildpack-demo-2.git
+      value: https://github.com/nodeshift-starters/nodejs-rest-http
     - name: AppImage
       value: quay.io/ch007m/nodejs-pack-test
     - name: cnbBuilderImage
