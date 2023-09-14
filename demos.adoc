@@ -113,7 +113,7 @@ Test the quarkus application
 ----
 http :8080/hello
 #http :8080/hello/greeting/rhtap
-----`
+----
 
 == Tekton Pipeline
 
