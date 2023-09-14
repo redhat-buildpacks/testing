@@ -1,3 +1,4 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
@@ -25,24 +26,12 @@ spec:
   workspaces:
     - name: source-ws
       subPath: source
-      volumeClaimTemplate:
-        spec:
-          #storageClassName: $(params.storageClassName)
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 1Gi
+      persistentVolumeClaim:
+        claimName: ws-pvc
     - name: cache-ws
       subPath: cache
-      volumeClaimTemplate:
-        spec:
-          #storageClassName: $(params.storageClassName)
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 1Gi
+      persistentVolumeClaim:
+        claimName: ws-pvc
   pipelineRef:
     resolver: git
     params:
