@@ -13,9 +13,9 @@ endif::[]
 
 ## Prerequisites
 
-- Pack client
-- Docker desktop
-- Kind and Tekton
+- https://buildpacks.io/docs/tools/pack/[Pack client]
+- https://docs.docker.com/get-docker/[Docker desktop]
+- https://github.com/kubernetes-sigs/kind[Kind] and https://tekton.dev/[Tekton]
 - RHTAP access
 
 Don't forget first to be logged to your favorite registry and to have the permissions to push an image
@@ -26,6 +26,12 @@ QUAY_USERNAME="<QUAY_USERNAME>"
 QUAY_PASSWORD="<QUAY_PASSWORD>"
 docker logout quay.io
 docker login -u $QUAY_USERNAME -p $QUAY_PASSWORD quay.io
+```
+
+**WARNING**: You can easily and locally run a kubernetes cluster using https://github.com/kubernetes-sigs/kind[kind] with the scripts developed by the Snowdrop team
+```bash
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
+curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 ```
 
 ## Quarkus and buildpacks
