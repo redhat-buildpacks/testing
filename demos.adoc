@@ -89,11 +89,6 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
 
 cd quarkus-hello
 
-QUAY_USERNAME="ch007m+workloads_a_a"
-QUAY_PASSWORD="WB1O...4QGE362O2"
-docker logout quay.io
-docker login -u $QUAY_USERNAME -p $QUAY_PASSWORD quay.io
-
 pack build quay.io/ch007m/quarkus-hello --path . \
   --builder paketobuildpacks/builder-jammy-tiny:0.0.176 \
   -e BP_NATIVE_IMAGE="false" \
