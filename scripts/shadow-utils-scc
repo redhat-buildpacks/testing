@@ -1,0 +1,125 @@
+kubectl delete clusterrole/pipelines-scc-role
+kubectl delete clusterrolebinding/pipelines-permission
+kubectl delete deployment/dummy
+kubectl delete sa/my-serviceaccount
+kubectl delete scc/my-custom-scc
+
+cat <<'EOF' | kubectl apply -f -
+---
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: my-custom-scc
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities:
+   - SETGID
+   - SETUID
+   - SETFCAP
+defaultAddCapabilities: null
+fsGroup:
+  type: MustRunAs
+groups:
+  - system:cluster-admins
+priority: 10
+readOnlyRootFilesystem: false
+requiredDropCapabilities:
+  - MKNOD
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: RunAsAny
+volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pipelines-scc-role
+rules:
+- apiGroups: [security.openshift.io]
+  resourceNames: [privileged]
+  resources: [securitycontextconstraints]
+  verbs: [use]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pipelines-permission
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pipelines-scc-role
+subjects:
+- kind: ServiceAccount
+  name: my-serviceaccount
+  namespace: buildpack
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-serviceaccount
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy
+  labels:
+    app: dummy
+spec:
+  selector:
+    matchLabels:
+      app: dummy
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dummy
+    spec:
+      serviceAccountName: my-serviceaccount
+      containers:
+        - name: install-shadow-utils
+          image: registry.access.redhat.com/ubi8/ubi
+          command:
+            - sh
+          args:
+            - '-c'
+            - >
+              id;
+              dnf install -y shadow-utils
+          
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          
+          volumeMounts:
+            - name: var-vol
+              mountPath: /var/
+            - name: usr-vol
+              mountPath: /usr/share/info
+            - name: var-lib
+              mountPath: /var/lib/containers
+
+      volumes:
+        - name: var-vol
+          emptyDir: {}
+        - name: usr-vol
+          emptyDir: {}
+        - name: var-lib
+          emptyDir: {}
+EOF
+  
+kubectl rollout status deployment/dummy
+kubectl logs -lapp=dummy --follow=true
