@@ -20,22 +20,12 @@ spec:
   workspaces:
     - name: source-ws
       subPath: source
-      volumeClaimTemplate:
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 1Gi
+      persistentVolumeClaim:
+        claimName: ws-pvc
     - name: cache-ws
       subPath: cache
-      volumeClaimTemplate:
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 1Gi
+      persistentVolumeClaim:
+        claimName: ws-pvc
   pipelineRef:
     resolver: git
     params:
