@@ -1,4 +1,65 @@
-## Demo 1
+Table of Contents
+=================
+
+* [Prerequisites](#prerequisites)
+* [Quarkus and buildpacks](#quarkus-and-buildpacks)
+* [Using Pack client](#using-pack-client)
+* [Tekton Pipeline and/or extensions](#tekton-pipeline-andor-extensions)
+* [RHTAP and PipelineRun + PipelineSpec](#rhtap-and-pipelinerun--pipelinespec)
+* [RHTAP and PipelineRun + PipelineRef](#rhtap-and-pipelinerun--pipelineref)
+* [Additional commands](#additional-commands)
+
+## Prerequisites
+
+- Pack client
+- Docker desktop
+- Kind and Tekton
+- RHTAP access
+
+Don't forget first to be logged to your favorite registry and to have the permissions to push an image
+
+Example:
+```bash
+QUAY_USERNAME="<QUAY_USERNAME>"
+QUAY_PASSWORD="<QUAY_PASSWORD>"
+docker logout quay.io
+docker login -u $QUAY_USERNAME -p $QUAY_PASSWORD quay.io
+```
+
+## Quarkus and buildpacks
+
+
+```bash
+cd ~/temp; rm -rf quarkus-hello
+
+mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
+-DprojectGroupId=me.snowdrop \
+-DprojectArtifactId=quarkus-hello \
+-DprojectVersion=1.0 \
+-Dextensions='resteasy-reactive,kubernetes,buildpack'
+
+cd quarkus-hello
+
+./mvnw install -Dquarkus.container-image.build=true \
+   -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.176 \
+   -Dquarkus.container-image.image="quay.io/ch007m/quarkus-hello:1.0" \
+   -Dquarkus.container-image.push=false \
+   -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
+   -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+```
+
+Test the quarkus application
+
+```bash
+docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/quarkus-hello:1.0 &
+```
+
+Using curl or http
+```bash
+http :8080/hello
+```
+
+## Using Pack client
 
 ```bash
 cd ~/temp; rm -rf quarkus-hello
@@ -38,7 +99,14 @@ http :8080/hello
 #http :8080/hello/greeting/rhtap
 ````
 
-## Demo 2
+## Tekton Pipeline and/or extensions
+
+```bash
+./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-quarkus.yml
+./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-nodejs-extension.yml
+```
+
+## RHTAP and PipelineRun + PipelineSpec
 
 ```bash
 cd ~/temp; rm -rf nodejs-rest-http
@@ -63,7 +131,7 @@ Test the quarkus application
 http :8080/api/greeting name==charles
 ```
 
-## Demo 3
+## RHTAP and PipelineRun + PipelineRef
 
 Use scripts:
 ```bash
@@ -72,8 +140,9 @@ Use scripts:
 ```
 
 ## Additional commands
+
 ```bash
-echo "To trigger a build"
+echo "To trigger a build manually on a custom pipelineRun in a git repo"
 REPO_NAME=rhtap-buildpack-demo-2
 sed -i.bak "s|test-0|test-1|g" .tekton/$REPO_NAME-push.yaml
 cd ../$REPO_NAME; git commit -asm "Trigger a new build: 1"; git push
