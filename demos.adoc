@@ -36,7 +36,6 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/regis
 
 ## Quarkus and buildpacks
 
-
 ```bash
 cd ~/temp; rm -rf quarkus-hello
 
@@ -107,7 +106,7 @@ http :8080/hello
 #http :8080/hello/greeting/rhtap
 ````
 
-## Tekton Pipeline and/or extensions
+## Tekton Pipeline
 
 ```bash
 ./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-quarkus.yml
