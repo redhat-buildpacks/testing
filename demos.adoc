@@ -11,7 +11,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-## Prerequisites
+== Prerequisites
 
 - https://buildpacks.io/docs/tools/pack/[Pack client]
 - https://docs.docker.com/get-docker/[Docker desktop]
@@ -21,22 +21,26 @@ endif::[]
 Don't forget first to be logged to your favorite registry and to have the permissions to push an image
 
 Example:
-```bash
+[,bash]
+----
 QUAY_USERNAME="<QUAY_USERNAME>"
 QUAY_PASSWORD="<QUAY_PASSWORD>"
 docker logout quay.io
 docker login -u $QUAY_USERNAME -p $QUAY_PASSWORD quay.io
-```
+----
 
-**WARNING**: You can easily and locally run a kubernetes cluster using https://github.com/kubernetes-sigs/kind[kind] with the scripts developed by the Snowdrop team
-```bash
+[TIP]
+You can easily and locally run a kubernetes cluster using https://github.com/kubernetes-sigs/kind[kind] with the scripts developed by the Snowdrop team
+[,bash]
+----
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
-```
+----
 
-## Quarkus and buildpacks
+== Quarkus and buildpacks
 
-```bash
+[,bash]
+----
 cd ~/temp; rm -rf quarkus-hello
 
 mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
@@ -53,22 +57,25 @@ cd quarkus-hello
    -Dquarkus.container-image.push=false \
    -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
    -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
-```
+----
 
 Test the quarkus application
 
-```bash
+[,bash]
+----
 docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/quarkus-hello:1.0 &
-```
+----
 
 Using curl or http
-```bash
+[,bash]
+----
 http :8080/hello
-```
+----
 
-## Using Pack client
+== Using Pack client
 
-```bash
+[,bash]
+----
 cd ~/temp; rm -rf quarkus-hello
 
 mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
@@ -91,31 +98,35 @@ pack build quay.io/ch007m/quarkus-hello --path . \
   -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
   --volume $HOME/.m2:/home/cnb/.m2:rw \
   --publish
-```
+----
 
 Let's pull the image
 
-```bash
+[,bash]
+----
 docker pull quay.io/ch007m/quarkus-hello
 docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/quarkus-hello &
-```
+----
 
 Test the quarkus application
-```bash
+[,bash]
+----
 http :8080/hello
 #http :8080/hello/greeting/rhtap
-````
+----`
 
-## Tekton Pipeline
+== Tekton Pipeline
 
-```bash
+[,bash]
+----
 ./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-quarkus.yml
 ./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-nodejs-extension.yml
-```
+----
 
-## RHTAP and PipelineRun + PipelineSpec
+== RHTAP and PipelineRun + PipelineSpec
 
-```bash
+[,bash]
+----
 cd ~/temp; rm -rf nodejs-rest-http
 git clone https://github.com/nodeshift-starters/nodejs-rest-http
 cd nodejs-rest-http
@@ -124,34 +135,38 @@ pack build quay.io/ch007m/nodejs-pack-test \
   --path . \
   --builder paketocommunity/builder-ubi-base \
   --publish
-```
+----
 
 Let's pull the image
 
-```bash
+[,bash]
+----
 docker pull quay.io/ch007m/nodejs-pack-test
 docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/nodejs-pack-test &
-```
+----
 
 Test the quarkus application
-```bash
+[,bash]
+----
 http :8080/api/greeting name==charles
-```
+----
 
-## RHTAP and PipelineRun + PipelineRef
+== RHTAP and PipelineRun + PipelineRef
 
 Use scripts:
-```bash
+[,bash]
+----
 ./scripts/rhtap-demo1
 ./scripts/rhtap-demo2
-```
+----
 
-## Additional commands
+== Additional commands
 
-```bash
+[,bash]
+----
 echo "To trigger a build manually on a custom pipelineRun in a git repo"
 REPO_NAME=rhtap-buildpack-demo-2
 sed -i.bak "s|test-0|test-1|g" .tekton/$REPO_NAME-push.yaml
 cd ../$REPO_NAME; git commit -asm "Trigger a new build: 1"; git push
-```
+----
 
