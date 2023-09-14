@@ -88,6 +88,7 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
 -Dextensions='resteasy-reactive,kubernetes,buildpack'
 
 cd quarkus-hello
+./mvnw clean package
 
 pack build quay.io/ch007m/quarkus-hello --path . \
   --builder paketobuildpacks/builder-jammy-tiny:0.0.176 \
@@ -102,15 +103,15 @@ Let's pull the image
 
 [,bash]
 ----
-docker pull quay.io/ch007m/quarkus-hello
-docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/quarkus-hello &
+IMAGE=quay.io/ch007m/quarkus-hello:latest
+docker pull $IMAGE
+docker run -i --rm -p 8080:8080 $IMAGE &
 ----
 
 Test the quarkus application
 [,bash]
 ----
 http :8080/hello
-#http :8080/hello/greeting/rhtap
 ----
 
 == Tekton Pipeline
