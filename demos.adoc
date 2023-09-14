@@ -166,7 +166,7 @@ Next play with a pipelinerun:
 ./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-nodejs-extension.yml
 ----
 
-== RHTAP and PipelineRun + PipelineSpec
+== RHTAP - PipelineRun embedding PipelineSpec
 
 Use script:
 [,bash]
@@ -174,7 +174,7 @@ Use script:
 ./scripts/rhtap-demo1
 ----
 
-== RHTAP and PipelineRun + PipelineRef
+== RHTAP - PipelineRun with a reference to a Pipeline
 
 Use script:
 [,bash]
