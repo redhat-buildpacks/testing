@@ -57,7 +57,7 @@ cd quarkus-hello
 ./mvnw install -Dquarkus.container-image.build=true \
    -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.176 \
    -Dquarkus.container-image.image="quay.io/ch007m/quarkus-hello:1.0" \
-   -Dquarkus.container-image.push=false \
+   -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
    -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
    -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
 ----
@@ -66,6 +66,7 @@ Test the quarkus application
 
 [,bash]
 ----
+docker push quay.io/ch007m/quarkus-hello:1.0
 docker run --platform linux/amd64 -i --rm -p 8080:8080 quay.io/ch007m/quarkus-hello:1.0 &
 ----
 
@@ -82,10 +83,10 @@ http :8080/hello
 cd ~/temp; rm -rf quarkus-hello
 
 mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
--DprojectGroupId=me.snowdrop \
--DprojectArtifactId=quarkus-hello \
--DprojectVersion=1.0 \
--Dextensions='resteasy-reactive,kubernetes,buildpack'
+  -DprojectGroupId=me.snowdrop \
+  -DprojectArtifactId=quarkus-hello \
+  -DprojectVersion=1.0 \
+  -Dextensions='resteasy-reactive,kubernetes,buildpack'
 
 cd quarkus-hello
 ./mvnw clean package
