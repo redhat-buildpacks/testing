@@ -111,7 +111,7 @@ function install_pipeline() {
   --docker-password="${DOCKER_REG_PWD}"
 
  kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/main/k8s/tekton/examples/sa-with-reg-creds.yml
- kubectl apply -f https://github.com/redhat-buildpacks/testing/blob/main/k8s/tekton/examples/ws-pvc.yml
+ kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/main/k8s/tekton/examples/ws-pvc.yml
 
  # Pass the PipelineRun file to be installed using its full path
  kubectl apply -f $1
