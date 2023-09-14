@@ -115,30 +115,7 @@ Test the quarkus application
 http :8080/hello
 ----
 
-== Tekton Pipeline
-
-You can install first Tekton, Dashboard and ingress route on kind using the commands:
-
-[,bash]
-----
-./scripts/play-with-tekton install-tekton
-./scripts/play-with-tekton install-tekton-dashboard
-----
-
-[TIP]
-====
-Review the instructions defined within the `./scripts/play-with-tekton` !
-====
-
-Next play with a pipelinerun:
-
-[,bash]
-----
-./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-quarkus.yml
-./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-nodejs-extension.yml
-----
-
-== RHTAP and PipelineRun + PipelineSpec
+== Pack and extension
 
 [,bash]
 ----
@@ -166,12 +143,42 @@ Test the quarkus application
 http :8080/api/greeting name==charles
 ----
 
-== RHTAP and PipelineRun + PipelineRef
+== Tekton Pipeline
 
-Use scripts:
+You can install first Tekton, Dashboard and ingress route on kind using the commands:
+
+[,bash]
+----
+./scripts/play-with-tekton install-tekton
+./scripts/play-with-tekton install-tekton-dashboard
+----
+
+[TIP]
+====
+Review the instructions defined within the `./scripts/play-with-tekton` !
+====
+
+Next play with a pipelinerun:
+
+[,bash]
+----
+./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-quarkus.yml
+./scripts/play-with-tekton /Users/cmoullia/code/redhat-buildpacks/testing/k8s/tekton/examples/pipeline-run-nodejs-extension.yml
+----
+
+== RHTAP and PipelineRun + PipelineSpec
+
+Use script:
 [,bash]
 ----
 ./scripts/rhtap-demo1
+----
+
+== RHTAP and PipelineRun + PipelineRef
+
+Use script:
+[,bash]
+----
 ./scripts/rhtap-demo2
 ----
 
