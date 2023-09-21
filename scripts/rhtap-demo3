@@ -1,0 +1,135 @@
+set -eu
+
+CURRENT_DIR=$(pwd)
+TEMP_DIR=~/temp
+
+echo "#########################################################################################"
+echo "RHTAP Buildpacks demo using a reference to a pipeline and nodejs extension builder image."
+echo "#########################################################################################"
+
+sleep 5
+
+GITHUB_ORG_NAME=halkyonio
+GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/templates.git
+GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-3
+GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 3 - using ref to pipelinerun and nodejs extension builder image"
+BRANCH=main
+
+APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
+COMPONENT_NAME="rhtap-buildpack-demo-3"
+# Nodejs devfile sample
+DEVFILE_URL=https://raw.githubusercontent.com/devfile-samples/node-express-hello-devfile-no-dockerfile/main/devfile.yaml
+
+PAC_NAME=$COMPONENT_NAME
+PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
+PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
+PAC_REMOTE_PIPELINE=https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipeline/rhtap/01/pipeline-buildpacks.yaml
+
+TENANT_NAMESPACE="cmoullia-tenant"
+REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
+BUILD_ID=0
+
+# Quarkus runtime
+SOURCE_SUB_PATH="."
+CNB_LOG_LEVEL="debug"
+CNB_BUILDER_IMAGE="paketocommunity/builder-ubi-base"
+CNB_BUILD_IMAGE="paketocommunity/build-ubi-base"
+CNB_RUN_IMAGE="paketocommunity/run-ubi-base"
+
+CNB_ENV_VARS=''
+
+rm -rf $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
+gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes || true
+
+cd $TEMP_DIR
+gh repo create \
+--clone git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME.git \
+--public
+
+pushd $TEMP_DIR/$GITHUB_REPO_DEMO_NAME
+
+wget https://github.com/nodeshift-starters/nodejs-rest-http/archive/main.tar.gz
+tar -vxf main.tar.gz --strip-components=1
+rm main.tar.gz
+
+mkdir .tekton
+
+curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-ref-template.yaml
+mv pipelinerun-buildpacks-ref-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+
+sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#APPLICATION_NAME#/$APPLICATION_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#COMPONENT_NAME#/$COMPONENT_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#PAC_NAME#/$PAC_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
+sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
+sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
+sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
+sed -i.bak "s|#PAC_REMOTE_PIPELINE#|$PAC_REMOTE_PIPELINE|g" $PAC_YAML_FILE
+
+sed -i.bak "s|#SOURCE_SUB_PATH#|$SOURCE_SUB_PATH|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILDER_IMAGE#|$CNB_BUILDER_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILD_IMAGE#|$CNB_BUILD_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_RUN_IMAGE#|$CNB_RUN_IMAGE|g" $PAC_YAML_FILE
+
+#
+PAC_FILE_NAME="$GITHUB_REPO_DEMO_NAME-push"
+yq -o=json '.' .tekton/$PAC_FILE_NAME.yaml > .tekton/$PAC_FILE_NAME.json
+jq --argjson array "[$CNB_ENV_VARS]" '(.spec.params[] | select(.name=="cnbBuildEnvVars")).value |= $array' .tekton/$PAC_FILE_NAME.json > temp.json
+cat temp.json | yq -P > .tekton/$PAC_FILE_NAME.yaml
+
+rm {temp.json,.tekton/$PAC_FILE_NAME.json}
+rm $PAC_YAML_FILE.bak
+
+SSH_REPO_NAME=$(gh repo view https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --json sshUrl --jq .sshUrl)
+git remote set-url origin $SSH_REPO_NAME https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
+
+echo ".idea/" >> .gitignore
+git add .
+git commit -asm "Quarkus and RHTAP Tekton project"
+git push -u origin main
+
+kubectl delete application/$GITHUB_REPO_DEMO_NAME || true
+
+for entity in pods deployments routes services taskruns pipelineruns applications components snapshotenvironmentbinding.appstudio.redhat.com componentdetectionquery.appstudio.redhat.com; do count=$(kubectl -n $TENANT_NAMESPACE get "$entity" -o name | wc -l); echo "$count $entity"; done | sort -n
+
+cat <<EOF | kubectl apply -n $TENANT_NAMESPACE -f -
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Application
+metadata:
+  name: $GITHUB_REPO_DEMO_NAME
+spec:
+  appModelRepository:
+    url: ""
+  displayName: $GITHUB_REPO_DEMO_NAME
+  gitOpsRepository:
+    url: ""
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    appstudio.openshift.io/pac-provision: request
+    image.redhat.com/generate: '{"visibility":"public"}'
+  name: $COMPONENT_NAME
+spec:
+  application: $GITHUB_REPO_DEMO_NAME
+  componentName: $COMPONENT_NAME
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+  source:
+    git:
+      context: ./
+      devfileUrl: $DEVFILE_URL
+      revision: main
+      url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
+  targetPort: 8080
+EOF
+
+popd
