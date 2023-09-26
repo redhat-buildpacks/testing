@@ -30,7 +30,7 @@ spec:
     resolver: git
     params:
       - name: url
-        value: https://github.com/redhat-buildpacks/templates.git
+        value: https://github.com/redhat-buildpacks/catalog.git
       - name: revision
         value: main
       - name: pathInRepo
