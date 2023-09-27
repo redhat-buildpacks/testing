@@ -5,6 +5,14 @@ metadata:
   name: buildpacks
 spec:
   params:
+    # RHTAP Params
+    - name: git-url
+      value: https://github.com/quarkusio/quarkus-quickstarts.git
+    - name: path-context
+      value: getting-started
+    - name: output-image
+      value: quay.io/ch007m/quarkus-tekton-hello
+    # Others
     - name: gitRepo
       value: https://github.com/quarkusio/quarkus-quickstarts.git
     - name: sourceSubPath
@@ -30,6 +38,9 @@ spec:
         claimName: ws-pvc
     - name: cache-ws
       subPath: cache
+      persistentVolumeClaim:
+        claimName: ws-pvc
+    - name: workspace
       persistentVolumeClaim:
         claimName: ws-pvc
   pipelineRef:
