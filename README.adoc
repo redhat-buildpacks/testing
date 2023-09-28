@@ -87,24 +87,7 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 
 == 0. Common steps
 
-To play with the different scenarios using the Quarkus runtime, git clone this project locally.
-
-[,bash]
-----
-git clone --depth 1 --branch 3.2.5.Final https://github.com/quarkusio/quarkus-quickstarts.git
-cd quarkus-quickstarts/getting-started
-mvn quarkus:dev
-----
-
-In a separate terminal, curl the HTTP endpoint
-
-[,bash]
-----
-curl http://localhost:8080/hello/greeting/coder
-hello coder
-----
-
-You can create a kubernetes `kind` cluster and an unsecure or secured HTTPS docker registry using this bash script:
+For local tests, you can create a kubernetes `kind` cluster and an unsecure (or secured HTTPS) docker registry using the following bash scripts:
 
 [,bash]
 ----
@@ -116,14 +99,31 @@ NOTE: Use the command `+... | bash -s -h+` to see the usage
 
 == 1. Quarkus Buildpacks
 
-Add first the following Quarkus extension to the Quarkus Getting started example able to build the quarkus example using the https://github.com/snowdrop/java-buildpack-client[Java Buildpacks client].
+First, create a Quarkus Hello example using the following maven command.
 
 [,bash]
 ----
-quarkus extension add 'container-image-buildpack'
+mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
+  -DprojectGroupId=me.snowdrop \
+  -DprojectArtifactId=quarkus-hello \
+  -DprojectVersion=1.0 \
+  -Dextensions='resteasy-reactive,kubernetes,buildpack'
 ----
 
-Do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.176` and where you pass the needed `+BP_***+` env variables in order to configure properly the Quarkus maven build:
+To test the project, compile it:
+[,bash]
+----
+mvn compile quarkus:dev
+----
+
+In a separate terminal, curl the HTTP endpoint
+
+[,bash]
+----
+curl http://localhost:8080/hello
+----
+
+To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.176` and pass SOME `+BP_***+` env variables in order to configure properly the Quarkus maven build:
 
 [,bash]
 ----
@@ -172,21 +172,13 @@ ____
 *Trick*: You can discover the builder images available using the command `pack builder suggest` ;-)
 ____
 
-Next, start the container and curl the endpoint `+curl http://localhost:8080/hello/greeting/coder+`
+Next, start the container and curl the endpoint `+curl http://localhost:8080/hello+`
 
 [,bash]
 ----
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 ----
 
-[TIP]
-====
-If you plan to use a different version of the https://hub.docker.com/r/buildpacksio/lifecycle/tags[lifecycle], append then the following parameter to th pack command:
-
-[,bash]
-----
-    --lifecycle-image buildpacksio/lifecycle:<TAG>
-----
 ====
 
 == 3. Tekton
@@ -378,7 +370,7 @@ Feel free to change them according to your GitHub organisation, tenant namespace
 [,bash]
 ----
 GITHUB_ORG_NAME=halkyonio
-GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/templates.git
+GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/catalog.git
 GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
 GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
 BRANCH=main
