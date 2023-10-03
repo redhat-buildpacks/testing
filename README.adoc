@@ -85,26 +85,14 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | To be tested when released
 |===
 
-== 0. Common steps
+== 0. Prerequisites
 
-To play with the different scenarios using the Quarkus runtime, git clone this project locally.
+- Docker desktop (or podman) installed and running
+- kind CLI installed (>= 0.17)
+- Tekton CLI
+- Have a kubernetes cluster (kind, minikube, etc)
 
-[,bash]
-----
-git clone --depth 1 --branch 3.2.5.Final https://github.com/quarkusio/quarkus-quickstarts.git
-cd quarkus-quickstarts/getting-started
-mvn quarkus:dev
-----
-
-In a separate terminal, curl the HTTP endpoint
-
-[,bash]
-----
-curl http://localhost:8080/hello/greeting/coder
-hello coder
-----
-
-You can create a kubernetes `kind` cluster and an unsecure or secured HTTPS docker registry using this bash script:
+NOTE: For local tests, we suggest to create a kubernetes `kind` cluster and an unsecure (or secured HTTPS) docker registry using the following bash scripts:
 
 [,bash]
 ----
@@ -116,14 +104,32 @@ NOTE: Use the command `+... | bash -s -h+` to see the usage
 
 == 1. Quarkus Buildpacks
 
-Add first the following Quarkus extension to the Quarkus Getting started example able to build the quarkus example using the https://github.com/snowdrop/java-buildpack-client[Java Buildpacks client].
+First, create a Quarkus Hello example using the following maven command.
 
 [,bash]
 ----
-quarkus extension add 'container-image-buildpack'
+mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
+  -DprojectGroupId=me.snowdrop \
+  -DprojectArtifactId=quarkus-hello \
+  -DprojectVersion=1.0 \
+  -Dextensions='resteasy-reactive,kubernetes,buildpack'
 ----
 
-Do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.176` and where you pass the needed `+BP_***+` env variables in order to configure properly the Quarkus maven build:
+To test the project, compile it:
+[,bash]
+----
+cd quarkus-hello
+mvn compile quarkus:dev
+----
+
+In a separate terminal, curl the HTTP endpoint
+
+[,bash]
+----
+curl http://localhost:8080/hello
+----
+
+To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.176` and pass SOME `+BP_***+` env variables in order to configure properly the Quarkus maven build:
 
 [,bash]
 ----
@@ -146,9 +152,9 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 == 2. Pack client
 
-To validate this scenario we will use the https://buildpacks.io/docs/tools/pack/[pack client].
+To validate this scenario top of the existing quarkus-hello project, we will use the https://buildpacks.io/docs/tools/pack/[pack client].
 
-To build properly the Quarkus container, we must configure the following buildpack:
+To build properly the Quarkus container, we must configure the following buildpacks:
 
 * https://github.com/paketo-buildpacks/java[Java Buildpacks]
 * https://github.com/paketo-buildpacks/native-image[Native Build]
@@ -165,35 +171,28 @@ pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
      --volume $HOME/.m2:/home/cnb/.m2:rw \
-     --path ./quarkus-quickstarts/getting-started
+     #--cache name=quarkus_pack_build \
+     --path .
 ----
 
 ____
 *Trick*: You can discover the builder images available using the command `pack builder suggest` ;-)
 ____
 
-Next, start the container and curl the endpoint `+curl http://localhost:8080/hello/greeting/coder+`
+Next, start the container and curl the endpoint `+curl http://localhost:8080/hello+`
 
 [,bash]
 ----
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 ----
 
-[TIP]
-====
-If you plan to use a different version of the https://hub.docker.com/r/buildpacksio/lifecycle/tags[lifecycle], append then the following parameter to th pack command:
-
-[,bash]
-----
-    --lifecycle-image buildpacksio/lifecycle:<TAG>
-----
 ====
 
 == 3. Tekton
 
 See the project documentation for more information: https://tekton.dev/
 
-To use Tekton, it is needed to have a k8s cluster (>= 1.24) & local docker registry & the kind CLI installed (>= 0.17)
+To use Tekton, it is needed to have a k8s cluster (>= 1.24), a local docker registry
 
 [,bash]
 ----
@@ -225,7 +224,7 @@ VM_IP=127.0.0.1
 kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
 ----
 
-When the platform is ready, you can install needed Tekton `Tasks`:
+When the platform is ready, you can install the needed Tekton `Tasks`:
 
 [,bash]
 ----
@@ -234,11 +233,12 @@ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/gi
 
 [WARNING]
 ====
-Don't install the buildpacks-phases version 0.2 from the catalog as it is outdated and do not work with lifecycle 1.16
+Don't install the buildpacks-phases version 0.2 from the catalog as it is outdated and do not work with lifecycle >= 1.17
 
 [,bash]
 ----
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
 ----
 ====
 
@@ -246,11 +246,11 @@ Set the following variables:
 
 [,bash]
 ----
-IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/app
+IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/quarkus-hello
 BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUR_OWN_BUILDER_IMAGE>
 ----
 
-The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image] version `0.1.361` https://github.com/paketo-buildpacks/tiny-builder/releases/tag/v0.1.361[supports]:
+The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image] version `0.0.176` https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.176[supports]:
 
 [,text]
 ----
@@ -271,10 +271,9 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
 BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.176
-LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.17.0
-RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
+CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
+CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
-kubectl delete task/buildpacks-phases
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/ws-pvc
 cat <<EOF | kubectl apply -f -
@@ -297,48 +296,33 @@ metadata:
   labels:
     app.kubernetes.io/description: "Buildpacks-PipelineRun"
 spec:
-  pipelineSpec:
-    workspaces:
-      - name: source-ws
-      - name: cache-ws
-    tasks:
-      - name: fetch-repository
-        taskRef:
-          name: git-clone
-        workspaces:
-          - name: output
-            workspace: source-ws
-        params:
-          - name: url
-            value: https://github.com/quarkusio/quarkus-quickstarts.git
-          - name: deleteExisting
-            value: "true"
-      - name: buildpacks
-        taskRef:
-          name: buildpacks-phases
-        runAfter:
-          - fetch-repository
-        workspaces:
-          - name: source
-            workspace: source-ws
-          - name: cache
-            workspace: cache-ws
-        params:
-          - name: APP_IMAGE
-            value: ${IMAGE_NAME}
-          - name: SOURCE_SUBPATH
-            value: getting-started
-          - name: CNB_BUILDER_IMAGE
-            value: ${BUILDER_IMAGE}
-          - name: CNB_LIFECYCLE_IMAGE
-            value: ${LIFECYCLE_IMAGE}
-          - name: RUN_IMAGE
-            value: ${RUN_IMAGE}
-          - name: ENV_VARS
-            value:
-              - BP_NATIVE_IMAGE=false
-              - BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
-              - BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
+  params:
+    - name: gitRepo
+      value: https://github.com/quarkusio/quarkus-quickstarts.git
+    - name: sourceSubPath
+      value: getting-started
+    - name: AppImage
+      value: ${IMAGE_NAME}
+    - name: cnbBuilderImage
+      value: ${BUILDER_IMAGE}
+    - name: cnbBuildImage
+      value: ${CNB_BUILD_IMAGE}
+    - name: cnbRunImage
+      value: ${CNB_RUN_IMAGE}
+    - name: cnbBuildEnvVars
+      value:
+        - "BP_NATIVE_IMAGE=false"
+        - "BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
+        - "BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+  pipelineRef:
+    resolver: git
+    params:
+      - name: url
+        value: https://github.com/redhat-buildpacks/catalog.git
+      - name: revision
+        value: main
+      - name: pathInRepo
+        value: tekton/pipeline/buildpacks/01/buildpacks.yaml
   workspaces:
     - name: source-ws
       subPath: source
@@ -351,7 +335,7 @@ spec:
 EOF
 ----
 
-Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns
+Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns or using the client: `tkn pipeline logs`
 
 When the task is finished and no error is reported, then launch the container
 
@@ -359,6 +343,8 @@ When the task is finished and no error is reported, then launch the container
 ----
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 ----
+
+NOTE: You can test different pipelineRuns using our bash script: ./scripts/play-with-tekton ;-)
 
 == 4. RHTAP
 
@@ -378,18 +364,36 @@ Feel free to change them according to your GitHub organisation, tenant namespace
 [,bash]
 ----
 GITHUB_ORG_NAME=halkyonio
-GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/templates.git
+GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/catalog.git
 GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
 GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
 BRANCH=main
+
 APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
 COMPONENT_NAME="quarkus-hello"
+# Quarkus devfile sample
+DEVFILE_URL=https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
+
 PAC_NAME=$COMPONENT_NAME
 PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
 PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
+
 TENANT_NAMESPACE="<YOUR_TENANT_NAMESPACE>"
 REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
-BUILD_ID=1 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
+BUILD_ID=0 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
+
+# Quarkus runtime
+SOURCE_SUB_PATH="."
+CNB_LOG_LEVEL="debug"
+CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.176"
+CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
+CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
+
+CNB_ENV_VARS='
+"BP_NATIVE_IMAGE=false",
+"BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/",
+"BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+'
 ----
 
 === HowTo
@@ -405,40 +409,22 @@ To create a new GitHub repository and import the needed files, perform the follo
 ----
 gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
 gh repo create \
-  -p $GITHUB_REPO_TEMPLATE \
   --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
   --public
 
-rm -rf $GITHUB_REPO_DEMO_NAME
-git clone git@github.com:$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
 cd $GITHUB_REPO_DEMO_NAME
 ----
 
-* Test locally the quarkus project and access using curl (or httpie) the endpoints (optional)
-
-[,bash]
-----
-mvn clean compile; mvn quarkus:dev
-
-# In a separate terminal, execute such httpie (or curl) commands
-http :8080/hello
-http :8080/hello/greeting/charles
-----
-
-* Get the RHTAP pipelineRun and rename the template file
+* Get the RHTAP pipelineRun template, rename it and set the different parameters
 
 [,bash]
 ----
 mkdir .tekton
-cp tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
-git add .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
-git commit -asm "Add the PipelineRun"
-----
+curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
+mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
 
-* Customize the RHTAP PipelineRun
-
-[,bash]
-----
+sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
 sed -i.bak "s/#APPLICATION_NAME#/$APPLICATION_NAME/g" $PAC_YAML_FILE
 sed -i.bak "s/#COMPONENT_NAME#/$COMPONENT_NAME/g" $PAC_YAML_FILE
 sed -i.bak "s/#PAC_NAME#/$PAC_NAME/g" $PAC_YAML_FILE
@@ -446,12 +432,53 @@ sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
 sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
 sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
 sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
+
+sed -i.bak "s|#SOURCE_SUB_PATH#|$SOURCE_SUB_PATH|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILDER_IMAGE#|$CNB_BUILDER_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILD_IMAGE#|$CNB_BUILD_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_RUN_IMAGE#|$CNB_RUN_IMAGE|g" $PAC_YAML_FILE
+
+#
+PAC_FILE_NAME="$GITHUB_REPO_DEMO_NAME-push"
+yq -o=json '.' .tekton/$PAC_FILE_NAME.yaml > .tekton/$PAC_FILE_NAME.json
+jq --argjson array "[$CNB_ENV_VARS]" '(.spec.params[] | select(.name=="cnbBuildEnvVars")).value |= $array' .tekton/$PAC_FILE_NAME.json > temp.json
+cat temp.json | yq -P > .tekton/$PAC_FILE_NAME.yaml
+
+rm {temp.json,.tekton/$PAC_FILE_NAME.json}
 rm $PAC_YAML_FILE.bak
-git commit -sm "Add the tekton push file" .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
-git push
 ----
 
-* Create the following Application CR and Component CR
+* Create a Quarklus Hello project locally
+
+[,bash]
+----
+mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
+-DprojectGroupId=me.snowdrop \
+-DprojectArtifactId=hello \
+-DprojectVersion=1.0 \
+-Dextensions='resteasy-reactive,kubernetes,buildpack'
+----
+
+* Commit the project to your GitHub org
+
+[,bash]
+----
+mv ./hello/* ./
+mv ./hello/{.dockerignore,.gitignore} ./
+mv ./hello/.mvn ./
+rm -rf ./hello
+SSH_REPO_NAME=$(gh repo view https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --json sshUrl --jq .sshUrl)
+git remote set-url origin $SSH_REPO_NAME https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
+
+echo ".idea/" >> .gitignore
+git add .
+git commit -asm "Quarkus and RHTAP Tekton project"
+git push -u origin main
+----
+
+
+* Create the following Application and Component CRs
 
 [,bash]
 ----
@@ -486,25 +513,27 @@ spec:
   source:
     git:
       context: ./
-      devfileUrl: https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
-      #dockerfileUrl: https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/src/main/docker/Dockerfile.jvm.staged
+      devfileUrl: $DEVFILE_URL
       revision: main
       url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
   targetPort: 8080
 EOF
 ----
 
-* Check resources created
+* Check the resources created
 
 [,bash]
 ----
 for entity in pods deployments routes services taskruns pipelineruns applications components snapshotenvironmentbinding.appstudio.redhat.com componentdetectionquery.appstudio.redhat.com; do count=$(kubectl -n $TENANT_NAMESPACE get "$entity" -o name | wc -l); echo "$count $entity"; done | sort -n
 ----
 
-* Push a commit top of the github repository created, open the `activity` tab of the RHTAP console and you should see that
+* Open the Component created using the RHTAP console and edit the `build` to send a PR to your git project
+* Push a commit top of the GitHub repository created (change the build id from 0 -> &, etc), open the `activity` tab of the RHTAP console and you should see that
   a custom build has been started for pull and push :-)
 
 * Alternatively, Import it as documented here: https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/how-to-guides/Import-code/proc_importing_code/
+
+NOTE: Use one of the RHTAP bash scripts aiming to automate the whole process described : ./scripts/rhtap-demo{1,2,3}
 
 * Cleaning
 
@@ -571,12 +600,12 @@ kubectl delete -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
 kubectl apply -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
 ----
 
-As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the https://carvel.dev/imgpkg/docs/v0.36.x/install/[imgpkg] tool:
+As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the https://carvel.dev/imgpkg/docs/v0.37.x/install/[imgpkg] tool:
 
 [,bash]
 ----
-BUILDER_VERSION=0.1.361-tiny
-imgpkg copy -i docker.io/paketobuildpacks/builder:$BUILDER_VERSION --to-tar ./k8s/builder-$BUILDER_VERSION.tar
+BUILDER_VERSION=0.0.176
+imgpkg copy -i docker.io/paketobuildpacks/builder-jammy-tiny:$BUILDER_VERSION --to-tar ./k8s/builder-$BUILDER_VERSION.tar
 
 imgpkg copy \
   --tar ./k8s/builder-$BUILDER_VERSION.tar \
