@@ -238,6 +238,7 @@ Don't install the buildpacks-phases version 0.2 from the catalog as it is outdat
 [,bash]
 ----
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
 ----
 ====
 
@@ -270,7 +271,6 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
 BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.176
-CNB_LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.17.0
 CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
 CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
@@ -296,50 +296,33 @@ metadata:
   labels:
     app.kubernetes.io/description: "Buildpacks-PipelineRun"
 spec:
-  pipelineSpec:
-    workspaces:
-      - name: source-ws
-      - name: cache-ws
-    tasks:
-      - name: fetch-repository
-        taskRef:
-          name: git-clone
-        workspaces:
-          - name: output
-            workspace: source-ws
-        params:
-          - name: url
-            value: https://github.com/quarkusio/quarkus-quickstarts.git
-          - name: deleteExisting
-            value: "true"
-      - name: buildpacks
-        taskRef:
-          name: buildpacks-phases
-        runAfter:
-          - fetch-repository
-        workspaces:
-          - name: source
-            workspace: source-ws
-          - name: cache
-            workspace: cache-ws
-        params:
-          - name: APP_IMAGE
-            value: ${IMAGE_NAME}
-          - name: SOURCE_SUBPATH
-            value: getting-started
-          - name: CNB_LIFECYCLE_IMAGE
-            value:
-          - name: CNB_BUILDER_IMAGE
-            value: ${BUILDER_IMAGE}
-          - name: CNB_BUILD_IMAGE
-            value: ${CNB_BUILD_IMAGE}
-          - name: CNB_RUN_IMAGE
-            value: ${CNB_RUN_IMAGE}
-          - name: ENV_VARS
-            value:
-              - BP_NATIVE_IMAGE=false
-              - BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
-              - BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
+  params:
+    - name: gitRepo
+      value: https://github.com/quarkusio/quarkus-quickstarts.git
+    - name: sourceSubPath
+      value: getting-started
+    - name: AppImage
+      value: ${IMAGE_NAME}
+    - name: cnbBuilderImage
+      value: ${BUILDER_IMAGE}
+    - name: cnbBuildImage
+      value: ${CNB_BUILD_IMAGE}
+    - name: cnbRunImage
+      value: ${CNB_RUN_IMAGE}
+    - name: cnbBuildEnvVars
+      value:
+        - "BP_NATIVE_IMAGE=false"
+        - "BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
+        - "BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+  pipelineRef:
+    resolver: git
+    params:
+      - name: url
+        value: https://github.com/redhat-buildpacks/catalog.git
+      - name: revision
+        value: main
+      - name: pathInRepo
+        value: tekton/pipeline/buildpacks/01/buildpacks.yaml
   workspaces:
     - name: source-ws
       subPath: source
@@ -360,6 +343,8 @@ When the task is finished and no error is reported, then launch the container
 ----
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 ----
+
+NOTE: You can test different pipelineRuns using our bash script: ./scripts/play-with-tekton ;-)
 
 == 4. RHTAP
 
