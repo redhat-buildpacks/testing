@@ -186,8 +186,6 @@ Next, start the container and curl the endpoint `+curl http://localhost:8080/hel
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 ----
 
-====
-
 == 3. Tekton
 
 See the project documentation for more information: https://tekton.dev/
