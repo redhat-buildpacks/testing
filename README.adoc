@@ -88,6 +88,8 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 == 0. Prerequisites
 
 - Docker desktop (or podman) installed and running
+- kind CLI installed (>= 0.17)
+- Tekton CLI
 - Have a kubernetes cluster (kind, minikube, etc)
 
 NOTE: For local tests, we suggest to create a kubernetes `kind` cluster and an unsecure (or secured HTTPS) docker registry using the following bash scripts:
@@ -150,9 +152,9 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 == 2. Pack client
 
-To validate this scenario we will use the https://buildpacks.io/docs/tools/pack/[pack client].
+To validate this scenario top of the existing quarkus-hello project, we will use the https://buildpacks.io/docs/tools/pack/[pack client].
 
-To build properly the Quarkus container, we must configure the following buildpack:
+To build properly the Quarkus container, we must configure the following buildpacks:
 
 * https://github.com/paketo-buildpacks/java[Java Buildpacks]
 * https://github.com/paketo-buildpacks/native-image[Native Build]
@@ -169,7 +171,8 @@ pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
      --volume $HOME/.m2:/home/cnb/.m2:rw \
-     --path ./quarkus-quickstarts/getting-started
+     #--cache name=quarkus_pack_build \
+     --path .
 ----
 
 ____
@@ -189,7 +192,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 See the project documentation for more information: https://tekton.dev/
 
-To use Tekton, it is needed to have a k8s cluster (>= 1.24) & local docker registry & the kind CLI installed (>= 0.17)
+To use Tekton, it is needed to have a k8s cluster (>= 1.24), a local docker registry
 
 [,bash]
 ----
@@ -221,7 +224,7 @@ VM_IP=127.0.0.1
 kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
 ----
 
-When the platform is ready, you can install needed Tekton `Tasks`:
+When the platform is ready, you can install the needed Tekton `Tasks`:
 
 [,bash]
 ----
@@ -230,7 +233,7 @@ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/gi
 
 [WARNING]
 ====
-Don't install the buildpacks-phases version 0.2 from the catalog as it is outdated and do not work with lifecycle 1.16
+Don't install the buildpacks-phases version 0.2 from the catalog as it is outdated and do not work with lifecycle >= 1.17
 
 [,bash]
 ----
@@ -242,11 +245,11 @@ Set the following variables:
 
 [,bash]
 ----
-IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/app
+IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/quarkus-hello
 BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUR_OWN_BUILDER_IMAGE>
 ----
 
-The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image] version `0.1.361` https://github.com/paketo-buildpacks/tiny-builder/releases/tag/v0.1.361[supports]:
+The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image] version `0.0.176` https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.176[supports]:
 
 [,text]
 ----
@@ -267,10 +270,10 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
 BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.176
-LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.17.0
-RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
+CNB_LIFECYCLE_IMAGE=buildpacksio/lifecycle:0.17.0
+CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
+CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
-kubectl delete task/buildpacks-phases
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/ws-pvc
 cat <<EOF | kubectl apply -f -
@@ -324,12 +327,14 @@ spec:
             value: ${IMAGE_NAME}
           - name: SOURCE_SUBPATH
             value: getting-started
+          - name: CNB_LIFECYCLE_IMAGE
+            value:
           - name: CNB_BUILDER_IMAGE
             value: ${BUILDER_IMAGE}
-          - name: CNB_LIFECYCLE_IMAGE
-            value: ${LIFECYCLE_IMAGE}
-          - name: RUN_IMAGE
-            value: ${RUN_IMAGE}
+          - name: CNB_BUILD_IMAGE
+            value: ${CNB_BUILD_IMAGE}
+          - name: CNB_RUN_IMAGE
+            value: ${CNB_RUN_IMAGE}
           - name: ENV_VARS
             value:
               - BP_NATIVE_IMAGE=false
@@ -347,7 +352,7 @@ spec:
 EOF
 ----
 
-Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns
+Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns or using the client: `tkn pipeline logs`
 
 When the task is finished and no error is reported, then launch the container
 
