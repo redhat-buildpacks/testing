@@ -600,12 +600,12 @@ kubectl delete -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
 kubectl apply -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
 ----
 
-As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the https://carvel.dev/imgpkg/docs/v0.36.x/install/[imgpkg] tool:
+As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the https://carvel.dev/imgpkg/docs/v0.37.x/install/[imgpkg] tool:
 
 [,bash]
 ----
-BUILDER_VERSION=0.1.361-tiny
-imgpkg copy -i docker.io/paketobuildpacks/builder:$BUILDER_VERSION --to-tar ./k8s/builder-$BUILDER_VERSION.tar
+BUILDER_VERSION=0.0.176
+imgpkg copy -i docker.io/paketobuildpacks/builder-jammy-tiny:$BUILDER_VERSION --to-tar ./k8s/builder-$BUILDER_VERSION.tar
 
 imgpkg copy \
   --tar ./k8s/builder-$BUILDER_VERSION.tar \
