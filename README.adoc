@@ -85,9 +85,12 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | To be tested when released
 |===
 
-== 0. Common steps
+== 0. Prerequisites
 
-For local tests, you can create a kubernetes `kind` cluster and an unsecure (or secured HTTPS) docker registry using the following bash scripts:
+- Docker desktop (or podman) installed and running
+- Have a kubernetes cluster (kind, minikube, etc)
+
+NOTE: For local tests, we suggest to create a kubernetes `kind` cluster and an unsecure (or secured HTTPS) docker registry using the following bash scripts:
 
 [,bash]
 ----
@@ -113,6 +116,7 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
 To test the project, compile it:
 [,bash]
 ----
+cd quarkus-hello
 mvn compile quarkus:dev
 ----
 
