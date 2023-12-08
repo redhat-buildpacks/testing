@@ -47,9 +47,6 @@ jobs:
           mvn package -B \
             -Dquarkus.container-image.image=$CONTAINER_IMAGE \
             -Dquarkus.buildpack.jvm-builder-image=${{ matrix.builder-image }} \
-            #-Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
-            #-Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
-            #-Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
             -Dquarkus.container-image.build=true \
             -Dquarkus.container-image.push=true
 
