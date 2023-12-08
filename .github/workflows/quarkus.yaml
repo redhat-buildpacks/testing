@@ -44,7 +44,7 @@ jobs:
           mvn quarkus:add-extension -Dextensions="container-image-buildpack"
 
           # Build image and push to the container registry
-          mvn package \
+          mvn package -B \
             -Dquarkus.container-image.image=$CONTAINER_IMAGE \
             -Dquarkus.buildpack.jvm-builder-image=${{ matrix.builder-image }} \
             #-Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
