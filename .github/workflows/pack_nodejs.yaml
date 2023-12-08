@@ -33,6 +33,9 @@ jobs:
           (curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
           echo "Pack version"
           pack version
+          
+          echo "Enable experimental features in pack"
+          pack config experimental true
 
       - name: Test Nodejs UBI extension
         run: |
@@ -44,9 +47,6 @@ jobs:
           # Not needed anymore to build the UBI builder image as it is now available
           # Checkout
           # git clone https://github.com/paketo-community/ubi-nodejs-extension.git
-
-          # echo "Enable experimental features in pack"
-          # pack config experimental true
           
           # echo "Build the detect and generate binaries of the extension"
           # ${{ github.workspace }}/ubi-nodejs-extension/scripts/build.sh
