@@ -31,7 +31,7 @@ BUILD_ID=0
 # Quarkus runtime
 SOURCE_SUB_PATH="."
 CNB_LOG_LEVEL="debug"
-CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.176"
+CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.211"
 CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
 CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
 

@@ -22,10 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Container Registry
-        uses: Sgitario/setup-container-registry@v1
-        with:
-          host: container-registry.local
+      #- name: Setup Container Registry
+      #  uses: Sgitario/setup-container-registry@v1
+      #  with:
+      #    host: container-registry.local
 
       - name: Install Pack
         # Version needed: >=0.30
@@ -33,61 +33,62 @@ jobs:
           (curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
           echo "Pack version"
           pack version
+          
+          echo "Enable experimental features in pack"
+          pack config experimental true
 
       - name: Test Nodejs UBI extension
         run: |
           CONTAINER_NAME=nodejs-pack-test
-          CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
-          BUILDER_IMAGE=$CONTAINER_REGISTRY_URL/nodejs-ubi-extension-builder
+          CONTAINER_IMAGE=registry.local/$CONTAINER_NAME:1.0
+          
+          BUILDER_IMAGE=${{ matrix.builder-image }}
 
+          # Not needed anymore to build the UBI builder image as it is now available
           # Checkout
-          git clone https://github.com/paketo-community/ubi-nodejs-extension.git
-
-          echo "Enable experimental features in pack"
-          pack config experimental true
+          # git clone https://github.com/paketo-community/ubi-nodejs-extension.git
           
-          echo "Build the detect and generate binaries of the extension"
-          ${{ github.workspace }}/ubi-nodejs-extension/scripts/build.sh
+          # echo "Build the detect and generate binaries of the extension"
+          # ${{ github.workspace }}/ubi-nodejs-extension/scripts/build.sh
           
-          echo "Creating the builder image and push it"
-          BUILDER_PATH=./builder.toml
+          # echo "Creating the builder image and push it"
+          # BUILDER_PATH=./builder.toml
           
-          cat <<EOF > builder.toml
-          description = "Sample builder that uses ubi Node.js extension to support Node.js apps"
-  
-          [[buildpacks]]
-          uri = "docker://gcr.io/paketo-buildpacks/nodejs:1.8.0"
-          version = "1.8.0"
-          
-          [lifecycle]
-          version = "0.17.0"
-          
-          [[order]]
-          [[order.group]]
-          id = "paketo-buildpacks/nodejs"
-          version = "1.8.0"
-          
-          [[extensions]]
-          id = "paketo-community/ubi-nodejs-extension"
-          version = "0.0.1"
-          uri = "file:///${{ github.workspace }}/ubi-nodejs-extension"
-          
-          [[order-extensions]]
-          [[order-extensions.group]]
-          id = "paketo-community/ubi-nodejs-extension"
-          version = "0.0.1"
-          
-          [stack]
-          id = "io.buildpacks.stacks.ubi8"
-          build-image = "paketocommunity/build-ubi-base"
-          run-image = "paketocommunity/run-ubi-base"
-          EOF
-          
-          pack builder create $BUILDER_IMAGE --config $BUILDER_PATH --publish
+          # cat <<EOF > builder.toml
+          # description = "Sample builder that uses ubi Node.js extension to support Node.js apps"
+          # [[buildpacks]]
+          # uri = "docker://gcr.io/paketo-buildpacks/nodejs:1.8.0"
+          # version = "1.8.0"
+          # 
+          # [lifecycle]
+          # version = "0.18.2"
+          # 
+          # [[order]]
+          # [[order.group]]
+          # id = "paketo-buildpacks/nodejs"
+          # version = "1.8.0"
+          # 
+          # [[extensions]]
+          # id = "paketo-community/ubi-nodejs-extension"
+          # version = "0.0.1"
+          # uri = "file:///${{ github.workspace }}/ubi-nodejs-extension"
+          # 
+          # [[order-extensions]]
+          # [[order-extensions.group]]
+          # id = "paketo-community/ubi-nodejs-extension"
+          # version = "0.0.1"
+          # 
+          # [stack]
+          # id = "io.buildpacks.stacks.ubi8"
+          # build-image = "paketocommunity/build-ubi-base"
+          # run-image = "paketocommunity/run-ubi-base"
+          # EOF
+          # 
+          # pack builder create $BUILDER_IMAGE --config $BUILDER_PATH --publish
           
           echo "Build the nodejs app"
           git clone https://github.com/nodeshift-starters/nodejs-rest-http.git
-          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --builder $BUILDER_IMAGE --network host -v
+          pack build $CONTAINER_IMAGE --path ./nodejs-rest-http --builder $BUILDER_IMAGE -v
           
-          echo "Run the nodejs http application & tst ..."
+          echo "Run the nodejs http application & test ..."
           .github/testNodeHello.sh $CONTAINER_NAME $CONTAINER_IMAGE
