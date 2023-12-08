@@ -20,7 +20,7 @@ spec:
     - name: AppImage
       value: quay.io/ch007m/quarkus-tekton-hello
     - name: cnbBuilderImage
-      value: paketobuildpacks/builder-jammy-tiny:0.0.176
+      value: paketobuildpacks/builder-jammy-tiny:0.0.211
     - name: cnbBuildImage
       value: paketobuildpacks/build-jammy-tiny:latest
     - name: cnbRunImage

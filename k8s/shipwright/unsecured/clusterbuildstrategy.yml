@@ -21,7 +21,7 @@ spec:
       default: ""
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
-      default: "docker.io/buildpacksio/lifecycle:0.17.0@sha256:a55d870a2c026228aeddd999a4efe290122aab33b5afc1dd15c7780db2f61d90"
+      default: "docker.io/buildpacksio/lifecycle:0.18.2@sha256:a55d870a2c026228aeddd999a4efe290122aab33b5afc1dd15c7780db2f61d90"
     - name: APP_IMAGE
       description: The name of where to store the app image.
     - name: RUN_IMAGE

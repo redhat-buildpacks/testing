@@ -60,7 +60,7 @@ jobs:
           version = "1.8.0"
           
           [lifecycle]
-          version = "0.17.0"
+          version = "0.18.2"
           
           [[order]]
           [[order.group]]

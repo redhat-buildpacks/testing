@@ -1,9 +1,9 @@
 include:
  - # New ubuntu image built top of jammy
-   builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.176"
+   builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.211"
 
    # Version needed >= 0.30 to be able to use lifecycle 0.17 and to play with extensions
-   pack_cli_version: "v0.30.0"
+   pack_cli_version: "v0.32.1"
 
    # Quarkus java parameter
    quarkus_version: "3.2.3.Final"
@@ -19,7 +19,7 @@ include:
    tekton-client-version: "0.32.0"
 
    # Buildpacks parameters
-   lifecycle-image: "buildpacksio/lifecycle:0.17.0"
+   lifecycle-image: "buildpacksio/lifecycle:0.18.2"
    run-image: "paketobuildpacks/run-jammy-tiny:latest"
    build-image: "paketobuildpacks/build-jammy-tiny:latest"
 

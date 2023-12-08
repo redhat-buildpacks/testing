@@ -55,7 +55,7 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
 cd quarkus-hello
 
 ./mvnw install -Dquarkus.container-image.build=true \
-   -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.176 \
+   -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.211 \
    -Dquarkus.container-image.image="quay.io/ch007m/quarkus-hello:1.0" \
    -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
    -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
@@ -92,7 +92,7 @@ cd quarkus-hello
 ./mvnw clean package
 
 pack build quay.io/ch007m/quarkus-hello --path . \
-  --builder paketobuildpacks/builder-jammy-tiny:0.0.176 \
+  --builder paketobuildpacks/builder-jammy-tiny:0.0.211 \
   -e BP_NATIVE_IMAGE="false" \
   -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
   -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \

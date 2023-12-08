@@ -50,7 +50,7 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | Tool/Image | Version | Tested | Note
 
 | Lifecycle
-| https://github.com/buildpacks/lifecycle/releases/tag/v0.17.0[0.17.0]
+| https://github.com/buildpacks/lifecycle/releases/tag/v0.18.2[0.18.2]
 | Yes
 | -
 
@@ -60,29 +60,29 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | -
 
 | Pack cli
-| https://github.com/buildpacks/pack/releases/tag/v0.30.0[v0.30.0]
+| https://github.com/buildpacks/pack/releases/tag/v0.32.1[v0.32.1]
 | Yes
 | -
 
 | Paketo Builder Tiny (jammy) builder
-| https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.176[0.0.176]
+| https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.211[0.0.211]
 | Yes
-| Package lifecycle 0.17.0
+| Package lifecycle 0.18.2
 
 | Paketo community UBI builder
-| https://github.com/paketo-community/builder-ubi-base/releases/tag/0.0.1[0.0.1]
+| https://github.com/paketo-community/builder-ubi-base/releases/tag/v0.0.24[0.0.24]
 | Yes
-| Only support Node.js buildpacks.
+| Include Node.js, Quarkus Java buildpacks.
 
 | Paketo Node.js Extension for ubi
-| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.0.3[0.0.3]
+| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.1.0[0.1.0]
 | Yes
 | -
 
 | Paketo Java Extension for ubi
-| https://github.com/paketo-community/ubi-java-extension[n/a]
-| No
-| To be tested when released
+| https://github.com/paketo-community/ubi-java-extension/releases/tag/v0.1.1[0.1.1]
+| Yes
+| -
 |===
 
 == 0. Prerequisites
@@ -129,13 +129,13 @@ In a separate terminal, curl the HTTP endpoint
 curl http://localhost:8080/hello
 ----
 
-To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.176` and pass SOME `+BP_***+` env variables in order to configure properly the Quarkus maven build:
+To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.211` and pass SOME `+BP_***+` env variables in order to configure properly the Quarkus maven build:
 
 [,bash]
 ----
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.176 \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.211 \
  -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
  -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
  -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
@@ -166,7 +166,7 @@ For that purpose, we use some build-time environment variables `-e` to configure
 REGISTRY_HOST="kind-registry.local:5000"
 docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
 pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
-     --builder paketobuildpacks/builder-jammy-tiny:0.0.176 \
+     --builder paketobuildpacks/builder-jammy-tiny:0.0.211 \
      -e BP_NATIVE_IMAGE="false" \
      -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
      -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
@@ -248,12 +248,12 @@ IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/quarkus-hello
 BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUR_OWN_BUILDER_IMAGE>
 ----
 
-The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image] version `0.0.176` https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.176[supports]:
+The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image] version `0.0.211` https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.211[supports]:
 
 [,text]
 ----
 Lifecycle:
-  Version: 0.17.0
+  Version: 0.18.2
   Buildpack APIs:
     Deprecated: 0.2, 0.3, 0.4, 0.5, 0.6
     Supported: 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10
@@ -268,7 +268,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
-BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.176
+BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.211
 CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
 CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
@@ -383,7 +383,7 @@ BUILD_ID=0 # ID used to generate the following kubernetes label's value: test-01
 # Quarkus runtime
 SOURCE_SUB_PATH="."
 CNB_LOG_LEVEL="debug"
-CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.176"
+CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.211"
 CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
 CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
 
@@ -602,7 +602,7 @@ As the Paketo builder images are quite big, we suggest to relocate them to the k
 
 [,bash]
 ----
-BUILDER_VERSION=0.0.176
+BUILDER_VERSION=0.0.211
 imgpkg copy -i docker.io/paketobuildpacks/builder-jammy-tiny:$BUILDER_VERSION --to-tar ./k8s/builder-$BUILDER_VERSION.tar
 
 imgpkg copy \
