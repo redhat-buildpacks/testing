@@ -166,10 +166,7 @@ For that purpose, we use some build-time environment variables `-e` to configure
 REGISTRY_HOST="kind-registry.local:5000"
 docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
 pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
-     --builder paketobuildpacks/builder-jammy-tiny:0.0.211 \
-     -e BP_NATIVE_IMAGE="false" \
-     -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
-     -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
+     --builder quay.io/snowdrop/ubi-builder:0.1.0 \
      --volume $HOME/.m2:/home/cnb/.m2:rw \
      #--cache name=quarkus_pack_build \
      --path .

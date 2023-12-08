@@ -27,12 +27,12 @@ jobs:
       #  with:
       #    host: container-registry.local
 
-      #- name: Install Pack
-      #  # Version needed: >=0.30
-      #  run: |
-      #    (curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
-      #    echo "Pack version"
-      #    pack version
+      - name: Install Pack
+        # Version needed: >=0.30
+        run: |
+          (curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+          echo "Pack version"
+          pack version
 
       - name: Test Nodejs UBI extension
         run: |
