@@ -64,7 +64,7 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | Yes
 | -
 
-| Paketo Builder Tiny (jammy) builder
+| Paketo Builder Tiny (jammy) builder (DEPRECATED)
 | https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.211[0.0.211]
 | Yes
 | Package lifecycle 0.18.2

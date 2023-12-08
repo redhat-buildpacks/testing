@@ -1,6 +1,9 @@
 include:
- - # New ubuntu image built top of jammy
-   builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.211"
+ - # DEPRECATED: New ubuntu image built top of jammy
+   # builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.211"
+
+   # Red Hat UBI Builder image packaging: Node.js, Quarkus and Java buildpacks
+   builder-image: "quay.io/snowdrop/ubi-builder:0.1.0"
 
    # Version needed >= 0.30 to be able to use lifecycle 0.17 and to play with extensions
    pack_cli_version: "v0.32.1"
