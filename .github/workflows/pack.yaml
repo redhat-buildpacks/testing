@@ -28,6 +28,8 @@ jobs:
       - name: Install Pack
         run: |
           curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+          pack version
+          pack config experimental true
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
