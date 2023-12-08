@@ -245,20 +245,6 @@ IMAGE_NAME=<CONTAINER_REGISTRY>/<ORG>/quarkus-hello
 BUILDER_IMAGE=<PAKETO_BUILDER_IMAGE_OR_YOUR_OWN_BUILDER_IMAGE>
 ----
 
-The https://hub.docker.com/r/paketobuildpacks/builder/tags[paketo builder image] version `0.0.211` https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.211[supports]:
-
-[,text]
-----
-Lifecycle:
-  Version: 0.18.2
-  Buildpack APIs:
-    Deprecated: 0.2, 0.3, 0.4, 0.5, 0.6
-    Supported: 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10
-  Platform APIs:
-    Deprecated: 0.3, 0.4, 0.5, 0.6
-    Supported: 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.10, 0.11, 0.12
-----
-
 It is time to create a `Pipelinerun` to build the Quarkus application
 
 [,bash]
