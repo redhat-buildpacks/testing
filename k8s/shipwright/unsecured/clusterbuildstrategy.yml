@@ -1,5 +1,5 @@
 ---
-apiVersion: shipwright.io/v1alpha1
+apiVersion: shipwright.io/v1beta1
 kind: ClusterBuildStrategy
 metadata:
   name: buildpacks
@@ -15,13 +15,13 @@ spec:
   parameters:
     - name: CNB_PLATFORM_API
       description: Platform API Version supported
-      default: "0.12"
+      default: "0.13"
     - name: CNB_BUILDER_IMAGE
       description: Builder image containing the buildpacks
-      default: ""
+      default: "paketocommunity/builder-ubi-base:0.0.54"
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
-      default: "docker.io/buildpacksio/lifecycle:0.18.2@sha256:a55d870a2c026228aeddd999a4efe290122aab33b5afc1dd15c7780db2f61d90"
+      default: "docker.io/buildpacksio/lifecycle:0.19.3"
     - name: APP_IMAGE
       description: The name of where to store the app image.
     - name: RUN_IMAGE
