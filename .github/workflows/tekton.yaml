@@ -35,7 +35,7 @@ jobs:
 
       - name: Setup Tekton
         run: |
-          kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
+          kubectl create -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=90s
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
           
@@ -47,7 +47,7 @@ jobs:
           --type merge \
           -p '{"data":{"disable-affinity-assistant":"true"}}'
           
-          kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
+          kubectl create -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
           
           wget https://github.com/tektoncd/cli/releases/download/v${{ matrix.tekton-client-version }}/tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
           sudo rpm -Uvh tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
@@ -57,8 +57,8 @@ jobs:
           CONTAINER_NAME=quarkus-tekton-hello
           CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
 
-          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
-          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+          kubectl create -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+          kubectl create -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
           
           cat <<EOF | kubectl apply -f -
           ---

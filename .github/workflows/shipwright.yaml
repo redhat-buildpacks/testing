@@ -35,11 +35,11 @@ jobs:
 
       - name: Setup Tekton & Shipwright
         run: |
-          kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
+          kubectl create -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=120s
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=120s
           
-          kubectl apply -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
+          kubectl create -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
           kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=120s
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
@@ -48,7 +48,7 @@ jobs:
           CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
           
           kubectl create -f ./k8s/shipwright/unsecured/pvc.yml
-          kubectl apply  -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
+          kubectl create  -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
           
           cat<<EOF | kubectl apply -f -
           apiVersion: shipwright.io/v1alpha1
