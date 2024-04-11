@@ -21,6 +21,9 @@ spec:
     - name: CNB_BUILDER_IMAGE
       description: Builder image containing the buildpacks
       default: "paketocommunity/builder-ubi-base:0.0.54"
+    - name: CNB_BUILD_IMAGE
+      description: Reference to the current build image in an OCI registry (if used <kaniko-dir> must be provided)
+      default: "paketobuildpacks/build-jammy-tiny:latest"
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
       default: "buildpacksio/lifecycle:0.19.3"
@@ -179,8 +182,10 @@ spec:
         runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/restorer"]
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-group=/layers/group.toml"
         - "-layers=/layers"
+        - "-build-image=$(params.CNB_BUILD_IMAGE)"
         - "-cache-dir=/layers/$(params.CACHE_DIR_NAME)"
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-uid=$(params.CNB_USER_ID)"
