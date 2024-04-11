@@ -60,10 +60,10 @@ spec:
     - # Update the user id to use new paketo builder image till we can use: https://github.com/shipwright-io/community/blob/main/ships/0036-runAs-for-supporting-steps.md
       name: CNB_USER_ID
       description: The user ID of the builder image user.
-      default: "1000"
+      default: "1001"
     - name: CNB_GROUP_ID
       description: The group ID of the builder image user.
-      default: "1000"
+      default: "1001"
     - name: USER_HOME
       description: Absolute path to the user's home directory.
       default: /tekton/home
@@ -135,8 +135,8 @@ spec:
     - name: analyze
       image: $(params.CNB_BUILDER_IMAGE)
       securityContext:
-        runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1001 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/analyzer"]
       args:
         - "-layers=/layers"
@@ -156,8 +156,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1001 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: [ "/cnb/lifecycle/detector" ]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
@@ -178,8 +178,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1001 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/restorer"]
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
@@ -237,8 +237,8 @@ spec:
     #  image: $(params.CNB_BUILDER_IMAGE)
     #  imagePullPolicy: Always
     #  securityContext:
-    #    runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-    #    runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #    runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #    runAsGroup: 1001 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
     #  command: ["/cnb/lifecycle/builder"]
     #  args:
     #    - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
