@@ -41,7 +41,7 @@ jobs:
           cd quarkus-quickstarts/getting-started
 
           # Add quarkus-container-image-buildpack extension
-          mvn quarkus:add-extension -Dextensions="container-image-buildpack"
+          mvn -B quarkus:add-extension -Dextensions="container-image-buildpack"
 
           # Build image and push to the container registry
           mvn package -B \
