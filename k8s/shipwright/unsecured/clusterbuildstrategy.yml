@@ -9,6 +9,8 @@ spec:
       emptyDir: {}
     - name: empty-dir
       emptyDir: {}
+    - name: kaniko-dir
+      emptyDir: {}
     - name: cache-dir
       persistentVolumeClaim:
         claimName: ws-pvc
@@ -53,10 +55,10 @@ spec:
       description: The name of the platform directory.
       default: empty-dir
     - # Update the user id to use new paketo builder image till we can use: https://github.com/shipwright-io/community/blob/main/ships/0036-runAs-for-supporting-steps.md
-      name: USER_ID
+      name: CNB_USER_ID
       description: The user ID of the builder image user.
       default: "1001"
-    - name: GROUP_ID
+    - name: CNB_GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
     - name: USER_HOME
@@ -75,18 +77,18 @@ spec:
           if [ ! -d "$DIRECTORY" ]; then
             echo "> Creating cache: /layers/$(params.CACHE_DIR_NAME)"
             mkdir -p /layers/$(params.CACHE_DIR_NAME)
-            chown -R "$(params.USER_ID):$(params.GROUP_ID)" /layers/$(params.CACHE_DIR_NAME)
+            chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" /layers/$(params.CACHE_DIR_NAME)
           fi
           
           # TODO: To be reviewed as shipwright don't support like Tekton workspaces
           #if [[ "$(workspaces.cache.bound)" == "true" ]]; then
           #  echo "> Setting permissions on '$(workspaces.cache.path)'..."
-          #  chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$(workspaces.cache.path)"
+          #  chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" "$(workspaces.cache.path)"
           #fi
 
           for path in "/tekton/home" "/layers" "$(workspaces.source.path)"; do
             echo "> Setting permissions on '$path'..."
-            chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$path"
+            chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" "$path"
           done
 
           echo "> Parsing additional configuration..."
@@ -130,15 +132,15 @@ spec:
     - name: analyze
       image: $(params.CNB_BUILDER_IMAGE)
       securityContext:
-        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/analyzer"]
       args:
         - "-layers=/layers"
         - "-run-image=$(params.RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       env:
         - name: CNB_PLATFORM_API
@@ -151,8 +153,8 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: [ "/cnb/lifecycle/detector" ]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
@@ -173,22 +175,24 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/restorer"]
       args:
         - "-group=/layers/group.toml"
         - "-layers=/layers"
         - "-cache-dir=/layers/$(params.CACHE_DIR_NAME)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
       env:
         - name: CNB_PLATFORM_API
           value: $(params.CNB_PLATFORM_API)
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
+        - name: kaniko-dir
+          mountPath: /kaniko
         - name: cache-dir
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
@@ -199,9 +203,9 @@ spec:
       args:
         - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
-        - "-layers=/layers"
-        - "-group=/layers/group.toml"
-        - "-plan=/layers/plan.toml"
+        - "-generated=/layers/generated"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
       env:
         - name: CNB_PLATFORM_API
           value: $(params.CNB_PLATFORM_API)
@@ -219,6 +223,8 @@ spec:
           mountPath: /platform
         - name: empty-dir
           mountPath: /tekton/home
+        - name: kaniko-dir
+          mountPath: /kaniko
         - name: cache-dir
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
@@ -226,8 +232,8 @@ spec:
     #  image: $(params.CNB_BUILDER_IMAGE)
     #  imagePullPolicy: Always
     #  securityContext:
-    #    runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-    #    runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #    runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #    runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
     #  command: ["/cnb/lifecycle/builder"]
     #  args:
     #    - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
@@ -259,8 +265,8 @@ spec:
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-report=/layers/report.toml"
         - "-process-type=$(params.PROCESS_TYPE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       env:
         - name: CNB_PLATFORM_API
