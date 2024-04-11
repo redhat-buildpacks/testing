@@ -124,8 +124,9 @@ spec:
           mountPath: /platform
         - name: cache-dir #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
           mountPath: /tmp/cache
+
     - name: analyze
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       command: ["/cnb/lifecycle/analyzer"]
       args:
         - "-layers=/layers"
@@ -164,7 +165,7 @@ spec:
           mountPath: /tekton/home
 
     - name: restore
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/restorer"]
       args:
@@ -209,7 +210,7 @@ spec:
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
     - name: export
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/exporter"]
       args:
