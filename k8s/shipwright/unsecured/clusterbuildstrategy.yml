@@ -21,7 +21,7 @@ spec:
       default: "paketocommunity/builder-ubi-base:0.0.54"
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
-      default: "docker.io/buildpacksio/lifecycle:0.19.3"
+      default: "buildpacksio/lifecycle:0.19.3"
     - name: CNB_EXPERIMENTAL_MODE
       description: Parameter to enable the experimental mode
       default: "warn"
@@ -144,6 +144,9 @@ spec:
     - name: detect
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
+      securityContext:
+        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: [ "/cnb/lifecycle/detector" ]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
