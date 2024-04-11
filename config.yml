@@ -18,7 +18,7 @@ include:
    # Shipwright and Tekton parameters
    tekton-version: "v0.56.4"
    # Don't support array -> Run kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/Array/release.yaml
-   shipwright-version: "v0.12.0"
+   shipwright-version: "v0.11.0"
    tekton-client-version: "0.36.0"
 
    # Buildpacks parameters

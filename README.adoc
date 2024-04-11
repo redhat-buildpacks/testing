@@ -570,7 +570,7 @@ Next, deploy the latest release of shipwright
 
 [,bash]
 ----
-kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
+kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ----
 
 Next, install the `Buildpacks BuildStrategy` using the following command:
@@ -585,12 +585,12 @@ As the Paketo builder images are quite big, we suggest to relocate them to the k
 
 [,bash]
 ----
-BUILDER_VERSION=0.0.211
-imgpkg copy -i docker.io/paketobuildpacks/builder-jammy-tiny:$BUILDER_VERSION --to-tar ./k8s/builder-$BUILDER_VERSION.tar
+BUILDER_VERSION=0.0.54
+imgpkg copy -i docker.io/paketocommunity/builder-ubi-base:0.0.54 --to-tar ./k8s/builder-$BUILDER_VERSION.tar
 
 imgpkg copy \
   --tar ./k8s/builder-$BUILDER_VERSION.tar \
-  --to-repo kind-registry.local:5000/paketobuildpacks/builder
+  --to-repo kind-registry.local:5000/paketocommunity/builder-ubi-base
 ----
 
 [TIP]
@@ -733,7 +733,7 @@ Next, install Tekton and Shipwright
 [,bash]
 ----
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.56.4/release.yaml
-kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
+kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
 ----
 
 And finally, deploy the resources using either an `unsecured` or `secured` container registry
