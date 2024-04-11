@@ -50,32 +50,32 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | Tool/Image | Version | Tested | Note
 
 | Lifecycle
-| https://github.com/buildpacks/lifecycle/releases/tag/v0.18.2[0.18.2]
+| https://github.com/buildpacks/lifecycle/releases/tag/v0.19.3[0.19.3]
 | Yes
 | -
 
 | Platform
-| https://github.com/buildpacks/spec/blob/platform/0.12/platform.md[0.12.0]
+| https://github.com/buildpacks/spec/blob/platform/0.13/platform.md[0.13.0]
 | Yes
 | -
 
 | Pack cli
-| https://github.com/buildpacks/pack/releases/tag/v0.32.1[v0.32.1]
+| https://github.com/buildpacks/pack/releases/tag/v0.33.2[v0.33.2]
 | Yes
 | -
 
 | Paketo Builder Tiny (jammy) builder (DEPRECATED)
 | https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.211[0.0.211]
 | Yes
-| Package lifecycle 0.18.2
+| Package lifecycle 0.18.2#
 
 | Paketo community UBI builder
-| https://github.com/paketo-community/builder-ubi-base/releases/tag/v0.0.24[0.0.24]
+| https://github.com/paketo-community/builder-ubi-base/releases/tag/v0.0.54[0.0.54]
 | Yes
 | Include Node.js, Quarkus Java buildpacks.
 
 | Paketo Node.js Extension for ubi
-| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.1.0[0.1.0]
+| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.3.1[0.3.1]
 | Yes
 | -
 
@@ -201,7 +201,7 @@ to install the latest official release (or a specific release)
 
 [,bash]
 ----
-kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.48.0/release.yaml
+kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.56.4/release.yaml
 ----
 
 and optionally, you can also install the Tekton dashboard
