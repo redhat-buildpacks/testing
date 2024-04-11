@@ -18,9 +18,9 @@ spec:
     - name: CNB_LOG_LEVEL
       value: "debug"
     #- name: CNB_USER_ID
-    #  value: "1001"
+    #  value: "1002"
     #- name: CNB_GROUP_ID
-    #  value: "1001"
+    #  value: "1002"
     - name: CNB_BUILDER_IMAGE
       value: paketocommunity/builder-ubi-base:0.0.54
     - name: CNB_LIFECYCLE_IMAGE
