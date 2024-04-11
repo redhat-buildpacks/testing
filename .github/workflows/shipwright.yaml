@@ -62,10 +62,16 @@ jobs:
             paramValues:
               - name: SOURCE_SUBPATH
                 value: getting-started
+              - name: CNB_LOG_LEVEL
+                value: "info"
               - name: CNB_PLATFORM_API
                 value: "0.13"
               - name: CNB_EXPERIMENTAL_MODE
                 value: warn
+              - name: CNB_USER_ID
+                value: "1000"
+              - name: CNB_GROUP_ID
+                value: "1000"
               - name: CNB_BUILDER_IMAGE
                 value: paketocommunity/builder-ubi-base:0.0.54
               - name: CNB_LIFECYCLE_IMAGE

@@ -60,7 +60,7 @@ spec:
     - # Update the user id to use new paketo builder image till we can use: https://github.com/shipwright-io/community/blob/main/ships/0036-runAs-for-supporting-steps.md
       name: CNB_USER_ID
       description: The user ID of the builder image user.
-      default: "1001"
+      default: "1000"
     - name: CNB_GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
@@ -135,7 +135,7 @@ spec:
     - name: analyze
       image: $(params.CNB_BUILDER_IMAGE)
       securityContext:
-        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
         runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/analyzer"]
       args:
@@ -156,7 +156,7 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
         runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: [ "/cnb/lifecycle/detector" ]
       args:
@@ -178,7 +178,7 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
         runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/restorer"]
       args:
@@ -237,7 +237,7 @@ spec:
     #  image: $(params.CNB_BUILDER_IMAGE)
     #  imagePullPolicy: Always
     #  securityContext:
-    #    runAsUser: 1001 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #    runAsUser: 1000 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
     #    runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
     #  command: ["/cnb/lifecycle/builder"]
     #  args:
