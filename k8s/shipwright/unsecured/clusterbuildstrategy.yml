@@ -22,6 +22,9 @@ spec:
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
       default: "buildpacksio/lifecycle:0.19.3"
+    - name: CNB_LOG_LEVEL
+      description: Logging level
+      default: "info"
     - name: CNB_EXPERIMENTAL_MODE
       description: Parameter to enable the experimental mode
       default: "warn"
@@ -59,7 +62,6 @@ spec:
     - name: USER_HOME
       description: Absolute path to the user's home directory.
       default: /tekton/home
-
   buildSteps:
     - name: prepare
       image: docker.io/library/bash:5.1.4
@@ -127,6 +129,9 @@ spec:
 
     - name: analyze
       image: $(params.CNB_BUILDER_IMAGE)
+      securityContext:
+        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/analyzer"]
       args:
         - "-layers=/layers"
@@ -167,6 +172,9 @@ spec:
     - name: restore
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
+      securityContext:
+        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/restorer"]
       args:
         - "-group=/layers/group.toml"
@@ -184,14 +192,12 @@ spec:
         - name: cache-dir
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
-    - name: build-and-push
+    - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
-      securityContext:
-        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
-      command: ["/cnb/lifecycle/builder"]
+      command: ["/cnb/lifecycle/extender"]
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-layers=/layers"
         - "-group=/layers/group.toml"
@@ -199,6 +205,13 @@ spec:
       env:
         - name: CNB_PLATFORM_API
           value: $(params.CNB_PLATFORM_API)
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        capabilities:
+          add:
+            - "SYS_ADMIN"
+            - "SETFCAP"
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
@@ -208,6 +221,31 @@ spec:
           mountPath: /tekton/home
         - name: cache-dir
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
+
+    #- name: build-and-push
+    #  image: $(params.CNB_BUILDER_IMAGE)
+    #  imagePullPolicy: Always
+    #  securityContext:
+    #    runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #    runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #  command: ["/cnb/lifecycle/builder"]
+    #  args:
+    #    - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+    #    - "-layers=/layers"
+    #    - "-group=/layers/group.toml"
+    #    - "-plan=/layers/plan.toml"
+    #  env:
+    #    - name: CNB_PLATFORM_API
+    #      value: $(params.CNB_PLATFORM_API)
+    #  volumeMounts:
+    #    - name: layers-dir
+    #      mountPath: /layers
+    #    - name: empty-dir # Hard coded the name as substitution do not work: $(params.PLATFORM_DIR)
+    #      mountPath: /platform
+    #    - name: empty-dir
+    #      mountPath: /tekton/home
+    #    - name: cache-dir
+    #      mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
     - name: export
       image: $(params.CNB_BUILDER_IMAGE)
