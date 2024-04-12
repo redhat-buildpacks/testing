@@ -9,19 +9,30 @@ spec:
       emptyDir: {}
     - name: empty-dir
       emptyDir: {}
+    - name: kaniko-dir
+      emptyDir: {}
     - name: cache-dir
       persistentVolumeClaim:
         claimName: ws-pvc
   parameters:
     - name: CNB_PLATFORM_API
       description: Platform API Version supported
-      default: "0.12"
+      default: "0.13"
     - name: CNB_BUILDER_IMAGE
       description: Builder image containing the buildpacks
-      default: ""
+      default: "paketocommunity/builder-ubi-base:0.0.54"
+    - name: CNB_BUILD_IMAGE
+      description: Reference to the current build image in an OCI registry (if used <kaniko-dir> must be provided)
+      default: "paketobuildpacks/build-jammy-tiny:latest"
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
-      default: "docker.io/buildpacksio/lifecycle:0.17.0@sha256:a55d870a2c026228aeddd999a4efe290122aab33b5afc1dd15c7780db2f61d90"
+      default: "buildpacksio/lifecycle:0.19.3"
+    - name: CNB_LOG_LEVEL
+      description: Logging level
+      default: "info"
+    - name: CNB_EXPERIMENTAL_MODE
+      description: Parameter to enable the experimental mode
+      default: "warn"
     - name: APP_IMAGE
       description: The name of where to store the app image.
     - name: RUN_IMAGE
@@ -47,16 +58,15 @@ spec:
       description: The name of the platform directory.
       default: empty-dir
     - # Update the user id to use new paketo builder image till we can use: https://github.com/shipwright-io/community/blob/main/ships/0036-runAs-for-supporting-steps.md
-      name: USER_ID
+      name: CNB_USER_ID
       description: The user ID of the builder image user.
-      default: "1001"
-    - name: GROUP_ID
+      default: "1002"
+    - name: CNB_GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
     - name: USER_HOME
       description: Absolute path to the user's home directory.
       default: /tekton/home
-
   buildSteps:
     - name: prepare
       image: docker.io/library/bash:5.1.4
@@ -70,18 +80,18 @@ spec:
           if [ ! -d "$DIRECTORY" ]; then
             echo "> Creating cache: /layers/$(params.CACHE_DIR_NAME)"
             mkdir -p /layers/$(params.CACHE_DIR_NAME)
-            chown -R "$(params.USER_ID):$(params.GROUP_ID)" /layers/$(params.CACHE_DIR_NAME)
+            chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" /layers/$(params.CACHE_DIR_NAME)
           fi
           
           # TODO: To be reviewed as shipwright don't support like Tekton workspaces
           #if [[ "$(workspaces.cache.bound)" == "true" ]]; then
           #  echo "> Setting permissions on '$(workspaces.cache.path)'..."
-          #  chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$(workspaces.cache.path)"
+          #  chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" "$(workspaces.cache.path)"
           #fi
 
           for path in "/tekton/home" "/layers" "$(workspaces.source.path)"; do
             echo "> Setting permissions on '$path'..."
-            chown -R "$(params.USER_ID):$(params.GROUP_ID)" "$path"
+            chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" "$path"
           done
 
           echo "> Parsing additional configuration..."
@@ -121,15 +131,19 @@ spec:
           mountPath: /platform
         - name: cache-dir #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
           mountPath: /tmp/cache
+
     - name: analyze
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
+      securityContext:
+        runAsUser: 1002 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/analyzer"]
       args:
         - "-layers=/layers"
         - "-run-image=$(params.RUN_IMAGE)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       env:
         - name: CNB_PLATFORM_API
@@ -141,6 +155,9 @@ spec:
     - name: detect
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
+      securityContext:
+        runAsUser: 1002 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: [ "/cnb/lifecycle/detector" ]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
@@ -158,40 +175,52 @@ spec:
           mountPath: /tekton/home
 
     - name: restore
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
+      securityContext:
+        runAsUser: 1002 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/restorer"]
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-group=/layers/group.toml"
         - "-layers=/layers"
+        - "-build-image=$(params.CNB_BUILD_IMAGE)"
         - "-cache-dir=/layers/$(params.CACHE_DIR_NAME)"
         - "-cache-image=$(params.CACHE_IMAGE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
       env:
         - name: CNB_PLATFORM_API
           value: $(params.CNB_PLATFORM_API)
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
+        - name: kaniko-dir
+          mountPath: /kaniko
         - name: cache-dir
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
-    - name: build-and-push
+    - name: extender
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
-      securityContext:
-        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
-        runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
-      command: ["/cnb/lifecycle/builder"]
+      command: ["/cnb/lifecycle/extender"]
       args:
+        - "-log-level=$(params.CNB_LOG_LEVEL)"
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
-        - "-layers=/layers"
-        - "-group=/layers/group.toml"
-        - "-plan=/layers/plan.toml"
+        - "-generated=/layers/generated"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
       env:
         - name: CNB_PLATFORM_API
           value: $(params.CNB_PLATFORM_API)
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        capabilities:
+          add:
+            - "SYS_ADMIN"
+            - "SETFCAP"
       volumeMounts:
         - name: layers-dir
           mountPath: /layers
@@ -199,11 +228,38 @@ spec:
           mountPath: /platform
         - name: empty-dir
           mountPath: /tekton/home
+        - name: kaniko-dir
+          mountPath: /kaniko
         - name: cache-dir
           mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
 
+    #- name: build-and-push
+    #  image: $(params.CNB_BUILDER_IMAGE)
+    #  imagePullPolicy: Always
+    #  securityContext:
+    #    runAsUser: 1002 # Won't work : $(params.CNB_USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #    runAsGroup: 1000 # Won't work : $(params.CNB_GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
+    #  command: ["/cnb/lifecycle/builder"]
+    #  args:
+    #    - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
+    #    - "-layers=/layers"
+    #    - "-group=/layers/group.toml"
+    #    - "-plan=/layers/plan.toml"
+    #  env:
+    #    - name: CNB_PLATFORM_API
+    #      value: $(params.CNB_PLATFORM_API)
+    #  volumeMounts:
+    #    - name: layers-dir
+    #      mountPath: /layers
+    #    - name: empty-dir # Hard coded the name as substitution do not work: $(params.PLATFORM_DIR)
+    #      mountPath: /platform
+    #    - name: empty-dir
+    #      mountPath: /tekton/home
+    #    - name: cache-dir
+    #      mountPath: /tmp/cache #name: --> DON'T WORK : $(params.CACHE_DIR_NAME)
+
     - name: export
-      image: $(params.CNB_LIFECYCLE_IMAGE)
+      image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       command: ["/cnb/lifecycle/exporter"]
       args:
@@ -214,8 +270,8 @@ spec:
         - "-cache-image=$(params.CACHE_IMAGE)"
         - "-report=/layers/report.toml"
         - "-process-type=$(params.PROCESS_TYPE)"
-        - "-uid=$(params.USER_ID)"
-        - "-gid=$(params.GROUP_ID)"
+        - "-uid=$(params.CNB_USER_ID)"
+        - "-gid=$(params.CNB_GROUP_ID)"
         - "$(params.APP_IMAGE)"
       env:
         - name: CNB_PLATFORM_API

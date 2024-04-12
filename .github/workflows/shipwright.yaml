@@ -35,11 +35,11 @@ jobs:
 
       - name: Setup Tekton & Shipwright
         run: |
-          kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
+          kubectl create -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=120s
           kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=120s
           
-          kubectl apply -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
+          kubectl create -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
           kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=120s
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
@@ -48,7 +48,7 @@ jobs:
           CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
           
           kubectl create -f ./k8s/shipwright/unsecured/pvc.yml
-          kubectl apply  -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
+          kubectl create -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
           
           cat<<EOF | kubectl apply -f -
           apiVersion: shipwright.io/v1alpha1
@@ -62,12 +62,20 @@ jobs:
             paramValues:
               - name: SOURCE_SUBPATH
                 value: getting-started
+              - name: CNB_LOG_LEVEL
+                value: "info"
               - name: CNB_PLATFORM_API
-                value: "0.12"
+                value: "0.13"
+              - name: CNB_EXPERIMENTAL_MODE
+                value: warn
+              #- name: CNB_USER_ID
+              #  value: "1000"
+              #- name: CNB_GROUP_ID
+              #  value: "1000"
               - name: CNB_BUILDER_IMAGE
-                value: paketobuildpacks/builder-jammy-tiny:0.0.176
+                value: paketocommunity/builder-ubi-base:0.0.54
               - name: CNB_LIFECYCLE_IMAGE
-                value: buildpacksio/lifecycle:0.17.0
+                value: buildpacksio/lifecycle:0.19.3
               - name: RUN_IMAGE
                 value: paketobuildpacks/run-jammy-tiny:latest
               - name: APP_IMAGE
@@ -77,8 +85,6 @@ jobs:
               - name: ENV_VARS
                 values:
                   - value: BP_NATIVE_IMAGE=false
-                  - value: BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/
-                  - value: BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar
             strategy:
               name: buildpacks
               kind: ClusterBuildStrategy

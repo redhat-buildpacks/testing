@@ -1,4 +1,4 @@
-apiVersion: shipwright.io/v1alpha1
+apiVersion: shipwright.io/v1beta1
 kind: Build
 metadata:
   name: buildpack-quarkus-build
@@ -14,9 +14,9 @@ spec:
     - name: CNB_PLATFORM_API
       value: "0.12"
     - name: CNB_BUILDER_IMAGE
-      value: paketobuildpacks/builder-jammy-tiny:0.0.176
+      value: paketobuildpacks/builder-jammy-tiny:0.0.211
     - name: CNB_LIFECYCLE_IMAGE
-      value: buildpacksio/lifecycle:0.17.0
+      value: buildpacksio/lifecycle:0.18.2
     - name: RUN_IMAGE
       value: paketobuildpacks/run-jammy-tiny:latest
     - name: APP_IMAGE

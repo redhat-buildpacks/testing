@@ -28,6 +28,8 @@ jobs:
       - name: Install Pack
         run: |
           curl -sSL "https://github.com/buildpacks/pack/releases/download/${{ matrix.pack_cli_version }}/pack-${{ matrix.pack_cli_version }}-linux.tgz" | sudo tar -C /usr/local/bin/ --no-same-owner -xzv pack
+          pack version
+          pack config experimental true
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
@@ -39,9 +41,6 @@ jobs:
 
           # Build image and push to the container registry
           pack build $CONTAINER_IMAGE \
-            -e BP_NATIVE_IMAGE="false" \
-            -e BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
-            -e BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
             --path ./quarkus-quickstarts/getting-started \
             --builder ${{ matrix.builder-image }}
 

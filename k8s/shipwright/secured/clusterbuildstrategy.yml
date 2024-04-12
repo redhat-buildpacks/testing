@@ -1,4 +1,4 @@
-apiVersion: shipwright.io/v1alpha1
+apiVersion: shipwright.io/v1beta1
 kind: ClusterBuildStrategy
 metadata:
   name: buildpacks
@@ -56,7 +56,7 @@ spec:
     - # Update the user id to use new paketo builder image till we can use: https://github.com/shipwright-io/community/blob/main/ships/0036-runAs-for-supporting-steps.md
       name: USER_ID
       description: The user ID of the builder image user.
-      default: "1001"
+      default: "1000"
     - name: GROUP_ID
       description: The group ID of the builder image user.
       default: "1000"
@@ -200,7 +200,7 @@ spec:
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
       securityContext:
-        runAsUser: 1001 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
+        runAsUser: 1000 # Won't work : $(params.USER_ID) -> https://github.com/shipwright-io/build/issues/1354
         runAsGroup: 1000 # Won't work : $(params.GROUP_ID) -> https://github.com/shipwright-io/build/issues/1354
       command: ["/cnb/lifecycle/builder"]
       args:

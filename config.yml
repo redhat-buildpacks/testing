@@ -1,25 +1,28 @@
 include:
- - # New ubuntu image built top of jammy
-   builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.176"
+ - # DEPRECATED: New ubuntu image built top of jammy
+   # builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.211"
 
-   # Version needed >= 0.30 to be able to use lifecycle 0.17 and to play with extensions
-   pack_cli_version: "v0.30.0"
+   # Red Hat UBI Builder image packaging: Node.js, Quarkus and Java buildpacks
+   builder-image: "paketocommunity/builder-ubi-base:0.0.54"
+
+   # Version needed >= 0.30 to be able to use lifecycle >= 0.17 and to play with extensions
+   pack_cli_version: "v0.33.2"
 
    # Quarkus java parameter
-   quarkus_version: "3.2.3.Final"
+   quarkus_version: "3.8.3"
 
    # Changed ['11', '17'] to '17' as shipwright job reports:
    # Error: The template is not valid. .github/workflows/shipwright.yaml (Line: 34, Col: 25): A sequence was not expected
    java: "17"
 
    # Shipwright and Tekton parameters
-   tekton-version: "v0.48.0"
+   tekton-version: "v0.56.4"
    # Don't support array -> Run kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/Array/release.yaml
    shipwright-version: "v0.11.0"
-   tekton-client-version: "0.32.0"
+   tekton-client-version: "0.36.0"
 
    # Buildpacks parameters
-   lifecycle-image: "buildpacksio/lifecycle:0.17.0"
+   lifecycle-image: "buildpacksio/lifecycle:0.19.3"
    run-image: "paketobuildpacks/run-jammy-tiny:latest"
    build-image: "paketobuildpacks/build-jammy-tiny:latest"
 
