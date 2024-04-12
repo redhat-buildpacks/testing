@@ -41,31 +41,37 @@ jobs:
           
           kubectl create -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
           kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=120s
+          
+          curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/v0.12.0/hack/setup-webhook-cert.sh | bash
+          kubectl wait deployment -n shipwright-build shipwright-build-webhook --for condition=Available=True --timeout=120s
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
           CONTAINER_NAME=quarkus-shipwright-hello
           CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
+          QUARKUS_VERSION=${{ matrix.quarkus_version }}
+          CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
           
-          kubectl create -f ./k8s/shipwright/unsecured/pvc.yml
-          kubectl create -f ./k8s/shipwright/unsecured/clusterbuildstrategy.yml
+          kubectl create -f ./k8s/shipwright/unsecured/v1beta1/pvc.yml
+          kubectl create -f ./k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
           
           cat<<EOF | kubectl apply -f -
-          apiVersion: shipwright.io/v1alpha1
+          apiVersion: shipwright.io/v1beta1
           kind: Build
           metadata:
             name: buildpack-quarkus-build
           spec:
             source:
-              url: https://github.com/quarkusio/quarkus-quickstarts
+              type: Git
+              git:
+                url: https://github.com/quarkusio/quarkus-quickstarts
+                revision: ${QUARKUS_VERSION}
               contextDir: getting-started
             paramValues:
               - name: SOURCE_SUBPATH
                 value: getting-started
               - name: CNB_LOG_LEVEL
                 value: "info"
-              - name: CNB_PLATFORM_API
-                value: "0.13"
               - name: CNB_EXPERIMENTAL_MODE
                 value: warn
               #- name: CNB_USER_ID
@@ -73,9 +79,7 @@ jobs:
               #- name: CNB_GROUP_ID
               #  value: "1000"
               - name: CNB_BUILDER_IMAGE
-                value: paketocommunity/builder-ubi-base:0.0.54
-              - name: CNB_LIFECYCLE_IMAGE
-                value: buildpacksio/lifecycle:0.19.3
+                value: ${CNB_BUILDER_IMAGE}
               - name: RUN_IMAGE
                 value: paketobuildpacks/run-jammy-tiny:latest
               - name: APP_IMAGE
@@ -91,7 +95,7 @@ jobs:
             output:
               image: $CONTAINER_IMAGE
           EOF
-          kubectl create -f ./k8s/shipwright/unsecured/buildrun.yml
+          kubectl create -f ./k8s/shipwright/unsecured/v1beta1/buildrun.yml
           
           # Wait for the build
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
