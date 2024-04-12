@@ -30,9 +30,9 @@ The goal of this project is to test/validate different approaches to build a run
 == Project Testing Matrix
 
 The following table details the versions of the different tools/images used within the GitHub e2e workflows
-like also within the examples presented within this project.
+or examples of this project.
 
-The project currently verifies the following scenario:
+This project currently verifies the following scenario:
 
 - link:.github/workflows/quarkus.yaml[Quarkus HelloWord build using Java Buildpack library]
 - link:.github/workflows/pack.yaml[Quarkus HelloWord build using Pack client]
@@ -44,7 +44,6 @@ The project currently verifies the following scenario:
 ====
 The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using RHTAP is not implemented as GitHub Workflow !
 ====
-
 
 |===
 | Tool/Image | Version | Tested | Note
@@ -64,10 +63,15 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | Yes
 | -
 
-| Paketo Builder Tiny (jammy) builder (DEPRECATED)
-| https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.211[0.0.211]
+| Java buildpack library
+| https://github.com/snowdrop/java-buildpack-client
+| Yes  (indirectly using Quarkus container https://quarkus.io/guides/container-image#buildpack[build])
+| Support platform 0.4 !
+
+| Paketo Builder Tiny (jammy) builder (DEPRECATED but still needed for Quarkus <= 3.9)
+| https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203[0.0.203]
 | Yes
-| Package lifecycle 0.18.2#
+| Package lifecycle 0.17.2
 
 | Paketo community UBI builder
 | https://github.com/paketo-community/builder-ubi-base/releases/tag/v0.0.54[0.0.54]
@@ -88,11 +92,14 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 == 0. Prerequisites
 
 - Docker desktop (or podman) installed and running
-- kind CLI installed (>= 0.17)
-- Tekton CLI
+- https://kind.sigs.k8s.io/docs/user/quick-start/#installation[kind CLI] installed (>= 0.20)
+- https://tekton.dev/docs/cli/#installation[Tekton CLI] (>= 0.33)
 - Have a kubernetes cluster (kind, minikube, etc)
 
-NOTE: For local tests, we suggest to create a kubernetes `kind` cluster and an unsecure (or secured HTTPS) docker registry using the following bash scripts:
+[NOTE]
+====
+For local tests, we suggest to create a kubernetes `kind` cluster and an unsecure container registry using the following bash scripts:
+====
 
 [,bash]
 ----
@@ -100,11 +107,11 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 ----
 
-NOTE: Use the command `+... | bash -s -h+` to see the usage
+**NOTE**: Use the command `+... | bash -s -h+` to see the usage
 
 == 1. Quarkus Buildpacks
 
-First, create a Quarkus Hello example using the following maven command.
+First, create a `Quarkus Hello` example using the following maven command executed in a terminal.
 
 [,bash]
 ----
@@ -115,7 +122,7 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
   -Dextensions='resteasy-reactive,kubernetes,buildpack'
 ----
 
-To test the project, compile it:
+Test the project:
 [,bash]
 ----
 cd quarkus-hello
@@ -129,19 +136,23 @@ In a separate terminal, curl the HTTP endpoint
 curl http://localhost:8080/hello
 ----
 
-To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.211` and pass SOME `+BP_***+` env variables in order to configure properly the Quarkus maven build:
+To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.203` and pass `+BP_***+` env variables in order to configure properly the Quarkus buildpack build process:
 
 [,bash]
 ----
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.211 \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.203 \
  -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
- -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILT_ARTIFACT="target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/" \
- -Dquarkus.buildpack.builder-env.BP_MAVEN_BUILD_ARGUMENTS="package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar" \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true
 ----
+
+[WARNING]
+====
+Quarkus releases <= 3.9 can only build images for platform spec `0.4` and lifecycle `0.17` like this one: https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203. The `extension` feature is only available since platform `0.10` and lifecycle `0.18`.
+See work in progress to support new platform specs https://github.com/snowdrop/java-buildpack-client/pull/59[here].
+====
 
 Next, start the container and curl the endpoint
 
@@ -154,22 +165,13 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 To validate this scenario top of the existing quarkus-hello project, we will use the https://buildpacks.io/docs/tools/pack/[pack client].
 
-To build properly the Quarkus container, we must configure the following buildpacks:
-
-* https://github.com/paketo-buildpacks/java[Java Buildpacks]
-* https://github.com/paketo-buildpacks/native-image[Native Build]
-
-For that purpose, we use some build-time environment variables `-e` to configure the maven or native build:
-
 [,bash]
 ----
 REGISTRY_HOST="kind-registry.local:5000"
 docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
 pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
-     --builder quay.io/snowdrop/ubi-builder:0.1.0 \
-     --volume $HOME/.m2:/home/cnb/.m2:rw \
-     #--cache name=quarkus_pack_build \
-     --path .
+     --builder paketocommunity/builder-ubi-base:0.0.54 \
+     --volume $HOME/.m2:/home/cnb/.m2:rw
 ----
 
 ____
@@ -185,7 +187,7 @@ docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
 
 == 3. Tekton
 
-See the project documentation for more information: https://tekton.dev/
+See the https://tekton.dev/[project documentation] for more information about how to install and use it.
 
 To use Tekton, it is needed to have a k8s cluster (>= 1.24), a local docker registry
 
@@ -195,16 +197,19 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.
 curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
 ----
 
-WARNING: Append as suffix to the local registry name `*.local` otherwise buildpacks lifecycle will report this error during analyse phase `+failed to get previous image: connect to repo store 'kind-registry:5000/buildpack/app': Get "https://kind-registry:5000/v2/": http: server gave HTTP response to HTTPS client+`
+[WARNING]
+====
+Append as suffix to the local registry name `*.local` otherwise buildpacks lifecycle will report this error during the execution of the `analyse` phase `+failed to get previous image: connect to repo store 'kind-registry:5000/buildpack/app': Get "https://kind-registry:5000/v2/": http: server gave HTTP response to HTTPS client+`
+====
 
-to install the latest official release (or a specific release)
+Next, install the latest official release (or a specific release)
 
 [,bash]
 ----
 kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.56.4/release.yaml
 ----
 
-and optionally, you can also install the Tekton dashboard
+and optionally, you can also install the dashboard
 
 [,bash]
 ----
@@ -219,7 +224,7 @@ VM_IP=127.0.0.1
 kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
 ----
 
-When the platform is ready, you can install the needed Tekton `Tasks`:
+When the platform is ready, you can install the needed `Tasks`:
 
 [,bash]
 ----
@@ -228,14 +233,14 @@ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/gi
 
 [WARNING]
 ====
-Don't install the buildpacks-phases version 0.2 from the catalog as it is outdated and do not work with lifecycle >= 1.17
+Don't install the buildpacks-phases version 0.2 from the https://github.com/tektoncd/catalog/tree/main/task/buildpacks-phases[catalog] as it is outdated and do not work with lifecycle >= 1.17 supporting the `extension` mechanism
+====
 
 [,bash]
 ----
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
 ----
-====
 
 Set the following variables:
 
@@ -251,7 +256,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
-BUILDER_IMAGE=paketobuildpacks/builder-jammy-tiny:0.0.211
+BUILDER_IMAGE=paketocommunity/builder-ubi-base:0.0.54
 CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
 CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
@@ -293,8 +298,6 @@ spec:
     - name: cnbBuildEnvVars
       value:
         - "BP_NATIVE_IMAGE=false"
-        - "BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/"
-        - "BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
   pipelineRef:
     resolver: git
     params:
@@ -316,244 +319,21 @@ spec:
 EOF
 ----
 
-Follow the execution of the pipeline using the dashboard: http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns or using the client: `tkn pipeline logs`
+Follow the execution of the pipeline using the dashboard: `http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns`, `http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/pipelineruns` or using the client: `tkn pipelinerun logs -f`
 
-When the task is finished and no error is reported, then launch the container
+When the pipeline is finished and no error is reported, then launch the container
 
 [,bash]
 ----
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 ----
 
-NOTE: You can test different pipelineRuns using our bash script: ./scripts/play-with-tekton ;-)
+[NOTE]
+====
+You can test different pipelineRuns using our bash script: ./scripts/play-with-tekton ;-)
+====
 
-== 4. RHTAP
-
-=== Prerequisite
-
-- Have https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/getting-started/get-started/[access] to RHTAP - https://console.redhat.com/preview/hac/
-- Have kubectl (or oc client) installed on your machine
-- Added the kubernetes context of `AppStudio` to your local ~/.kube/config file and been authenticated using https://docs.google.com/document/d/1hFvQDH1H6MGNqTGfcZpyl2h8OIaynP8sokZohCS0Su0/edit#heading=h.bksi3q7km0i[oidc login]
-- Add the `AppStudio` GitHub application to your GitHub Org and select it to be used for all the repositories. More information is available https://pipelinesascode.com/docs/install/github_apps/[here].
-- (optional). https://tekton.dev/docs/cli/[Install] the Tekton client
-
-=== Env variables
-
-In order to play/execute the commands defined hereafter, it is needed to define some env variables.
-Feel free to change them according to your GitHub organisation, tenant namespace, etc
-
-[,bash]
-----
-GITHUB_ORG_NAME=halkyonio
-GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/catalog.git
-GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
-GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
-BRANCH=main
-
-APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
-COMPONENT_NAME="quarkus-hello"
-# Quarkus devfile sample
-DEVFILE_URL=https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
-
-PAC_NAME=$COMPONENT_NAME
-PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
-PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
-
-TENANT_NAMESPACE="<YOUR_TENANT_NAMESPACE>"
-REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
-BUILD_ID=0 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
-
-# Quarkus runtime
-SOURCE_SUB_PATH="."
-CNB_LOG_LEVEL="debug"
-CNB_BUILDER_IMAGE="paketobuildpacks/builder-jammy-tiny:0.0.211"
-CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
-CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
-
-CNB_ENV_VARS='
-"BP_NATIVE_IMAGE=false",
-"BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/",
-"BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
-'
-----
-
-=== HowTo
-
-To create a new GitHub repository and import the needed files, perform the following actions:
-
-* Git auth
-`gh auth login --with-token <YOUR_GITHUB_TOKEN>`
-
-* Create a GitHub repository
-
-[,bash]
-----
-gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
-gh repo create \
-  --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
-  --public
-
-cd $GITHUB_REPO_DEMO_NAME
-----
-
-* Get the RHTAP pipelineRun template, rename it and set the different parameters
-
-[,bash]
-----
-mkdir .tekton
-curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
-mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
-
-sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#APPLICATION_NAME#/$APPLICATION_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#COMPONENT_NAME#/$COMPONENT_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#PAC_NAME#/$PAC_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
-sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
-sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
-sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
-
-sed -i.bak "s|#SOURCE_SUB_PATH#|$SOURCE_SUB_PATH|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_BUILDER_IMAGE#|$CNB_BUILDER_IMAGE|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_BUILD_IMAGE#|$CNB_BUILD_IMAGE|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_RUN_IMAGE#|$CNB_RUN_IMAGE|g" $PAC_YAML_FILE
-
-#
-PAC_FILE_NAME="$GITHUB_REPO_DEMO_NAME-push"
-yq -o=json '.' .tekton/$PAC_FILE_NAME.yaml > .tekton/$PAC_FILE_NAME.json
-jq --argjson array "[$CNB_ENV_VARS]" '(.spec.params[] | select(.name=="cnbBuildEnvVars")).value |= $array' .tekton/$PAC_FILE_NAME.json > temp.json
-cat temp.json | yq -P > .tekton/$PAC_FILE_NAME.yaml
-
-rm {temp.json,.tekton/$PAC_FILE_NAME.json}
-rm $PAC_YAML_FILE.bak
-----
-
-* Create a Quarklus Hello project locally
-
-[,bash]
-----
-mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
--DprojectGroupId=dev.snowdrop \
--DprojectArtifactId=hello \
--DprojectVersion=1.0 \
--Dextensions='resteasy-reactive,kubernetes,buildpack'
-----
-
-* Commit the project to your GitHub org
-
-[,bash]
-----
-mv ./hello/* ./
-mv ./hello/{.dockerignore,.gitignore} ./
-mv ./hello/.mvn ./
-rm -rf ./hello
-SSH_REPO_NAME=$(gh repo view https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --json sshUrl --jq .sshUrl)
-git remote set-url origin $SSH_REPO_NAME https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
-
-echo ".idea/" >> .gitignore
-git add .
-git commit -asm "Quarkus and RHTAP Tekton project"
-git push -u origin main
-----
-
-
-* Create the following Application and Component CRs
-
-[,bash]
-----
-cat <<EOF | kubectl apply -n $TENANT_NAMESPACE -f -
----
-apiVersion: appstudio.redhat.com/v1alpha1
-kind: Application
-metadata:
-  name: $GITHUB_REPO_DEMO_NAME
-spec:
-  appModelRepository:
-    url: ""
-  displayName: $GITHUB_REPO_DEMO_NAME
-  gitOpsRepository:
-    url: ""
----
-apiVersion: appstudio.redhat.com/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    appstudio.openshift.io/pac-provision: request
-    image.redhat.com/generate: '{"visibility":"public"}'
-  name: $COMPONENT_NAME
-spec:
-  application: $GITHUB_REPO_DEMO_NAME
-  componentName: $COMPONENT_NAME
-  replicas: 1
-  resources:
-    requests:
-      cpu: 10m
-      memory: 100Mi
-  source:
-    git:
-      context: ./
-      devfileUrl: $DEVFILE_URL
-      revision: main
-      url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
-  targetPort: 8080
-EOF
-----
-
-* Check the resources created
-
-[,bash]
-----
-for entity in pods deployments routes services taskruns pipelineruns applications components snapshotenvironmentbinding.appstudio.redhat.com componentdetectionquery.appstudio.redhat.com; do count=$(kubectl -n $TENANT_NAMESPACE get "$entity" -o name | wc -l); echo "$count $entity"; done | sort -n
-----
-
-* Open the Component created using the RHTAP console and edit the `build` to send a PR to your git project
-* Push a commit top of the GitHub repository created (change the build id from 0 -> &, etc), open the `activity` tab of the RHTAP console and you should see that
-  a custom build has been started for pull and push :-)
-
-* Alternatively, Import it as documented here: https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/how-to-guides/Import-code/proc_importing_code/
-
-NOTE: Use one of the RHTAP bash scripts aiming to automate the whole process described : ./scripts/rhtap-demo{1,2,3}
-
-* Cleaning
-
-[,bash]
-----
-kubectl delete application/$GITHUB_REPO_DEMO_NAME
-----
-
-=== Todo
-
-- Try to make a test using our own quay.io credentials and repository using REGISTRY_URL=quay.io/$GITHUB_ORG_NAME
-
-=== Issue
-
-==== Full image path not supported
-
-The lifecycle component and most probably google container library (used by lifecycle to access the registry) do not support such advanced feature: https://kubernetes.io/docs/concepts/containers/images/#kubelet-credential-provider
-The consequence is that if several secrets are attached to the `appstudio-pipeline` service account and subsequently by the pod running lifecycle, then
-lifecycle, at the analysis step, will raise an issue if it doesn't get as first entry of the `auths:` config file (from mounted secrets) the full image path matching the image name declared
-as output image.
-
-To work around the issue of the full image path not supported by lifecycle (and google-containr), path the secret
-
-[,bash]
-----
-CFG=$(cat <<EOF
-{"auths":{"quay.io":{"auth":"cmVkaG...aRkFGNTQ="}}}
-EOF
-)
-
-SECRET_NAME=$COMPONENT_NAME
-TENANT_NAMESPACE="cmoullia-tenant"
-PATCH_STRING="[{'op': 'replace', 'path': '/data/.dockerconfigjson', 'value': '$BASE64_ENCODED_VALUE'}]"
-
-kubectl get secret $SECRET_NAME -n $TENANT_NAMESPACE$$ -o json | jq --arg new_val "$(echo -n $CFG | base64)" '.data[".dockerconfigjson"]=$new_val' | kubectl apply -f -
-----
-
-
-== 5. Shipwright
+== 4. Shipwright
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
@@ -566,7 +346,7 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/regis
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.56.4/release.yaml
 ----
 
-Next, deploy the latest release of shipwright
+Next, deploy the release of shipwright 0.11 as releases >= 0.12 require some changes to this project due to API switch `v1alpha1` to `v1beta1` !
 
 [,bash]
 ----
@@ -579,18 +359,6 @@ Next, install the `Buildpacks BuildStrategy` using the following command:
 ----
 kubectl delete -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
 kubectl apply -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
-----
-
-As the Paketo builder images are quite big, we suggest to relocate them to the kind registry using the https://carvel.dev/imgpkg/docs/v0.37.x/install/[imgpkg] tool:
-
-[,bash]
-----
-BUILDER_VERSION=0.0.54
-imgpkg copy -i docker.io/paketocommunity/builder-ubi-base:0.0.54 --to-tar ./k8s/builder-$BUILDER_VERSION.tar
-
-imgpkg copy \
-  --tar ./k8s/builder-$BUILDER_VERSION.tar \
-  --to-repo kind-registry.local:5000/paketocommunity/builder-ubi-base
 ----
 
 [TIP]
@@ -619,8 +387,9 @@ Trigger a `BuildRun`:
 
 [,bash]
 ----
-kubectl delete -f k8s/shipwright/unsecured/pvc.yml
 kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
+kubectl delete -f k8s/shipwright/unsecured/pvc.yml
+
 kubectl create -f k8s/shipwright/unsecured/pvc.yml
 kubectl create -f k8s/shipwright/unsecured/buildrun.yml
 ----
@@ -641,7 +410,7 @@ When the task is finished and no error is reported, then launch the container
 docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
 ----
 
-=== Secured container registry
+=== Secured container registry (NOT MAINTAINED ANYMORE)
 
 If you prefer to use a secure registry, then some additional steps are needed such as
 
@@ -810,3 +579,230 @@ kubectl delete -f k8s/shipwright/${DIR}/build.yml
 kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
 kubectl delete -f k8s/shipwright/${DIR}/pvc.yml
 ----
+
+== 5. RHTAP (DEPRECATED)
+
+=== Prerequisite
+
+- Have https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/getting-started/get-started/[access] to RHTAP - https://console.redhat.com/preview/hac/
+- Have kubectl (or oc client) installed on your machine
+- Added the kubernetes context of `AppStudio` to your local ~/.kube/config file and been authenticated using https://docs.google.com/document/d/1hFvQDH1H6MGNqTGfcZpyl2h8OIaynP8sokZohCS0Su0/edit#heading=h.bksi3q7km0i[oidc login]
+- Add the `AppStudio` GitHub application to your GitHub Org and select it to be used for all the repositories. More information is available https://pipelinesascode.com/docs/install/github_apps/[here].
+- (optional). https://tekton.dev/docs/cli/[Install] the Tekton client
+
+=== Env variables
+
+In order to play/execute the commands defined hereafter, it is needed to define some env variables.
+Feel free to change them according to your GitHub organisation, tenant namespace, etc
+
+[,bash]
+----
+GITHUB_ORG_NAME=halkyonio
+GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/catalog.git
+GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
+GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
+BRANCH=main
+
+APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
+COMPONENT_NAME="quarkus-hello"
+# Quarkus devfile sample
+DEVFILE_URL=https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
+
+PAC_NAME=$COMPONENT_NAME
+PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
+PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
+
+TENANT_NAMESPACE="<YOUR_TENANT_NAMESPACE>"
+REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
+BUILD_ID=0 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
+
+# Quarkus runtime
+SOURCE_SUB_PATH="."
+CNB_LOG_LEVEL="debug"
+CNB_BUILDER_IMAGE="paketocommunity/builder-ubi-base:0.0.54"
+CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
+CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
+
+CNB_ENV_VARS='
+"BP_NATIVE_IMAGE=false",
+"BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/",
+"BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
+'
+----
+
+=== HowTo
+
+To create a new GitHub repository and import the needed files, perform the following actions:
+
+* Git auth
+`gh auth login --with-token <YOUR_GITHUB_TOKEN>`
+
+* Create a GitHub repository
+
+[,bash]
+----
+gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
+gh repo create \
+  --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
+  --public
+
+cd $GITHUB_REPO_DEMO_NAME
+----
+
+* Get the RHTAP pipelineRun template, rename it and set the different parameters
+
+[,bash]
+----
+mkdir .tekton
+curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
+mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
+
+sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#APPLICATION_NAME#/$APPLICATION_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#COMPONENT_NAME#/$COMPONENT_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#PAC_NAME#/$PAC_NAME/g" $PAC_YAML_FILE
+sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
+sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
+sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
+sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
+
+sed -i.bak "s|#SOURCE_SUB_PATH#|$SOURCE_SUB_PATH|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILDER_IMAGE#|$CNB_BUILDER_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_BUILD_IMAGE#|$CNB_BUILD_IMAGE|g" $PAC_YAML_FILE
+sed -i.bak "s|#CNB_RUN_IMAGE#|$CNB_RUN_IMAGE|g" $PAC_YAML_FILE
+
+#
+PAC_FILE_NAME="$GITHUB_REPO_DEMO_NAME-push"
+yq -o=json '.' .tekton/$PAC_FILE_NAME.yaml > .tekton/$PAC_FILE_NAME.json
+jq --argjson array "[$CNB_ENV_VARS]" '(.spec.params[] | select(.name=="cnbBuildEnvVars")).value |= $array' .tekton/$PAC_FILE_NAME.json > temp.json
+cat temp.json | yq -P > .tekton/$PAC_FILE_NAME.yaml
+
+rm {temp.json,.tekton/$PAC_FILE_NAME.json}
+rm $PAC_YAML_FILE.bak
+----
+
+* Create a Quarklus Hello project locally
+
+[,bash]
+----
+mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
+-DprojectGroupId=dev.snowdrop \
+-DprojectArtifactId=hello \
+-DprojectVersion=1.0 \
+-Dextensions='resteasy-reactive,kubernetes,buildpack'
+----
+
+* Commit the project to your GitHub org
+
+[,bash]
+----
+mv ./hello/* ./
+mv ./hello/{.dockerignore,.gitignore} ./
+mv ./hello/.mvn ./
+rm -rf ./hello
+SSH_REPO_NAME=$(gh repo view https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --json sshUrl --jq .sshUrl)
+git remote set-url origin $SSH_REPO_NAME https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
+
+echo ".idea/" >> .gitignore
+git add .
+git commit -asm "Quarkus and RHTAP Tekton project"
+git push -u origin main
+----
+
+
+* Create the following Application and Component CRs
+
+[,bash]
+----
+cat <<EOF | kubectl apply -n $TENANT_NAMESPACE -f -
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Application
+metadata:
+  name: $GITHUB_REPO_DEMO_NAME
+spec:
+  appModelRepository:
+    url: ""
+  displayName: $GITHUB_REPO_DEMO_NAME
+  gitOpsRepository:
+    url: ""
+---
+apiVersion: appstudio.redhat.com/v1alpha1
+kind: Component
+metadata:
+  annotations:
+    appstudio.openshift.io/pac-provision: request
+    image.redhat.com/generate: '{"visibility":"public"}'
+  name: $COMPONENT_NAME
+spec:
+  application: $GITHUB_REPO_DEMO_NAME
+  componentName: $COMPONENT_NAME
+  replicas: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+  source:
+    git:
+      context: ./
+      devfileUrl: $DEVFILE_URL
+      revision: main
+      url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
+  targetPort: 8080
+EOF
+----
+
+* Check the resources created
+
+[,bash]
+----
+for entity in pods deployments routes services taskruns pipelineruns applications components snapshotenvironmentbinding.appstudio.redhat.com componentdetectionquery.appstudio.redhat.com; do count=$(kubectl -n $TENANT_NAMESPACE get "$entity" -o name | wc -l); echo "$count $entity"; done | sort -n
+----
+
+* Open the Component created using the RHTAP console and edit the `build` to send a PR to your git project
+* Push a commit top of the GitHub repository created (change the build id from 0 -> &, etc), open the `activity` tab of the RHTAP console and you should see that
+a custom build has been started for pull and push :-)
+
+* Alternatively, Import it as documented here: https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/how-to-guides/Import-code/proc_importing_code/
+
+NOTE: Use one of the RHTAP bash scripts aiming to automate the whole process described : ./scripts/rhtap-demo{1,2,3}
+
+* Cleaning
+
+[,bash]
+----
+kubectl delete application/$GITHUB_REPO_DEMO_NAME
+----
+
+=== Todo
+
+- Try to make a test using our own quay.io credentials and repository using REGISTRY_URL=quay.io/$GITHUB_ORG_NAME
+
+=== Issue
+
+==== Full image path not supported
+
+The lifecycle component and most probably google container library (used by lifecycle to access the registry) do not support such advanced feature: https://kubernetes.io/docs/concepts/containers/images/#kubelet-credential-provider
+The consequence is that if several secrets are attached to the `appstudio-pipeline` service account and subsequently by the pod running lifecycle, then
+lifecycle, at the analysis step, will raise an issue if it doesn't get as first entry of the `auths:` config file (from mounted secrets) the full image path matching the image name declared
+as output image.
+
+To work around the issue of the full image path not supported by lifecycle (and google-containr), path the secret
+
+[,bash]
+----
+CFG=$(cat <<EOF
+{"auths":{"quay.io":{"auth":"cmVkaG...aRkFGNTQ="}}}
+EOF
+)
+
+SECRET_NAME=$COMPONENT_NAME
+TENANT_NAMESPACE="cmoullia-tenant"
+PATCH_STRING="[{'op': 'replace', 'path': '/data/.dockerconfigjson', 'value': '$BASE64_ENCODED_VALUE'}]"
+
+kubectl get secret $SECRET_NAME -n $TENANT_NAMESPACE$$ -o json | jq --arg new_val "$(echo -n $CFG | base64)" '.data[".dockerconfigjson"]=$new_val' | kubectl apply -f -
+----
+
+
