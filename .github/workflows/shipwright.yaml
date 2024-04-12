@@ -54,7 +54,7 @@ jobs:
           kubectl create -f ./k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
           
           cat<<EOF | kubectl apply -f -
-          apiVersion: shipwright.io/v1alpha1
+          apiVersion: shipwright.io/v1beta1
           kind: Build
           metadata:
             name: buildpack-quarkus-build
