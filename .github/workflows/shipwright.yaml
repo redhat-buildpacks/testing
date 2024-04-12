@@ -49,6 +49,8 @@ jobs:
         run: |
           CONTAINER_NAME=quarkus-shipwright-hello
           CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
+          QUARKUS_VERSION=${{ matrix.quarkus_version }}
+          CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
           
           kubectl create -f ./k8s/shipwright/unsecured/v1beta1/pvc.yml
           kubectl create -f ./k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
@@ -63,7 +65,7 @@ jobs:
               type: Git
               git:
                 url: https://github.com/quarkusio/quarkus-quickstarts
-                revision: ${{ matrix.quarkus_version }}
+                revision: ${QUARKUS_VERSION}
               contextDir: getting-started
             paramValues:
               - name: SOURCE_SUBPATH
@@ -77,7 +79,7 @@ jobs:
               #- name: CNB_GROUP_ID
               #  value: "1000"
               - name: CNB_BUILDER_IMAGE
-                value: ${{ matrix.quarkus_version }}
+                value: ${CNB_BUILDER_IMAGE}
               - name: RUN_IMAGE
                 value: paketobuildpacks/run-jammy-tiny:latest
               - name: APP_IMAGE
