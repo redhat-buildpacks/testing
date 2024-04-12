@@ -347,32 +347,34 @@ curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/regis
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.56.4/release.yaml
 ----
 
-Next, deploy the release of shipwright 0.11 as releases >= 0.12 require some changes to this project due to API switch `v1alpha1` to `v1beta1` !
+Next, deploy the release `0.12` of shipwright
 
 [,bash]
 ----
-kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
+kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
+----
+
+Apply the following hack to create a self signed certificate on the cluster, otherwise the shipwright webhook will fail to start
+[,bash]
+----
+curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/v0.12.0/hack/setup-webhook-cert.sh | bash
 ----
 
 Next, install the `Buildpacks BuildStrategy` using the following command:
 
 [,bash]
 ----
-kubectl delete -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
-kubectl apply -f k8s/shipwright/unsecured/clusterbuildstrategy.yml
+kubectl delete -f k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
+kubectl apply -f k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
 ----
-
-[TIP]
-====
-Useful blog post to customize paketo build: https://blog.dahanne.net/2021/02/06/customizing-cloud-native-buildpacks-practical-examples/
 
 Create the `Build` CR using as source the Quarkus Getting started repository:
 ====
 
 [,bash]
 ----
-kubectl delete -f k8s/shipwright/unsecured/build.yml
-kubectl apply -f k8s/shipwright/unsecured/build.yml
+kubectl delete -f k8s/shipwright/unsecured/v1beta1/build.yml
+kubectl apply -f k8s/shipwright/unsecured/v1beta1/build.yml
 ----
 
 To view the Build which you just created:
@@ -389,10 +391,10 @@ Trigger a `BuildRun`:
 [,bash]
 ----
 kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
-kubectl delete -f k8s/shipwright/unsecured/pvc.yml
+kubectl delete -f k8s/shipwright/unsecured/v1beta1/pvc.yml
 
-kubectl create -f k8s/shipwright/unsecured/pvc.yml
-kubectl create -f k8s/shipwright/unsecured/buildrun.yml
+kubectl create -f k8s/shipwright/unsecured/v1beta1/pvc.yml
+kubectl create -f k8s/shipwright/unsecured/v1beta1/buildrun.yml
 ----
 
 Wait until your BuildRun is completed, and then you can view it as follows:
@@ -503,53 +505,38 @@ Next, install Tekton and Shipwright
 [,bash]
 ----
 kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.56.4/release.yaml
-kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.11.0/release.yaml
+kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
+----
+
+Apply the following hack to create a self signed certificate on the cluster, otherwise the shipwright webhook will fail to start
+[,bash]
+----
+curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/v0.12.0/hack/setup-webhook-cert.sh | bash
 ----
 
 And finally, deploy the resources using either an `unsecured` or `secured` container registry
 
 . Unsecured
 
-Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
-
-[,bash]
-----
-BUILDER_VERSION=0.1.361-tiny
-imgpkg copy --registry-insecure \
-  --tar ./k8s/builder-$BUILDER_VERSION.tar \
-  --to-repo kind-registry.local:5000/paketobuildpacks/builder
-----
-
-And deploy the needed resources
+Deploy the needed resources
 
 [,bash]
 ----
 DIR="unsecured"
 kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
-kubectl delete -f k8s/shipwright/${DIR}/build.yml
-kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
-kubectl delete -f k8s/shipwright/${DIR}/pvc.yml
+kubectl delete -f k8s/shipwright/${DIR}/v1beta1/build.yml
+kubectl delete -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
+kubectl delete -f k8s/shipwright/${DIR}/v1beta1/pvc.yml
 
-kubectl create -f k8s/shipwright/${DIR}/pvc.yml
-kubectl apply  -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
-kubectl apply  -f k8s/shipwright/${DIR}/build.yml
-kubectl create -f k8s/shipwright/${DIR}/buildrun.yml
+kubectl create -f k8s/shipwright/${DIR}/v1beta1/pvc.yml
+kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
+kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/build.yml
+kubectl create -f k8s/shipwright/${DIR}/v1beta1/buildrun.yml
 ----
 
-. Secured
+. Secured (TO BE REVIEWED !!)
 
-Upload the paketo builder tar image `builder-base.tar` or `builder-full.tar`
-
-[,bash]
-----
-BUILDER_VERSION=0.1.361-tiny
-imgpkg copy --registry-ca-cert-path ~/.registry/certs/kind-registry.local/client.crt \
-  --registry-username admin --registry-password snowdrop \
-  --tar ./k8s/builder-$BUILDER_VERSION.tar \
-  --to-repo kind-registry.local:5000/paketobuildpacks/builder
-----
-
-And deploy the needed resources
+Deploy the needed resources
 
 [,bash]
 ----
@@ -563,10 +550,10 @@ kubectl create secret docker-registry registry-creds \
   --docker-username="${REGISTRY_USER}" \
   --docker-password="${REGISTRY_PASSWORD}"
 
-kubectl apply  -f k8s/shipwright/${DIR}/sa.yml
-kubectl apply  -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
-kubectl apply  -f k8s/shipwright/${DIR}/build.yml
-kubectl create -f k8s/shipwright/${DIR}/buildrun.yml
+kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/sa.yml
+kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
+kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/build.yml
+kubectl create -f k8s/shipwright/${DIR}/v1beta1/buildrun.yml
 ----
 
 To clean up
@@ -576,9 +563,9 @@ To clean up
 DIR="unsecured"
 kubectl delete secret registry-creds
 kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
-kubectl delete -f k8s/shipwright/${DIR}/build.yml
-kubectl delete -f k8s/shipwright/${DIR}/clusterbuildstrategy.yml
-kubectl delete -f k8s/shipwright/${DIR}/pvc.yml
+kubectl delete -f k8s/shipwright/${DIR}/v1beta1/build.yml
+kubectl delete -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
+kubectl delete -f k8s/shipwright/${DIR}/v1beta1/pvc.yml
 ----
 
 == 5. RHTAP (DEPRECATED)
