@@ -24,8 +24,8 @@ The goal of this project is to test/validate different approaches to build a run
 * <<1-quarkus-buildpacks,Quarkus Java Buildpack>>
 * <<2-pack-client,Pack>> client
 * <<3-tekton,Tekton>> Pipeline
-* <<4-rhtap,Red Hat Trusted Application Pipeline (aka RHTAP)>>
-* <<5-shipwright,Shipwright>>
+* <<4-shipwright,Shipwright>>
+* <<5-rhtap,Red Hat Trusted Application Pipeline (aka RHTAP)>>
 
 == Project Testing Matrix
 
