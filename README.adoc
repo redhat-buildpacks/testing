@@ -25,7 +25,7 @@ The goal of this project is to test/validate different approaches to build a run
 * <<2-pack-client,Pack>> client
 * <<3-tekton,Tekton>> Pipeline
 * <<4-shipwright,Shipwright>>
-* <<5-rhtap-(deprecated),Red Hat Trusted Application Pipeline (aka RHTAP)>>
+* <<5-rhtap,Red Hat Trusted Application Pipeline (aka RHTAP)>>
 
 == Project Testing Matrix
 
@@ -568,7 +568,9 @@ kubectl delete -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
 kubectl delete -f k8s/shipwright/${DIR}/v1beta1/pvc.yml
 ----
 
-== 5. RHTAP (DEPRECATED)
+== 5. RHTAP
+
+ This section is not maintained anymore.
 
 === Prerequisite
 
