@@ -1,0 +1,404 @@
+#################################################################
+## Test case:: Build the java meta/composite buildpack image.  ##
+#################################################################
+No supported targets found, defaulting to old format
+
+Paketo Buildpack for Java v0.1.0
+  https://paketo.io/docs/howto/java
+  Creating package in /home/cloud-user/buildpack
+    Adding LICENSE
+    Adding NOTICE
+    Adding README.md
+    Adding buildpack.toml
+
+buildpack.toml file ====>
+
+# Copyright 2018-2022 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+api = "0.7"
+
+[buildpack]
+  description = "A Cloud Native Buildpack with an order definition suitable for Java applications"
+  homepage = "https://paketo.io/docs/howto/java"
+  id = "paketo-buildpacks/java"
+  keywords = ["java", "composite"]
+  name = "Paketo Buildpack for Java"
+  version = "v0.1.0"
+
+  [[buildpack.licenses]]
+    type = "Apache-2.0"
+    uri = "https://github.com/paketo-buildpacks/java/blob/main/LICENSE"
+
+[metadata]
+  include-files = ["LICENSE", "NOTICE", "README.md", "buildpack.toml"]
+
+[[order]]
+
+  [[order.group]]
+    id = "paketo-buildpacks/ca-certificates"
+    optional = true
+    version = "3.8.4"
+
+  [[order.group]]
+    id = "paketo-buildpacks/bellsoft-liberica"
+    version = "10.8.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/yarn"
+    optional = true
+    version = "1.3.8"
+
+  [[order.group]]
+    id = "paketo-buildpacks/node-engine"
+    optional = true
+    version = "4.1.4"
+
+  [[order.group]]
+    id = "paketo-buildpacks/syft"
+    optional = true
+    version = "1.47.1"
+
+  [[order.group]]
+    id = "paketo-buildpacks/leiningen"
+    optional = true
+    version = "4.9.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/clojure-tools"
+    optional = true
+    version = "2.10.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/gradle"
+    optional = true
+    version = "7.13.1"
+
+  [[order.group]]
+    id = "paketo-buildpacks/maven"
+    optional = true
+    version = "6.17.3"
+
+  [[order.group]]
+    id = "paketo-buildpacks/sbt"
+    optional = true
+    version = "6.15.1"
+
+  [[order.group]]
+    id = "paketo-buildpacks/watchexec"
+    optional = true
+    version = "3.2.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/executable-jar"
+    optional = true
+    version = "6.11.0"
+
+  [[order.group]]
+    id = "paketo-buildpacks/apache-tomcat"
+    optional = true
+    version = "8.1.3"
+
+  [[order.group]]
+    id = "paketo-buildpacks/apache-tomee"
+    optional = true
+    version = "1.10.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/liberty"
+    optional = true
+    version = "4.2.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/dist-zip"
+    optional = true
+    version = "5.8.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/spring-boot"
+    optional = true
+    version = "5.31.0"
+
+  [[order.group]]
+    id = "paketo-buildpacks/procfile"
+    optional = true
+    version = "5.9.0"
+
+  [[order.group]]
+    id = "paketo-buildpacks/jattach"
+    optional = true
+    version = "1.8.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/azure-application-insights"
+    optional = true
+    version = "5.22.0"
+
+  [[order.group]]
+    id = "paketo-buildpacks/google-stackdriver"
+    optional = true
+    version = "9.1.1"
+
+  [[order.group]]
+    id = "paketo-buildpacks/datadog"
+    optional = true
+    version = "5.18.0"
+
+  [[order.group]]
+    id = "paketo-buildpacks/java-memory-assistant"
+    optional = true
+    version = "1.6.2"
+
+  [[order.group]]
+    id = "paketo-buildpacks/encrypt-at-rest"
+    optional = true
+    version = "4.7.4"
+
+  [[order.group]]
+    id = "paketo-buildpacks/environment-variables"
+    optional = true
+    version = "4.7.1"
+
+  [[order.group]]
+    id = "paketo-buildpacks/image-labels"
+    optional = true
+    version = "4.7.1"
+========================
+
+package.toml file ====>
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/ca-certificates:3.8.4"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/bellsoft-liberica:10.8.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/yarn:1.3.8"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/node-engine:4.1.4"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/syft:1.47.1"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/leiningen:4.9.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/clojure-tools:2.10.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/gradle:7.13.1"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/maven:6.17.3"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/sbt:6.15.1"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/watchexec:3.2.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/executable-jar:6.11.0"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/apache-tomcat:8.1.3"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/apache-tomee:1.10.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/liberty:4.2.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/dist-zip:5.8.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/spring-boot:5.31.0"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/procfile:5.9.0"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/jattach:1.8.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/azure-application-insights:5.22.0"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/google-stackdriver:9.1.1"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/datadog:5.18.0"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/java-memory-assistant:1.6.2"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/encrypt-at-rest:4.7.4"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/environment-variables:4.7.1"
+
+[[dependencies]]
+  uri = "docker://gcr.io/paketo-buildpacks/image-labels:4.7.1"
+
+[[targets]]
+  arch = "amd64"
+  os = "linux"
+
+[[targets]]
+  arch = "arm64"
+  os = "linux"
+[buildpack]
+uri = "/home/cloud-user/buildpack"
+
+[platform]
+os = "linux"
+========================
+
+Downloading buildpack from URI: file:///home/cloud-user/buildpack
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/ca-certificates:3.8.4
+Pulling image gcr.io/paketo-buildpacks/ca-certificates:3.8.4 with platform linux/amd64
+64cffca995d0: Already exists
+1bd710329267: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/bellsoft-liberica:10.8.2
+Pulling image gcr.io/paketo-buildpacks/bellsoft-liberica:10.8.2 with platform linux/amd64
+5fb595bb30a0: Already exists
+93d04c809477: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/yarn:1.3.8
+Pulling image gcr.io/paketo-buildpacks/yarn:1.3.8 with platform linux/amd64
+b9bc32c3aad3: Download complete
+99cca48b55c2: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/node-engine:4.1.4
+Pulling image gcr.io/paketo-buildpacks/node-engine:4.1.4 with platform linux/amd64
+e5622178e133: Download complete
+e7a67c239cde: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/syft:1.47.1
+Pulling image gcr.io/paketo-buildpacks/syft:1.47.1 with platform linux/amd64
+e8e4703a5455: Already exists
+c2f722ec7e91: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/leiningen:4.9.2
+Pulling image gcr.io/paketo-buildpacks/leiningen:4.9.2 with platform linux/amd64
+586534824ba9: Already exists
+1e62213a0036: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/clojure-tools:2.10.2
+Pulling image gcr.io/paketo-buildpacks/clojure-tools:2.10.2 with platform linux/amd64
+28dc92604f26: Already exists
+f083ee895bc4: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/gradle:7.13.1
+Pulling image gcr.io/paketo-buildpacks/gradle:7.13.1 with platform linux/amd64
+a74a83bb4529: Already exists
+78a98bca73bb: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/maven:6.17.3
+Pulling image gcr.io/paketo-buildpacks/maven:6.17.3 with platform linux/amd64
+c88ed97c289f: Already exists
+3c680cc69170: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/sbt:6.15.1
+Pulling image gcr.io/paketo-buildpacks/sbt:6.15.1 with platform linux/amd64
+6b2482ff760c: Already exists
+2a1a2db07baf: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/watchexec:3.2.2
+Pulling image gcr.io/paketo-buildpacks/watchexec:3.2.2 with platform linux/amd64
+a279f91f65f6: Already exists
+bbcab9302711: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/executable-jar:6.11.0
+Pulling image gcr.io/paketo-buildpacks/executable-jar:6.11.0 with platform linux/amd64
+801d82ae33f8: Already exists
+41c532c2bfc2: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/apache-tomcat:8.1.3
+Pulling image gcr.io/paketo-buildpacks/apache-tomcat:8.1.3 with platform linux/amd64
+59b2ed4ae05e: Already exists
+f6971038a516: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/apache-tomee:1.10.2
+Pulling image gcr.io/paketo-buildpacks/apache-tomee:1.10.2 with platform linux/amd64
+4c9c5a958327: Already exists
+18420ac7dbd2: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/liberty:4.2.2
+Pulling image gcr.io/paketo-buildpacks/liberty:4.2.2 with platform linux/amd64
+6f0150654407: Already exists
+626657ff97b1: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/dist-zip:5.8.2
+Pulling image gcr.io/paketo-buildpacks/dist-zip:5.8.2 with platform linux/amd64
+89fcdb1191ab: Already exists
+4c5cb8a927c8: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/spring-boot:5.31.0
+Pulling image gcr.io/paketo-buildpacks/spring-boot:5.31.0 with platform linux/amd64
+b4fab9c2b910: Already exists
+0422cb44379c: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/procfile:5.9.0
+Pulling image gcr.io/paketo-buildpacks/procfile:5.9.0 with platform linux/amd64
+db465c0a7a1c: Already exists
+b5656614a4ec: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/jattach:1.8.2
+Pulling image gcr.io/paketo-buildpacks/jattach:1.8.2 with platform linux/amd64
+6a90cb099eea: Already exists
+f08a8e78f799: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/azure-application-insights:5.22.0
+Pulling image gcr.io/paketo-buildpacks/azure-application-insights:5.22.0 with platform linux/amd64
+8168e881f605: Already exists
+ae2565b42c53: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/google-stackdriver:9.1.1
+Pulling image gcr.io/paketo-buildpacks/google-stackdriver:9.1.1 with platform linux/amd64
+c8b50420e3a6: Already exists
+ed8cb5c58930: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/datadog:5.18.0
+Pulling image gcr.io/paketo-buildpacks/datadog:5.18.0 with platform linux/amd64
+50fb37adf9bd: Already exists
+6bcad25eb074: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/java-memory-assistant:1.6.2
+Pulling image gcr.io/paketo-buildpacks/java-memory-assistant:1.6.2 with platform linux/amd64
+2e44e68fda09: Already exists
+f7a55d580cee: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/encrypt-at-rest:4.7.4
+Pulling image gcr.io/paketo-buildpacks/encrypt-at-rest:4.7.4 with platform linux/amd64
+6b0e6072ce64: Already exists
+d9e8a0ea7244: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/environment-variables:4.7.1
+Pulling image gcr.io/paketo-buildpacks/environment-variables:4.7.1 with platform linux/amd64
+8676a8ed949a: Already exists
+9c0f3cbd724f: Download complete
+Downloading buildpack dependency for platform linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/image-labels:4.7.1
+Pulling image gcr.io/paketo-buildpacks/image-labels:4.7.1 with platform linux/amd64
+271267b8cc3e: Already exists
+3f29e776e5eb: Download complete
+Successfully created package quay.io/ch007m:v0.1.0 and saved to docker daemon
