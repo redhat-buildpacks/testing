@@ -1,0 +1,35 @@
+Test case: Build the ubi base stack image
+Name: default
+Config Dir: stack
+Output Dir: build
+Build Image: build
+Run Image: run
+Build Receipt Filename: build-receipt.cyclonedx.json
+Run Receipt Filename: run-receipt.cyclonedx.json
+----
+jam create-stack "--config ./stack/stack.toml --build-output ./stack/build/build.oci --run-output ./stack/build/run.oci"
+Building io.buildpacks.stacks.ubi8
+  Building on linux/amd64
+    Building base images
+Error: build failed:
+
+building at STEP "RUN mkdir -p /etc/buildpacks": while running runtime: exit status 127
+
+Usage:
+  jam create-stack [flags]
+
+Flags:
+      --build-output string   path to output the build image OCI archive (required)
+      --build-ref string      reference that specifies where to publish the build image (required)
+      --config string         path to a stack descriptor file (required)
+  -h, --help                  help for create-stack
+      --label strings         additional image label to be added to build and run image
+      --publish               publish to a registry
+      --run-output string     path to output the run image OCI archive (required)
+      --run-ref string        reference that specifies where to publish the run image (required)
+      --secret strings        secret to be passed to your Dockerfile
+      --unbuffered            do not buffer image contents into memory for fast access
+
+failed to execute: build failed:
+
+building at STEP "RUN mkdir -p /etc/buildpacks": while running runtime: exit status 127
