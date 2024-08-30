@@ -1,0 +1,194 @@
+pack builder create builder --config builder.toml -v
+Pro tip: use --targets flag OR [[targets]] in builder.toml to specify the desired platform
+Pulling image index.docker.io/paketocommunity/run-ubi-base:latest
+fb168a0cbc3f: Already exists
+5d420b0b11f0: Already exists
+a30895ae170c: Already exists
+1418e2c6c90e: Download complete
+Pulling image docker.io/paketocommunity/build-ubi-base:0.0.76
+3f059f49cab1: Already exists
+fb168a0cbc3f: Already exists
+5a40506acb6a: Already exists
+8248b9c920fb: Already exists
+fe1a386de971: Already exists
+32e9f22fa1cc: Download complete
+Creating builder builder from build-image docker.io/paketocommunity/build-ubi-base:0.0.76
+Warning: failed to find a lifecycle binary for requested architecture amd64, defaulting to x86-64
+Using cached version of https://github.com/buildpacks/lifecycle/releases/download/v0.20.1/lifecycle-v0.20.1+linux.x86-64.tgz
+Looking up buildpack @0.1.1
+Downloading buildpack for platform: linux/amd64
+Downloading buildpack from image: docker.io/paketocommunity/ubi-java-buildpack:0.1.1
+Pulling image docker.io/paketocommunity/ubi-java-buildpack:0.1.1 with platform linux/amd64
+26baa1925f13: Already exists
+09d8052ec6b5: Download complete
+Looking up buildpack @0.4.0
+Downloading buildpack for platform: linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/quarkus:0.4.0
+Pulling image gcr.io/paketo-buildpacks/quarkus:0.4.0 with platform linux/amd64
+f6305680dc6d: Already exists
+195b114a8cd3: Download complete
+Looking up buildpack @15.2.0
+Downloading buildpack for platform: linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/java:15.2.0
+Pulling image gcr.io/paketo-buildpacks/java:15.2.0 with platform linux/amd64
+a279f91f65f6: Already exists
+865a3f2c0980: Already exists
+801d82ae33f8: Already exists
+4c9c5a958327: Already exists
+271267b8cc3e: Already exists
+5fb595bb30a0: Already exists
+6a90cb099eea: Already exists
+50fb37adf9bd: Already exists
+6b0e6072ce64: Already exists
+c88ed97c289f: Already exists
+2e44e68fda09: Already exists
+a74a83bb4529: Already exists
+8676a8ed949a: Already exists
+3b46bdf839e2: Already exists
+e8e4703a5455: Already exists
+b4fab9c2b910: Already exists
+8168e881f605: Already exists
+586534824ba9: Already exists
+28dc92604f26: Already exists
+89fcdb1191ab: Already exists
+6b2482ff760c: Already exists
+64cffca995d0: Already exists
+6f0150654407: Already exists
+db465c0a7a1c: Already exists
+9a6ea161e31e: Already exists
+c8b50420e3a6: Already exists
+59b2ed4ae05e: Already exists
+7db17467d462: Download complete
+Looking up buildpack @3.0.2
+Downloading buildpack for platform: linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/nodejs:3.0.2
+Pulling image gcr.io/paketo-buildpacks/nodejs:3.0.2 with platform linux/amd64
+416361ac9b64: Already exists
+989988b932c0: Already exists
+4e1ce852c221: Already exists
+c369c78ab1b6: Already exists
+12bda0968390: Already exists
+19708cfeb1e5: Already exists
+cfcdbfd220a6: Already exists
+32c83707bfae: Already exists
+9a8ae41fe50f: Already exists
+4495c385b99c: Already exists
+de8adc5cab24: Already exists
+faf8745a9c0d: Already exists
+661ca2a977e8: Already exists
+3da04d188977: Already exists
+68fad65d12f1: Already exists
+0b9cd3cbd88d: Download complete
+Looking up buildpack @5.9.2
+Downloading buildpack for platform: linux/amd64
+Downloading buildpack from image: gcr.io/paketo-buildpacks/procfile:5.9.2
+Pulling image gcr.io/paketo-buildpacks/procfile:5.9.2 with platform linux/amd64
+6a54437ca3d5: Already exists
+d8f38020ac7c: Download complete
+Looking up extension paketo-community/ubi-java-extension@0.2.0
+Downloading buildpack for platform: linux/amd64
+Downloading extension from image: docker.io/paketocommunity/ubi-java-extension:0.2.0
+Pulling image docker.io/paketocommunity/ubi-java-extension:0.2.0 with platform linux/amd64
+cf1b481bca5f: Already exists
+39deb2c647e7: Download complete
+Looking up extension paketo-community/ubi-nodejs-extension@0.3.3
+Downloading buildpack for platform: linux/amd64
+Downloading extension from image: docker.io/paketocommunity/ubi-nodejs-extension:0.3.3
+Pulling image docker.io/paketocommunity/ubi-nodejs-extension:0.3.3 with platform linux/amd64
+85da2a6e768d: Already exists
+57189cac795e: Download complete
+Creating builder with the following buildpacks:
+-> paketo-community/ubi-java-buildpack@0.1.1
+-> paketo-buildpacks/quarkus@0.4.0
+-> paketo-buildpacks/java@15.2.0
+-> paketo-buildpacks/apache-tomcat@8.1.3
+-> paketo-buildpacks/apache-tomee@1.10.2
+-> paketo-buildpacks/azure-application-insights@5.22.0
+-> paketo-buildpacks/bellsoft-liberica@10.8.2
+-> paketo-buildpacks/ca-certificates@3.8.4
+-> paketo-buildpacks/clojure-tools@2.10.2
+-> paketo-buildpacks/datadog@5.18.0
+-> paketo-buildpacks/dist-zip@5.8.2
+-> paketo-buildpacks/encrypt-at-rest@4.7.4
+-> paketo-buildpacks/environment-variables@4.7.1
+-> paketo-buildpacks/executable-jar@6.11.0
+-> paketo-buildpacks/google-stackdriver@9.1.1
+-> paketo-buildpacks/gradle@7.13.1
+-> paketo-buildpacks/image-labels@4.7.1
+-> paketo-buildpacks/jattach@1.8.2
+-> paketo-buildpacks/java-memory-assistant@1.6.2
+-> paketo-buildpacks/leiningen@4.9.2
+-> paketo-buildpacks/liberty@4.2.2
+-> paketo-buildpacks/maven@6.17.3
+-> paketo-buildpacks/node-engine@4.1.4
+-> paketo-buildpacks/procfile@5.9.0
+-> paketo-buildpacks/sbt@6.15.1
+-> paketo-buildpacks/spring-boot@5.31.0
+-> paketo-buildpacks/syft@1.47.1
+-> paketo-buildpacks/watchexec@3.2.2
+-> paketo-buildpacks/yarn@1.3.8
+-> paketo-buildpacks/nodejs@3.0.2
+-> paketo-buildpacks/ca-certificates@3.8.3
+-> paketo-buildpacks/datadog@3.6.0
+-> paketo-buildpacks/environment-variables@4.7.0
+-> paketo-buildpacks/image-labels@4.7.0
+-> paketo-buildpacks/node-engine@4.1.1
+-> paketo-buildpacks/node-run-script@1.0.19
+-> paketo-buildpacks/node-start@2.0.1
+-> paketo-buildpacks/npm-install@1.4.3
+-> paketo-buildpacks/npm-start@2.0.1
+-> paketo-buildpacks/procfile@5.9.0
+-> paketo-buildpacks/watchexec@3.2.1
+-> paketo-buildpacks/yarn@1.3.10
+-> paketo-buildpacks/yarn-install@2.0.1
+-> paketo-buildpacks/yarn-start@2.0.1
+-> paketo-buildpacks/procfile@5.9.2
+Buildpack paketo-buildpacks/procfile@5.9.0 with same contents is already being added, skipping...
+Adding buildpack paketo-buildpacks/apache-tomcat@8.1.3 (diffID=sha256:95ea23b45f28624c28d782db7b5cb64e67eea8780fda6e6c84f49fdffb0c6f41)
+Adding buildpack paketo-buildpacks/apache-tomee@1.10.2 (diffID=sha256:c0081c8f3c43f6c0098ba6c629f06221377770fcbf3a369747ceb4646a6263d7)
+Adding buildpack paketo-buildpacks/azure-application-insights@5.22.0 (diffID=sha256:e91240711b1361c711761e89fef9e22d11f102de5c488f9274412e51b7abb78f)
+Adding buildpack paketo-buildpacks/bellsoft-liberica@10.8.2 (diffID=sha256:183ffdf0580efb10c915145992a534493d349af6bddae84adaaf21c24bed5b60)
+Adding buildpack paketo-buildpacks/ca-certificates@3.8.3 (diffID=sha256:f786deaf2a015470225eeb6fc304055984bd339fb1ea93d778d9bc64e139766e)
+Adding buildpack paketo-buildpacks/ca-certificates@3.8.4 (diffID=sha256:f3539553a5bc570c901eeca0cdf9cda2d7780b67409428eeb4ded307b4dece6d)
+Adding buildpack paketo-buildpacks/clojure-tools@2.10.2 (diffID=sha256:97745125d856929fb05bcfdd754a6cdc9a460c536ddb2822b273a0eaf29b4078)
+Adding buildpack paketo-buildpacks/datadog@3.6.0 (diffID=sha256:b351bc73239608a09c7523656594df065fd2a6aacaee90254945d9e3070122ca)
+Adding buildpack paketo-buildpacks/datadog@5.18.0 (diffID=sha256:35e97777686c2195c6189b2842f3b7455272feb3d3d7554aec941a968a267cba)
+Adding buildpack paketo-buildpacks/dist-zip@5.8.2 (diffID=sha256:c6174da55e8e0b1fbe6391b22fa63db0e2c9941ab087c87915f34e59e8b33ae0)
+Adding buildpack paketo-buildpacks/encrypt-at-rest@4.7.4 (diffID=sha256:fe5b5beb7c52f3807a9cf4843dd193fee9d81c66004b8c0377724c5de24d3239)
+Adding buildpack paketo-buildpacks/environment-variables@4.7.0 (diffID=sha256:6391d7f41e46a46ec4fb24bf295544bbd41cd29c0b34e38147eed6b743f09f55)
+Adding buildpack paketo-buildpacks/environment-variables@4.7.1 (diffID=sha256:a819588da168e882457e9e105c2e6a1ae5f7fb23851b7f8a285fbe088b01b856)
+Adding buildpack paketo-buildpacks/executable-jar@6.11.0 (diffID=sha256:faca2de195a81d7e5a062afd8fac4833f56f069297df5ebb8f8e31229e199a87)
+Adding buildpack paketo-buildpacks/google-stackdriver@9.1.1 (diffID=sha256:eb297f8058594dc1b8c76a79f246c5dca478dc3b78034f638b98de96d2d232e8)
+Adding buildpack paketo-buildpacks/gradle@7.13.1 (diffID=sha256:eeb6adadd7f8ae7dd32425b3af146c14d4f11037ca61a40fbf477134d9197a36)
+Adding buildpack paketo-buildpacks/image-labels@4.7.0 (diffID=sha256:5aa968168d1e702fd12aad5029f741fef539cf918280b58ffc01f32c587ec508)
+Adding buildpack paketo-buildpacks/image-labels@4.7.1 (diffID=sha256:8461e585b711d9b86099b1cbdbe3f6fbfcca639a08f1df7df920c68b93416cac)
+Adding buildpack paketo-buildpacks/jattach@1.8.2 (diffID=sha256:24b9a146ba7b56a94620d0029bc9749970b96116590dbe2f290998d112f55a38)
+Adding buildpack paketo-buildpacks/java-memory-assistant@1.6.2 (diffID=sha256:30f28c5e8f416cef1d5fdd9cb7637219832bff9038843957205f24ff3fcad866)
+Adding buildpack paketo-buildpacks/java@15.2.0 (diffID=sha256:37f2f4e9798c7077084d6ec4e118790ea6617f3e7bbc01da521b167b179c8ed2)
+Adding buildpack paketo-buildpacks/leiningen@4.9.2 (diffID=sha256:d191c1527aca16917c45fa4836473d99f3e9500245308f21bd7976fdd0b3ee34)
+Adding buildpack paketo-buildpacks/liberty@4.2.2 (diffID=sha256:25926f6ee481bf57b16b1f7330947fab61a108061a8e1c6b26057bfb7805405a)
+Adding buildpack paketo-buildpacks/maven@6.17.3 (diffID=sha256:ef9d8b8983fde70c4e31f523e2d27e2b39f51a5259315dbb52810034a142a5ba)
+Adding buildpack paketo-buildpacks/node-engine@4.1.1 (diffID=sha256:afbe3824c5e262c7477b3e7d10c6aea30fcfc0744eff9a5ed05447d0cb10847d)
+Adding buildpack paketo-buildpacks/node-engine@4.1.4 (diffID=sha256:c28a154369ef8757f6270df3c1accd6aaa7b6c888864bb9530f796b6176b4217)
+Adding buildpack paketo-buildpacks/node-run-script@1.0.19 (diffID=sha256:aefeb9e501b74a1efceddb06a507a46c00a108afe68a9fb6ca90067836cb6613)
+Adding buildpack paketo-buildpacks/node-start@2.0.1 (diffID=sha256:809924f48fbfc71a1bcdb7f55722ebb2b0f07e6faba05e464fcf180b82dc5799)
+Adding buildpack paketo-buildpacks/nodejs@3.0.2 (diffID=sha256:979b4f07303bc749e334286f9c37632d991a190f3caea53c6651278c0d7d0099)
+Adding buildpack paketo-buildpacks/npm-install@1.4.3 (diffID=sha256:4f071b74cd1620c9952ccc00dc09e347a34b7a18ee06cf331877be6dcf518727)
+Adding buildpack paketo-buildpacks/npm-start@2.0.1 (diffID=sha256:8e6a03bd93a13577753ea7ab5e48f35067b647f5b315a252e19138dbd2cfef35)
+Adding buildpack paketo-buildpacks/procfile@5.9.0 (diffID=sha256:2a5d0067dc311066de4df12e2c9e53eb95df78fd68221ac3c5bf7472ff7a97fb)
+Adding buildpack paketo-buildpacks/procfile@5.9.2 (diffID=sha256:9ac9d0eb434127cbac17d5af30f64170742c90bfce44e2aed8b0317552aac9f0)
+Adding buildpack paketo-buildpacks/quarkus@0.4.0 (diffID=sha256:d9515546d365c62580fdba5022c032334bd4bc924e9d5297710a4b9dabe7f9e7)
+Adding buildpack paketo-buildpacks/sbt@6.15.1 (diffID=sha256:66188dfb32d91c9f0c4d42f3976c58a144714696334ecff688664f2a9313df2a)
+Adding buildpack paketo-buildpacks/spring-boot@5.31.0 (diffID=sha256:c5939736bfe1b05fdbca5c7d2dc0f1b3e68c4fde6c862957e981d5912ce1b61d)
+Adding buildpack paketo-buildpacks/syft@1.47.1 (diffID=sha256:4e222d8dc0ca0ba0ad226fdc33e83941398eee24883061a5242ff31cf375f6b6)
+Adding buildpack paketo-buildpacks/watchexec@3.2.1 (diffID=sha256:3dd778bef8c93f324048b06c13dadda101e64e7688976a408d39b8bd284f8219)
+Adding buildpack paketo-buildpacks/watchexec@3.2.2 (diffID=sha256:a3d7beb8af911204c704c0c3f7231aca06f75c790db74d096f076dce9c20b6d3)
+Adding buildpack paketo-buildpacks/yarn-install@2.0.1 (diffID=sha256:d26190118848b6866eab4c00c4dbf30fcda95fa181d344eaf683f9baa3ad709d)
+Adding buildpack paketo-buildpacks/yarn-start@2.0.1 (diffID=sha256:5566626bed91bf0ce2e644e6af797fe9f85dc33cdb8b82bb47843ac24e9b090c)
+Adding buildpack paketo-buildpacks/yarn@1.3.10 (diffID=sha256:0f16bcdc1ea844c2cae80b389f82d1147836f2c04b9836cdcdda5cecc93a8a34)
+Adding buildpack paketo-buildpacks/yarn@1.3.8 (diffID=sha256:f8a634af76ab63acb03dd974ae84d010a9fdb601ff7d511039d7306f97094c9b)
+Adding buildpack paketo-community/ubi-java-buildpack@0.1.1 (diffID=sha256:c3a9faaa3b63a597a3a5f82b1b2d0ea7cf2c0cc08bdc96e2cfbdedcad5c00d91)
+Adding extension paketo-community/ubi-java-extension@0.2.0 (diffID=sha256:ba03dfbb2b9d064b5288afbf4cd330347f393cd6586f0c843ce562e80cc17422)
+Adding extension paketo-community/ubi-nodejs-extension@0.3.3 (diffID=sha256:e4f76187731c8ac870316a272902e9e0cfa1c78ca5cb79fe0061f9287649f08d)
+Successfully created builder image builder
+Tip: Run pack build <image-name> --builder builder to use this builder
