@@ -22,7 +22,7 @@ include:
    tekton-client-version: "0.38.1"
 
    # Buildpacks parameters
-   lifecycle-image: "buildpacksio/lifecycle:0.19.3"
+   lifecycle-image: "buildpacksio/lifecycle:0.20.1"
    run-image: "paketobuildpacks/run-jammy-tiny:latest"
    build-image: "paketobuildpacks/build-jammy-tiny:latest"
 

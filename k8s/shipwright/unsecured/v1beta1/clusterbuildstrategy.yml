@@ -26,7 +26,7 @@ spec:
       default: "paketobuildpacks/build-jammy-tiny:latest"
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
-      default: "buildpacksio/lifecycle:0.19.3"
+      default: "buildpacksio/lifecycle:0.20.1"
     - name: CNB_LOG_LEVEL
       description: Logging level
       default: "info"
