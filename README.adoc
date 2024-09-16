@@ -40,16 +40,11 @@ This project currently verifies the following scenario:
 - link:.github/workflows/tekton.yaml[Quarkus HelloWorld & Tekton Pipeline]
 - link:.github/workflows/shipwright.yaml[Quarkus HelloWorld & Shipwright]
 
-[IMPORTANT]
-====
-The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using RHTAP is not implemented as GitHub Workflow !
-====
-
 |===
 | Tool/Image | Version | Tested | Note
 
 | Lifecycle
-| https://github.com/buildpacks/lifecycle/releases/tag/v0.19.3[0.19.3]
+| https://github.com/buildpacks/lifecycle/releases/tag/v0.20.7[0.20.7]
 | Yes
 | -
 
@@ -58,56 +53,70 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | Yes
 | -
 
-| Pack cli
-| https://github.com/buildpacks/pack/releases/tag/v0.33.2[v0.33.2]
+| Pack client
+| https://github.com/buildpacks/pack/releases/tag/v0.37.0[v0.37.0]
 | Yes
 | -
 
-| Java buildpack library
-| https://github.com/snowdrop/java-buildpack-client
-| Yes  (indirectly using Quarkus container https://quarkus.io/guides/container-image#buildpack[build])
-| Support platform 0.4 !
-
-| Paketo Builder Tiny (jammy) builder (DEPRECATED but still needed for Quarkus <= 3.9)
-| https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203[0.0.203]
+| Java Buildpack library
+| https://github.com/snowdrop/java-buildpack-client/tree/0.0.14[0.0.14]
 | Yes
-| Package lifecycle 0.17.2
+| Support platform from 0.4 to 0.13 !
+
+| Quarkus Buildpack
+| https://quarkus.io/guides/container-image#buildpack[3.22]
+| Yes
+| - !
+
+| Paketo Build base ubi image
+| https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.111[0.0.111]
+| Yes
+| Base image to be used to build
+
+| Paketo Run base ubi image
+| https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.111[0.0.111]
+| Yes
+| Base image to be used to run a container
 
 | Paketo community UBI builder
-| https://github.com/paketo-community/builder-ubi-base/releases/tag/v0.0.54[0.0.54]
+| https://github.com/paketo-buildpacks/builder-ubi8-base/releases/tag/v0.0.202[0.0.202]
 | Yes
-| Include Node.js, Quarkus Java buildpacks.
+| Include Node.js, Quarkus Java Buildpacks.
 
 | Paketo Node.js Extension for ubi
-| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.3.1[0.3.1]
+| https://github.com/paketo-buildpacks/ubi-nodejs-extension/releases/tag/v1.3.1[1.3.1]
 | Yes
 | -
 
 | Paketo Java Extension for ubi
-| https://github.com/paketo-community/ubi-java-extension/releases/tag/v0.1.1[0.1.1]
+| https://github.com/paketo-community/ubi-java-extension/releases/tag/v0.2.0[0.2.0]
 | Yes
 | -
 |===
 
 == 0. Prerequisites
 
-- Docker desktop (or podman) installed and running
-- https://kind.sigs.k8s.io/docs/user/quick-start/#installation[kind CLI] installed (>= 0.20)
-- https://tekton.dev/docs/cli/#installation[Tekton CLI] (>= 0.33)
-- Have a kubernetes cluster (kind, minikube, etc)
+- Podman desktop installed and running
+- https://cnoe.io/docs/reference-implementation/idpbuilder[IDPlatform running kind] (>= 0.10)
+- https://tekton.dev/docs/cli/#installation[Tekton CLI] (>= 0.40)
+- Create an `.env` with the different variables to be used and source it
 
 [NOTE]
 ====
-For local tests, we suggest to create a kubernetes `kind` cluster and an unsecure container registry using the following bash scripts:
+For local tests, we suggest to create a kubernetes `kind` cluster and a container registry using the `idpbuilder` tool:
 ====
 
 [,bash]
 ----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
+idpbuilder create --dev-password --name buildpack
 ----
 
-**NOTE**: Use the command `+... | bash -s -h+` to see the usage
+As the registry that we will access uses the HTTPS protocol and a self-signed certificate, it is then needed to define it as an insecure registry using the following command (when you use podman) in order to avoid a TLS error as the certificate has been signed by an unknown authority:
+[,bash]
+----
+echo 'printf "\n[[registry]]\nlocation = \""gitea.cnoe.localtest.me:8443\""\ninsecure = true\n" >> /etc/containers/registries.conf' |  podman machine ssh --username root --
+podman machine stop; podman machine start
+----
 
 == 1. Quarkus Buildpacks
 
@@ -115,15 +124,15 @@ First, create a `Quarkus Hello` example using the following maven command execut
 
 [,bash]
 ----
-mvn io.quarkus.platform:quarkus-maven-plugin:3.9.3:create \
+mvn io.quarkus.platform:quarkus-maven-plugin:3.21.3:create \
   -DprojectGroupId=dev.snowdrop \
   -DprojectArtifactId=quarkus-hello \
   -DprojectVersion=1.0 \
-  -DplatformVersion=3.9.3 \
+  -DplatformVersion=3.22.0.CR1 \
   -Dextensions='resteasy,kubernetes,buildpack'
 ----
 
-Test the project:
+Test the project locally:
 [,bash]
 ----
 cd quarkus-hello
@@ -137,29 +146,40 @@ In a separate terminal, curl the HTTP endpoint
 curl http://localhost:8080/hello
 ----
 
-To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.203` and pass `+BP_***+` env variables in order to configure properly the Quarkus buildpack build process:
+To build the container image, do the build using the ubi builder image `paketobuildpacks/builder-ubi8-base:0.0.122` and pass `+BP_***+` env variables in order to configure properly the Quarkus buildpack build process:
 
 [,bash]
 ----
-mvn package \
- -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.203 \
- -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
+mvn clean package \
+ -Dquarkus.container-image.image=gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello:1.0 \
  -Dquarkus.container-image.build=true \
- -Dquarkus.container-image.push=true
+ -Dquarkus.container-image.push=true \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-ubi8-base:0.0.202 \
+ -Dquarkus.buildpack.builder-env.BP_JVM_VERSION="21" \
+ -Dquarkus.buildpack.use-daemon=true \
+ -Dquarkus.buildpack.registry-user."gitea.cnoe.localtest.me:8443"=giteaAdmin \
+ -Dquarkus.buildpack.registry-password."gitea.cnoe.localtest.me:8443"=developer
 ----
 
-[WARNING]
+[NOTE]
 ====
-Quarkus releases <= 3.9 can only build images for platform spec `0.4` and lifecycle `0.17` like this one: https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203. The `extension` feature is only available since platform `0.10` and lifecycle `0.18`.
-See work in progress to support new platform specs https://github.com/snowdrop/java-buildpack-client/pull/59[here].
-====
+To get the debug messages and configure the logger `slf4j`, add the following quarkus properties:
+
+[,bash]
+----
+ ...
+ -Dquarkus.buildpack.log-level=debug \
+ -Dorg.jboss.logging.provider=slf4j \
+ -Dorg.slf4j.simpleLogger.log.io.quarkus.container.image.buildpack.deployment=DEBUG \
+ -Dorg.slf4j.simpleLogger.log.dev.snowdrop.buildpack.docker=DEBUG
+----
 
 Next, start the container and curl the endpoint
 
 [,bash]
 ----
-docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
+podman run -i --rm -p 8080:8080 gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello:1.0
+curl http://localhost:8080/hello
 ----
 
 == 2. Pack client
@@ -168,64 +188,34 @@ To validate this scenario top of the existing quarkus-hello project, we will use
 
 [,bash]
 ----
-REGISTRY_HOST="kind-registry.local:5000"
-docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
-pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
-     --builder paketocommunity/builder-ubi-base:0.0.54 \
-     --volume $HOME/.m2:/home/cnb/.m2:rw
+podman rmi $REGISTRY_HOST/giteaadmin/quarkus-hello:1.0
+pack build $REGISTRY_HOST/giteaadmin/quarkus-hello:1.0 \
+     --builder paketobuildpacks/builder-ubi8-base:latest \
+     --volume $HOME/.m2:/home/cnb/.m2:rw \
+     -e BP_JVM_VERSION=21
 ----
-
-____
-*Trick*: You can discover the builder images available using the command `pack builder suggest` ;-)
-____
 
 Next, start the container and curl the endpoint `+curl http://localhost:8080/hello+`
 
 [,bash]
 ----
-docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello:1.0
+podman run -i --rm -p 8080:8080 gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello:1.0
 ----
 
 == 3. Tekton
 
-See the https://tekton.dev/[project documentation] for more information about how to install and use it.
-
-To use Tekton, it is needed to have a k8s cluster (>= 1.24), a local docker registry
-
-[,bash]
-----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
-----
-
-[WARNING]
-====
-Append as suffix to the local registry name `*.local` otherwise buildpacks lifecycle will report this error during the execution of the `analyse` phase `+failed to get previous image: connect to repo store 'kind-registry:5000/buildpack/app': Get "https://kind-registry:5000/v2/": http: server gave HTTP response to HTTPS client+`
-====
-
-Next, install the latest official release (or a specific release)
+To use https://tekton.dev/[Tekton], it is needed to have a k8s cluster (>= 1.27), and a container registry.
+To install it like the dashboard, we will rely on the `idplatform` cluster we created using the `idpbuilder` tool
 
 [,bash]
 ----
-kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/v0.56.4/release.yaml
+idpbuilder create --dev-password --name buildpack \
+  -p https://github.com/ch007m/my-idp-packages//tekton
 ----
 
-and optionally, you can also install the dashboard
+When the platform is ready, you should be able to access the Tekton UI at the following address: `https://tekton-ui.cnoe.localtest.me:8443/`. You can verify if Tekton has been well installed using the Argo CD console: `https://argocd.cnoe.localtest.me:8443/`
 
-[,bash]
-----
-kubectl apply -f https://storage.googleapis.com/tekton-releases/dashboard/latest/release.yaml
-----
-
-Expose the dashboard service externally using an ingress route and open the url in your browser: `tekton-ui.127.0.0.1.nip.io`
-
-[,bash]
-----
-VM_IP=127.0.0.1
-kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
-----
-
-When the platform is ready, you can install the needed `Tasks`:
+Deploy now the different tasks or resources that we need to build an application:
 
 [,bash]
 ----
@@ -239,11 +229,28 @@ Don't install the buildpacks-phases version 0.2 from the https://github.com/tekt
 
 [,bash]
 ----
+kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
 ----
 
-Set the following variables:
+Create a dockercfg's secret using the gitea registry credentials to access it and link it to the ServiceAccount that Tekton will use.
+
+[,bash]
+----
+kubectl apply -f k8s/tekton/secret-dockercfg.yml
+kubectl apply -f k8s/tekton/sa-with-reg-creds.yml
+----
+
+Create a PVC
+[,bash]
+----
+kubectl apply -f k8s/tekton/ws-pvc.yml
+----
+
+Set next the following variables:
 
 [,bash]
 ----
@@ -255,50 +262,43 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 
 [,bash]
 ----
-IMAGE_NAME=kind-registry.local:5000/quarkus-hello
+IMAGE_NAME=my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-hello
 
-BUILDER_IMAGE=paketocommunity/builder-ubi-base:0.0.54
-CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
-CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
+#BUILDER_IMAGE=paketobuildpacks/builder-ubi8-base:0.0.202 -> Use 0.0.203 when out as it fixes the issue to access gitea using HTTP protocol
+BUILDER_IMAGE=ghcr.io/matejvasek/builder-ubi8-base:latest
+CNB_BUILD_IMAGE=paketobuildpacks/build-ubi8-base:0.0.111
+CNB_RUN_IMAGE=paketobuildpacks/run-ubi8-base:0.0.111
+CNB_INSECURE_REGISTRIES=my-gitea-http.gitea.svc.cluster.local:3000
 
-kubectl delete PipelineRun/buildpacks-phases
-kubectl delete pvc/ws-pvc
-cat <<EOF | kubectl apply -f -
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: ws-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 500Mi
----
-apiVersion: tekton.dev/v1beta1
+echo "apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
   name: buildpacks-phases
   labels:
-    app.kubernetes.io/description: "Buildpacks-PipelineRun"
+    app.kubernetes.io/description: buildpack-pipeline-run
 spec:
+  taskRunTemplate:
+    serviceAccountName: sa-with-creds
   params:
     - name: gitRepo
       value: https://github.com/quarkusio/quarkus-quickstarts.git
     - name: sourceSubPath
       value: getting-started
     - name: AppImage
-      value: ${IMAGE_NAME}
+      value: $IMAGE_NAME
     - name: cnbBuilderImage
-      value: ${BUILDER_IMAGE}
+      value: $BUILDER_IMAGE
     - name: cnbBuildImage
-      value: ${CNB_BUILD_IMAGE}
+      value: $CNB_BUILD_IMAGE
+    - name: cnbLogLevel
+      value: $CNB_LOG_LEVEL
     - name: cnbRunImage
-      value: ${CNB_RUN_IMAGE}
+      value: $CNB_RUN_IMAGE
+    - name : cnbInsecureRegistries
+      value: $CNB_INSECURE_REGISTRIES
     - name: cnbBuildEnvVars
       value:
-        - "BP_NATIVE_IMAGE=false"
+        - BP_JVM_VERSION=21
   pipelineRef:
     resolver: git
     params:
@@ -309,6 +309,9 @@ spec:
       - name: pathInRepo
         value: tekton/pipeline/buildpacks/01/buildpacks.yaml
   workspaces:
+    - name: creds-ws
+      secret:
+        secretName: dockercfg
     - name: source-ws
       subPath: source
       persistentVolumeClaim:
@@ -316,483 +319,150 @@ spec:
     - name: cache-ws
       subPath: cache
       persistentVolumeClaim:
-        claimName: ws-pvc
-EOF
+        claimName: ws-pvc" | kubectl apply -f -
 ----
 
-Follow the execution of the pipeline using the dashboard: `http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/taskruns`, `http://tekton-ui.127.0.0.1.nip.io/#/namespaces/default/pipelineruns` or using the client: `tkn pipelinerun logs -f`
+Follow the execution of the pipeline using the dashboard: `https://tekton-ui.cnoe.localtest.me:8443/#/namespaces/default/pipelineruns` or using the client: `tkn pipelinerun logs -f`
 
-When the pipeline is finished and no error is reported, then launch the container
+When the pipelinerun finishes and no error has been reported, then launch the container
 
 [,bash]
 ----
-docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
+podman run -i --rm -p 8080:8080 gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello
 ----
-
-[NOTE]
-====
-You can test different pipelineRuns using our bash script: ./scripts/play-with-tekton ;-)
-====
 
 == 4. Shipwright
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
-To use shipwright, it is needed to have a k8s cluster, local docker registry and tekton installed (>= v0.48.+)
-
-[,bash]
-----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local
-kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.56.4/release.yaml
-----
+To use shipwright, it is needed to have a k8s cluster, a container registry and tekton installed (>= v0.48.+)
 
 Next, deploy the release `0.12` of shipwright
 
 [,bash]
 ----
-kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
+// kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
+kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.15.6/release.yaml
 ----
 
-Apply the following hack to create a self signed certificate on the cluster, otherwise the shipwright webhook will fail to start
+Apply the following hack to create a self-signed certificate on the cluster, otherwise the shipwright webhook will fail to start
 [,bash]
 ----
-curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/v0.12.0/hack/setup-webhook-cert.sh | bash
+curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/v0.15.6/hack/setup-webhook-cert.sh | bash
 ----
 
 Next, install the `Buildpacks BuildStrategy` using the following command:
 
 [,bash]
 ----
-kubectl delete -f k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
-kubectl apply -f k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
+kubectl delete -f k8s/shipwright/clusterbuildstrategy.yml
+kubectl apply -f k8s/shipwright/clusterbuildstrategy.yml
 ----
 
-Create the `Build` CR using as source the Quarkus Getting started repository:
+Create a `Build` CR using as source the Quarkus Getting started repository:
 ====
 
 [,bash]
 ----
-kubectl delete -f k8s/shipwright/unsecured/v1beta1/build.yml
-kubectl apply -f k8s/shipwright/unsecured/v1beta1/build.yml
+kubectl delete -f k8s/shipwright/build.yml
+kubectl apply -f k8s/shipwright/build.yml
 ----
 
-To view the Build which you just created:
+To check the `Build` resource you just created, execute the following command:
 
 [,bash]
 ----
 kubectl get build
 NAME                      REGISTERED   REASON      BUILDSTRATEGYKIND      BUILDSTRATEGYNAME   CREATIONTIME
-buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildpacks          6s
+buildpack-quarkus-build   True         Succeeded   ClusterBuildStrategy   buildpacks          43s
 ----
 
-Trigger a `BuildRun`:
+Create a configMap containing the self-signed certificate of the registry
+[,bash]
+----
+kubectl get secret -n default idpbuilder-cert -ojson | jq -r '.data."ca.crt"' | base64 -d > ca.cert
+
+kubectl delete configmap certificate-registry
+kubectl create configmap certificate-registry \
+  --from-file=ca.cert
+----
+
+To trigger a `BuildRun` do this:
 
 [,bash]
 ----
 kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
-kubectl delete -f k8s/shipwright/unsecured/v1beta1/pvc.yml
+kubectl delete -f k8s/shipwright/pvc.yml
+kubectl delete -f k8s/shipwright/sa.yml
 
-kubectl create -f k8s/shipwright/unsecured/v1beta1/pvc.yml
-kubectl create -f k8s/shipwright/unsecured/v1beta1/buildrun.yml
+kubectl create -f k8s/shipwright/sa.yml
+kubectl create -f k8s/shipwright/pvc.yml
+kubectl create -f k8s/shipwright/buildrun.yml
 ----
 
-Wait until your BuildRun is completed, and then you can view it as follows:
+Wait until your `BuildRun` is completed, and then you can view it as follows:
 
 [,bash]
 ----
-kubectl get buildruns
-NAME                              SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
-buildpack-quarkus-buildrun-vp2gb   True        Succeeded   2m22s       9s
+kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
+NAME                               SUCCEEDED   REASON      STARTTIME   COMPLETIONTIME
+buildpack-quarkus-buildrun-fbs84   True        Succeeded   103s        25s
 ----
 
 When the task is finished and no error is reported, then launch the container
 
 [,bash]
 ----
-docker run -i --rm -p 8080:8080 kind-registry.local:5000/quarkus-hello
+podman run -i --rm -p 8080:8080 gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello
 ----
 
-=== Secured container registry (NOT MAINTAINED ANYMORE)
+Enjoy !
 
-If you prefer to use a secure registry, then some additional steps are needed such as
+## Troubleshooting section
 
-Install a secured container registry
-
+The instructions described hereafter should help to resolve the issue when lifecycle access the gitea registry inside a pod
 [,bash]
 ----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install --registry-name kind-registry.local --secure-registry --registry-name=kind-registry.local
+#set -x BUILDER paketobuildpacks/builder-ubi8-base:0.0.202
+set -x BUILDER ghcr.io/matejvasek/builder-ubi8-base:latest
+
+echo "Test 1 using patched lifecycle, insecure registry define & CNB_REGISTRY_AUTH - OK"
+podman run -it \
+  -e CNB_PLATFORM_API=0.13 \
+  -e CNB_REGISTRY_AUTH='{"https://gitea.cnoe.localtest.me:8443": "Basic Z2l0ZWFBZG1pbjpkZXZlbG9wZXI="}' \
+  --network=host \
+  $BUILDER \
+  /cnb/lifecycle/analyzer \
+  -log-level=debug \
+  -layers=/layers \
+  -run-image=paketobuildpacks/run-ubi8-base:0.0.111 \
+  -uid=1002 \
+  -gid=1000 \
+  -insecure-registry=gitea.cnoe.localtest.me:8443 \
+  gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello
+
+podman run -it \
+  -e CNB_PLATFORM_API=0.13 \
+  -v $(pwd)/auth.json:/home/cnb/.docker/config.json:ro \
+  --network=host \
+  $BUILDER \
+  /cnb/lifecycle/analyzer \
+  -log-level=debug \
+  -layers=/layers \
+  -run-image=paketobuildpacks/run-ubi8-base:0.0.111 \
+  -uid=1002 \
+  -gid=1000 \
+  -insecure-registry=gitea.cnoe.localtest.me:8443 \
+  gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello
 ----
-
-NOTE: To install a secured (HTTPS and authentication) docker registry, pass the parameter: --secure-registry
-
-Generate a docker-registry secret
-
-NOTE: This secret will be used by the serviceAccount of the build's pod to access the container registry
-
+Using a pod
 [,bash]
 ----
-REGISTRY_HOST="kind-registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
-kubectl create ns demo
-kubectl create secret docker-registry registry-creds \
-  --docker-server="${REGISTRY_HOST}" \
-  --docker-username="${REGISTRY_USER}" \
-  --docker-password="${REGISTRY_PASSWORD}"
+kubectl delete secret/dockercfg
+kubectl create secret generic dockercfg \
+  --from-file=.dockerconfigjson=$(pwd)/.tmp/dockercfg.json \
+  --type=kubernetes.io/dockerconfigjson
+
+kubectl delete -f $(pwd)/.tmp/task-pod-1.yaml; kubectl apply -f $(pwd)/.tmp/task-pod-1.yaml
 ----
-
-Create a serviceAccount that the platform will use to perform the build and able to be authenticated using the
-secret's credentials with the registry
-
-[,bash]
-----
-kubectl delete -f k8s/shipwright/secured/sa.yml
-kubectl apply -f k8s/shipwright/secured/sa.yml
-----
-
-Add the selfsigned certificate to a configMap. It will be mounted as a volume to set the env var `SSL_CERT_DIR` used by the go-containerregistry lib (of lifecycle)
-to access the registry using the HTTPS/TLS protocol.
-
-[,bash]
-----
-kubectl delete configmap certificate-registry
-kubectl create configmap certificate-registry \
-  --from-file=kind-registry.crt=$HOME/.registry/certs/kind-registry.local/client.crt
-----
-
-Deploy the `ClusterBuildStrategy` file from the secured folder as it includes a new volume to mount the certificate
-
-[,yaml]
-----
-apiVersion: shipwright.io/v1beta1
-kind: ClusterBuildStrategy
-metadata:
-  name: buildpacks
-spec:
-  volumes:
-    - name: certificate-registry
-      configMap:
-        name: certificate-registry
-...
-parameters:
-  - name: certificate-path
-    description: Path to self signed certificate(s)
-...
-- name: export
-  image: $(params.CNB_LIFECYCLE_IMAGE)
-  imagePullPolicy: Always
-...
-volumeMounts:
-- mountPath: /selfsigned-certificates
-  name: certificate-registry
-  readOnly: true
-----
-
-=== All steps
-
-Setup first the kind cluster and docker registry
-
-[,bash]
-----
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/kind.sh" | bash -s install
-curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/main/kind/registry.sh" | bash -s install
-----
-
-NOTE: To install a secured (HTTPS and authentication) docker registry, pass the parameter: --secure-registry
-
-Next, install Tekton and Shipwright
-
-[,bash]
-----
-kubectl apply -f https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.56.4/release.yaml
-kubectl apply -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
-----
-
-Apply the following hack to create a self signed certificate on the cluster, otherwise the shipwright webhook will fail to start
-[,bash]
-----
-curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/v0.12.0/hack/setup-webhook-cert.sh | bash
-----
-
-And finally, deploy the resources using either an `unsecured` or `secured` container registry
-
-. Unsecured
-
-Deploy the needed resources
-
-[,bash]
-----
-DIR="unsecured"
-kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
-kubectl delete -f k8s/shipwright/${DIR}/v1beta1/build.yml
-kubectl delete -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
-kubectl delete -f k8s/shipwright/${DIR}/v1beta1/pvc.yml
-
-kubectl create -f k8s/shipwright/${DIR}/v1beta1/pvc.yml
-kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
-kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/build.yml
-kubectl create -f k8s/shipwright/${DIR}/v1beta1/buildrun.yml
-----
-
-. Secured (TO BE REVIEWED !!)
-
-Deploy the needed resources
-
-[,bash]
-----
-DIR="secured"
-kubectl create configmap certificate-registry \
-  --from-file=kind-registry.crt=./k8s/shipwright/${DIR}/binding/ca-certificates/kind-registry.local.crt
-
-REGISTRY_HOST="kind-registry.local:5000" REGISTRY_USER=admin REGISTRY_PASSWORD=snowdrop
-kubectl create secret docker-registry registry-creds \
-  --docker-server="${REGISTRY_HOST}" \
-  --docker-username="${REGISTRY_USER}" \
-  --docker-password="${REGISTRY_PASSWORD}"
-
-kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/sa.yml
-kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
-kubectl apply  -f k8s/shipwright/${DIR}/v1beta1/build.yml
-kubectl create -f k8s/shipwright/${DIR}/v1beta1/buildrun.yml
-----
-
-To clean up
-
-[,bash]
-----
-DIR="unsecured"
-kubectl delete secret registry-creds
-kubectl delete buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build
-kubectl delete -f k8s/shipwright/${DIR}/v1beta1/build.yml
-kubectl delete -f k8s/shipwright/${DIR}/v1beta1/clusterbuildstrategy.yml
-kubectl delete -f k8s/shipwright/${DIR}/v1beta1/pvc.yml
-----
-
-== 5. RHTAP
-
- This section is not maintained anymore.
-
-=== Prerequisite
-
-- Have https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/getting-started/get-started/[access] to RHTAP - https://console.redhat.com/preview/hac/
-- Have kubectl (or oc client) installed on your machine
-- Added the kubernetes context of `AppStudio` to your local ~/.kube/config file and been authenticated using https://docs.google.com/document/d/1hFvQDH1H6MGNqTGfcZpyl2h8OIaynP8sokZohCS0Su0/edit#heading=h.bksi3q7km0i[oidc login]
-- Add the `AppStudio` GitHub application to your GitHub Org and select it to be used for all the repositories. More information is available https://pipelinesascode.com/docs/install/github_apps/[here].
-- (optional). https://tekton.dev/docs/cli/[Install] the Tekton client
-
-=== Env variables
-
-In order to play/execute the commands defined hereafter, it is needed to define some env variables.
-Feel free to change them according to your GitHub organisation, tenant namespace, etc
-
-[,bash]
-----
-GITHUB_ORG_NAME=halkyonio
-GITHUB_REPO_TEMPLATE=https://github.com/redhat-buildpacks/catalog.git
-GITHUB_REPO_DEMO_NAME=rhtap-buildpack-demo-1
-GITHUB_REPO_DEMO_TITLE="RHTAP Buildpack Demo 1"
-BRANCH=main
-
-APPLICATION_NAME=$GITHUB_REPO_DEMO_NAME
-COMPONENT_NAME="quarkus-hello"
-# Quarkus devfile sample
-DEVFILE_URL=https://raw.githubusercontent.com/devfile-samples/devfile-sample-code-with-quarkus/main/devfile.yaml
-
-PAC_NAME=$COMPONENT_NAME
-PAC_YAML_FILE=".tekton/$GITHUB_REPO_DEMO_NAME-push.yaml"
-PAC_EVENT_TYPE="push" # Values could be "push, pull_request"
-
-TENANT_NAMESPACE="<YOUR_TENANT_NAMESPACE>"
-REGISTRY_URL=quay.io/redhat-user-workloads/$TENANT_NAMESPACE/$GITHUB_REPO_DEMO_NAME/$COMPONENT_NAME
-BUILD_ID=0 # ID used to generate the following kubernetes label's value: test-01 for rhtap.snowdrop.deb/build
-
-# Quarkus runtime
-SOURCE_SUB_PATH="."
-CNB_LOG_LEVEL="debug"
-CNB_BUILDER_IMAGE="paketocommunity/builder-ubi-base:0.0.54"
-CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
-CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
-
-CNB_ENV_VARS='
-"BP_NATIVE_IMAGE=false",
-"BP_MAVEN_BUILT_ARTIFACT=target/quarkus-app/lib/ target/quarkus-app/*.jar target/quarkus-app/app/ target/quarkus-app/quarkus/",
-"BP_MAVEN_BUILD_ARGUMENTS=package -DskipTests=true -Dmaven.javadoc.skip=true -Dquarkus.package.type=fast-jar"
-'
-----
-
-=== HowTo
-
-To create a new GitHub repository and import the needed files, perform the following actions:
-
-* Git auth
-`gh auth login --with-token <YOUR_GITHUB_TOKEN>`
-
-* Create a GitHub repository
-
-[,bash]
-----
-gh repo delete $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --yes
-gh repo create \
-  --clone $GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME \
-  --public
-
-cd $GITHUB_REPO_DEMO_NAME
-----
-
-* Get the RHTAP pipelineRun template, rename it and set the different parameters
-
-[,bash]
-----
-mkdir .tekton
-curl -sOL https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/pipelinerun/rhtap/pipelinerun-buildpacks-template.yaml
-mv pipelinerun-buildpacks-template.yaml .tekton/$GITHUB_REPO_DEMO_NAME-push.yaml
-
-sed -i.bak "s/#GITHUB_ORG_NAME#/$GITHUB_ORG_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#GITHUB_REPO_NAME#/$GITHUB_REPO_DEMO_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#APPLICATION_NAME#/$APPLICATION_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#COMPONENT_NAME#/$COMPONENT_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#PAC_NAME#/$PAC_NAME/g" $PAC_YAML_FILE
-sed -i.bak "s/#TENANT_NAMESPACE#/$TENANT_NAMESPACE/g" $PAC_YAML_FILE
-sed -i.bak "s|#REGISTRY_URL#|$REGISTRY_URL|g" $PAC_YAML_FILE
-sed -i.bak "s|#BUILD_ID#|$BUILD_ID|g" $PAC_YAML_FILE
-sed -i.bak "s|#EVENT_TYPE#|$PAC_EVENT_TYPE|g" $PAC_YAML_FILE
-
-sed -i.bak "s|#SOURCE_SUB_PATH#|$SOURCE_SUB_PATH|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_LOG_LEVEL#|$CNB_LOG_LEVEL|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_BUILDER_IMAGE#|$CNB_BUILDER_IMAGE|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_BUILD_IMAGE#|$CNB_BUILD_IMAGE|g" $PAC_YAML_FILE
-sed -i.bak "s|#CNB_RUN_IMAGE#|$CNB_RUN_IMAGE|g" $PAC_YAML_FILE
-
-#
-PAC_FILE_NAME="$GITHUB_REPO_DEMO_NAME-push"
-yq -o=json '.' .tekton/$PAC_FILE_NAME.yaml > .tekton/$PAC_FILE_NAME.json
-jq --argjson array "[$CNB_ENV_VARS]" '(.spec.params[] | select(.name=="cnbBuildEnvVars")).value |= $array' .tekton/$PAC_FILE_NAME.json > temp.json
-cat temp.json | yq -P > .tekton/$PAC_FILE_NAME.yaml
-
-rm {temp.json,.tekton/$PAC_FILE_NAME.json}
-rm $PAC_YAML_FILE.bak
-----
-
-* Create a Quarklus Hello project locally
-
-[,bash]
-----
-mvn io.quarkus.platform:quarkus-maven-plugin:3.3.2:create \
--DprojectGroupId=dev.snowdrop \
--DprojectArtifactId=hello \
--DprojectVersion=1.0 \
--Dextensions='resteasy-reactive,kubernetes,buildpack'
-----
-
-* Commit the project to your GitHub org
-
-[,bash]
-----
-mv ./hello/* ./
-mv ./hello/{.dockerignore,.gitignore} ./
-mv ./hello/.mvn ./
-rm -rf ./hello
-SSH_REPO_NAME=$(gh repo view https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME --json sshUrl --jq .sshUrl)
-git remote set-url origin $SSH_REPO_NAME https://github.com/$GITHUB_ORG_NAME/$GITHUB_REPO_DEMO_NAME
-
-echo ".idea/" >> .gitignore
-git add .
-git commit -asm "Quarkus and RHTAP Tekton project"
-git push -u origin main
-----
-
-
-* Create the following Application and Component CRs
-
-[,bash]
-----
-cat <<EOF | kubectl apply -n $TENANT_NAMESPACE -f -
----
-apiVersion: appstudio.redhat.com/v1alpha1
-kind: Application
-metadata:
-  name: $GITHUB_REPO_DEMO_NAME
-spec:
-  appModelRepository:
-    url: ""
-  displayName: $GITHUB_REPO_DEMO_NAME
-  gitOpsRepository:
-    url: ""
----
-apiVersion: appstudio.redhat.com/v1alpha1
-kind: Component
-metadata:
-  annotations:
-    appstudio.openshift.io/pac-provision: request
-    image.redhat.com/generate: '{"visibility":"public"}'
-  name: $COMPONENT_NAME
-spec:
-  application: $GITHUB_REPO_DEMO_NAME
-  componentName: $COMPONENT_NAME
-  replicas: 1
-  resources:
-    requests:
-      cpu: 10m
-      memory: 100Mi
-  source:
-    git:
-      context: ./
-      devfileUrl: $DEVFILE_URL
-      revision: main
-      url: https://github.com/halkyonio/$GITHUB_REPO_DEMO_NAME.git
-  targetPort: 8080
-EOF
-----
-
-* Check the resources created
-
-[,bash]
-----
-for entity in pods deployments routes services taskruns pipelineruns applications components snapshotenvironmentbinding.appstudio.redhat.com componentdetectionquery.appstudio.redhat.com; do count=$(kubectl -n $TENANT_NAMESPACE get "$entity" -o name | wc -l); echo "$count $entity"; done | sort -n
-----
-
-* Open the Component created using the RHTAP console and edit the `build` to send a PR to your git project
-* Push a commit top of the GitHub repository created (change the build id from 0 -> &, etc), open the `activity` tab of the RHTAP console and you should see that
-a custom build has been started for pull and push :-)
-
-* Alternatively, Import it as documented here: https://redhat-appstudio.github.io/docs.appstudio.io/Documentation/main/how-to-guides/Import-code/proc_importing_code/
-
-NOTE: Use one of the RHTAP bash scripts aiming to automate the whole process described : ./scripts/rhtap-demo{1,2,3}
-
-* Cleaning
-
-[,bash]
-----
-kubectl delete application/$GITHUB_REPO_DEMO_NAME
-----
-
-=== Todo
-
-- Try to make a test using our own quay.io credentials and repository using REGISTRY_URL=quay.io/$GITHUB_ORG_NAME
-
-=== Issue
-
-==== Full image path not supported
-
-The lifecycle component and most probably google container library (used by lifecycle to access the registry) do not support such advanced feature: https://kubernetes.io/docs/concepts/containers/images/#kubelet-credential-provider
-The consequence is that if several secrets are attached to the `appstudio-pipeline` service account and subsequently by the pod running lifecycle, then
-lifecycle, at the analysis step, will raise an issue if it doesn't get as first entry of the `auths:` config file (from mounted secrets) the full image path matching the image name declared
-as output image.
-
-To work around the issue of the full image path not supported by lifecycle (and google-containr), path the secret
-
-[,bash]
-----
-CFG=$(cat <<EOF
-{"auths":{"quay.io":{"auth":"cmVkaG...aRkFGNTQ="}}}
-EOF
-)
-
-SECRET_NAME=$COMPONENT_NAME
-TENANT_NAMESPACE="cmoullia-tenant"
-PATCH_STRING="[{'op': 'replace', 'path': '/data/.dockerconfigjson', 'value': '$BASE64_ENCODED_VALUE'}]"
-
-kubectl get secret $SECRET_NAME -n $TENANT_NAMESPACE$$ -o json | jq --arg new_val "$(echo -n $CFG | base64)" '.data[".dockerconfigjson"]=$new_val' | kubectl apply -f -
-----
-
 

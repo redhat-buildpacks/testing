@@ -1,0 +1,7 @@
+{
+  "auths": {
+    "my-gitea-http.gitea.svc.cluster.local:3000": {
+      "auth": "Z2l0ZWFBZG1pbjpkZXZlbG9wZXI="
+    }
+  }
+}

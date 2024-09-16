@@ -1,0 +1,42 @@
+apiVersion: shipwright.io/v1beta1
+kind: Build
+metadata:
+  name: buildpack-quarkus-build
+spec:
+  source:
+    type: Git
+    git:
+      url: https://github.com/quarkusio/quarkus-quickstarts
+      revision: "3.22"
+    contextDir: getting-started
+  paramValues:
+    - name: SOURCE_SUBPATH
+      value: getting-started
+    - name: CNB_PLATFORM_API
+      value: "0.13"
+    - name: CNB_BUILDER_IMAGE
+      value: ghcr.io/matejvasek/builder-ubi8-base:latest #paketobuildpacks/builder-ubi8-base:0.0.202
+    - name: CNB_LIFECYCLE_IMAGE
+      value: buildpacksio/lifecycle:0.20.8
+    - name: CNB_INSECURE_REGISTRIES
+      value: my-gitea-http.gitea.svc.cluster.local:3000
+    - name: CNB_USER_ID
+      value: "1002"
+    - name: CNB_GROUP_ID
+      value: "1000"
+    - name: CNB_RUN_IMAGE
+      value: paketobuildpacks/run-ubi8-base:0.0.111
+    - name: CNB_BUILD_IMAGE
+      value: paketobuildpacks/build-ubi8-base:0.0.111
+    - name: APP_IMAGE
+      value: my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-hello
+    - name: PROCESS_TYPE
+      value: ""
+    - name: ENV_VARS
+      values:
+        - value: BP_JVM_VERSION=21
+  strategy:
+    name: buildpacks
+    kind: ClusterBuildStrategy
+  output:
+    image: my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-hello:latest

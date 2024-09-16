@@ -9,6 +9,11 @@ on:
       - '*.adoc'        # Ignores .adoc files at the root of the repository
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
+env:
+  IDPCLUSTER_NAME: idplatform
+  CONTAINER_NAME: quarkus-tekton-hello
+  CONTAINER_IMAGE: my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-tekton-hello:1.0
+
 jobs:
   configure-matrix:
     uses: ./.github/workflows/configure.yaml
@@ -28,45 +33,57 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
 
-      - name: Setup Kind with Registry
+      - name: Install idpbuilder
         run: |
-          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/kind.sh" | bash -s install
-          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/registry.sh" | bash -s install --registry-name kind-registry.local
+          version=${{ matrix.idpbuilder_version }}
+          curl -L -o ./idpbuilder.tar.gz "https://github.com/cnoe-io/idpbuilder/releases/download/${version}/idpbuilder-$(uname | awk '{print tolower($0)}')-$(uname -m | sed 's/x86_64/amd64/').tar.gz"
+          tar xzf idpbuilder.tar.gz
+          sudo mv ./idpbuilder /usr/local/bin/
+          idpbuilder version
 
-      - name: Setup Tekton
+      - name: Create an IDP cluster and install the tekton package
         run: |
-          kubectl create -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
-          kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=90s
-          kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=90s
+          PACKAGES_DIR=$(pwd)/.github/idp
+          idpbuilder create \
+            --name $IDPCLUSTER_NAME \
+            --dev-password \
+            -p $PACKAGES_DIR/tekton
           
-          # Patching needed on kind as we got an affinity error
-          # when workspaces would like to use several PVC
-          # See: https://github.com/tektoncd/pipeline/issues/3545
-          kubectl patch configmap/feature-flags \
-          -n tekton-pipelines \
-          --type merge \
-          -p '{"data":{"disable-affinity-assistant":"true"}}'
-          
-          kubectl create -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
-          
-          wget https://github.com/tektoncd/cli/releases/download/v${{ matrix.tekton-client-version }}/tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
-          sudo rpm -Uvh tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.rpm
+          idpbuilder version
+          kubectl rollout status -n argocd deployment argocd-server --timeout=90s
+          kubectl rollout status -n gitea deployment  my-gitea      --timeout=90s
+
+      - name: Install the tekton client
+        run: |
+          curl -sLO  https://github.com/tektoncd/cli/releases/download/v${{ matrix.tekton-client-version }}/tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.deb
+          sudo dpkg -i ./tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.deb
+          tkn version
+
+      - name: Deploy the resources needed for tekton
+        run: |
+          kubectl rollout status deployment tekton-pipelines-controller -n tekton-pipelines --timeout=90s
+          kubectl rollout status deployment tekton-pipelines-webhook -n tekton-pipelines --timeout=90s
+          kubectl rollout status deployment tekton-events-controller -n tekton-pipelines --timeout=90s
+          #kubectl rollout status deployment tekton-pipelines-remote-resolvers -n tekton-pipelines-resolvers --timeout=90s
+
+          kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
+          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/secret-dockercfg.yml
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/sa-with-reg-creds.yml
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/ws-pvc.yml
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
-          CONTAINER_NAME=quarkus-tekton-hello
-          CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
-
-          kubectl create -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
-          kubectl create -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
-          
           cat <<EOF | kubectl apply -f -
           ---
-          apiVersion: tekton.dev/v1beta1
+          apiVersion: tekton.dev/v1
           kind: PipelineRun
           metadata:
             name: buildpacks
           spec:
+            taskRunTemplate:
+              serviceAccountName: sa-with-creds
             params:
               - name: gitRepo
                 value: https://github.com/quarkusio/quarkus-quickstarts.git
@@ -80,28 +97,23 @@ jobs:
                 value: ${{ matrix.build-image }}
               - name: cnbRunImage
                 value: ${{ matrix.run-image }}
+              - name : cnbInsecureRegistries
+                value: ${{ matrix.insecure-registries }}
               - name: cnbBuildEnvVars
                 value:
-                  - "BP_NATIVE_IMAGE=false"
+                  - BP_JVM_VERSION=21
             workspaces:
-              - name: source-ws
-                subPath: source
-                volumeClaimTemplate:
-                  spec:
-                    accessModes:
-                      - ReadWriteOnce
-                    resources:
-                      requests:
-                        storage: 1Gi
-              - name: cache-ws
-                subPath: cache
-                volumeClaimTemplate:
-                  spec:
-                    accessModes:
-                      - ReadWriteOnce
-                    resources:
-                      requests:
-                        storage: 1Gi
+            - name: creds-ws
+              secret:
+                secretName: dockercfg
+            - name: source-ws
+              subPath: source
+              persistentVolumeClaim:
+                claimName: ws-pvc
+            - name: cache-ws
+              subPath: cache
+              persistentVolumeClaim:
+                claimName: ws-pvc
             pipelineRef:
               resolver: git
               params:
@@ -112,14 +124,71 @@ jobs:
                 - name: pathInRepo
                   value: tekton/pipeline/buildpacks/01/buildpacks.yaml
           EOF
+
+      - name: Wait till pipelinerun finished the build ...
+        run: |
+          TIMEOUT=900   # in seconds
+          INTERVAL=20   # polling interval in seconds
+          ELAPSED=0
+          NAMESPACE=default
+          PIPELINERUN_NAME=buildpacks
+          SUCCEEDED=false
+
+          while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
+            STATUS=$(kubectl get pipelinerun "$PIPELINERUN_NAME" -n "$NAMESPACE" -o jsonpath="{.status.conditions[0].type}" 2>/dev/null)
+
+            if [ "$STATUS" == "Succeeded" ]; then
+              SUCCEEDED=true
+            fi
+
+            sleep "$INTERVAL"
+            ELAPSED=$((ELAPSED + INTERVAL))
+            echo "Elapsed: $ELAPSED - Timeout: $TIMEOUT"
+          done
+
+          if [ "$SUCCEEDED" = true ]; then
+            echo "✅ PipelineRun '$PIPELINERUN_NAME' succeeded"
+            tkn pipelinerun describe -n default buildpacks
+          else
+            echo "❌ PipelineRun '$PIPELINERUN_NAME' did not succeed within $TIMEOUT seconds"
+            exit 1
+          fi
+
+          tkn pipelinerun describe -n default buildpacks
           
-          # Wait for the build
-          kubectl wait --for=condition=Succeeded --timeout=600s PipelineRun/buildpacks
+          #echo "#########################################"
+          #echo "Show pods, pvc, secrets ..."
+          #echo "#########################################"
+          #kubectl get pods -A
+          #kubectl get secrets
+          #kubectl get pvc
+          #
+          #echo "#########################################"
+          #echo "Describe: buildpacks-fetch-repository-pod"
+          #echo "#########################################"
+          #kubectl get pod buildpacks-fetch-repository-pod -oyaml
+          #
+          #echo "#########################################"
+          #echo "Describe: buildpacks-buildpacks-extension-check-pod"
+          #echo "#########################################"
+          #kubectl get pod buildpacks-buildpacks-extension-check-pod -oyaml
+          #
+          #echo "#########################################"
+          #echo "Describe: buildpacks pipelinerun"
+          #echo "#########################################"
+          #kubectl get pipelinerun/buildpacks
+          #kubectl describe pipelinerun buildpacks
+          #
+          #echo "#########################################"
+          #echo "Log Tekton controller"
+          #echo "#########################################"
+          #kubectl logs -n tekton-pipelines -l app.kubernetes.io/part-of=tekton-pipelines
 
-          # Test application
-          .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
+      - name: Image built. We can test it
+        run: |
+          .github/testGreetingApplication.sh $CONTAINER_NAME gitea.cnoe.localtest.me:8443/giteaadmin/$CONTAINER_NAME:1.0
 
-      - name: Log the execution of the pipelinerun
+      - name: Describe pipelinerun
         if: success()
         run: |
           tkn pipelinerun describe
@@ -127,5 +196,28 @@ jobs:
       - name: (Only if it failed) Print Pipeline Task logs
         if: failure()
         run: |
+          echo "#########################################"
+          echo "Show pods, pvc, secrets ..."
+          echo "#########################################"
+          kubectl get pods -A
+          kubectl get pvc
+          kubectl get secrets
+
+          echo "#########################################"
+          echo "Tekton ..."
+          echo "#########################################"
           tkn pipelinerun describe
-          kubectl logs buildpacks-buildpacks-pod --all-containers --ignore-errors
+          tkn pipelinerun logs -n default buildpacks
+
+          echo "#########################################"
+          echo "Pods ..."
+          echo "#########################################"
+
+          POD_NAME=buildpacks-phases-fetch-repository-pod
+          kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors
+
+          POD_NAME=buildpacks-phases-buildpacks-extension-check-pod
+          kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors
+
+          POD_NAME=buildpacks-phases-buildpacks-extension-pod
+          kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors

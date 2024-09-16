@@ -44,3 +44,6 @@ nb-configuration.xml
 .idea/
 /scripts/variables.env
 /scripts/ocp/
+
+.env
+/.tmp/

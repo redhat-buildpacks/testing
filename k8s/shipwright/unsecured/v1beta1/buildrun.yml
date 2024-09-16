@@ -1,7 +1,0 @@
-apiVersion: shipwright.io/v1beta1
-kind: BuildRun
-metadata:
-  generateName: buildpack-quarkus-buildrun-
-spec:
-  build:
-    name: buildpack-quarkus-build

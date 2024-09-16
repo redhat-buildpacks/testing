@@ -80,8 +80,8 @@ jobs:
           # 
           # [stack]
           # id = "io.buildpacks.stacks.ubi8"
-          # build-image = "paketocommunity/build-ubi-base"
-          # run-image = "paketocommunity/run-ubi-base"
+          # build-image = "paketobuildpacks/build-ubi8-base"
+          # run-image = "paketobuildpacks/run-ubi8-base"
           # EOF
           # 
           # pack builder create $BUILDER_IMAGE --config $BUILDER_PATH --publish

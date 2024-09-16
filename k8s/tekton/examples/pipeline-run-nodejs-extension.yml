@@ -9,11 +9,11 @@ spec:
     - name: AppImage
       value: quay.io/ch007m/nodejs-pack-test
     - name: cnbBuilderImage
-      value: paketocommunity/builder-ubi-base:latest
+      value: paketobuildpacks/builder-ubi8-base:latest
     - name: cnbBuildImage
-      value: paketocommunity/build-ubi-base:latest
+      value: paketobuildpacks/build-ubi8-base:latest
     - name: cnbRunImage
-      value: paketocommunity/run-ubi-base:latest
+      value: paketobuildpacks/run-ubi8-base:latest
     - name: cnbBuildEnvVars
       value: []
   serviceAccountName: sa-with-creds
