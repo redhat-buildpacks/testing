@@ -125,11 +125,11 @@ First, create a `Quarkus Hello` example using the following maven command execut
 
 [,bash]
 ----
-mvn io.quarkus.platform:quarkus-maven-plugin:3.14.4:create \
+mvn io.quarkus.platform:quarkus-maven-plugin:3.9.5:create \
   -DprojectGroupId=dev.snowdrop \
   -DprojectArtifactId=quarkus-hello \
   -DprojectVersion=1.0 \
-  -DplatformVersion=3.14.4 \
+  -DplatformVersion=3.9.5 \
   -Dextensions='resteasy,kubernetes,buildpack'
 ----
 
