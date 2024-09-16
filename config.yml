@@ -3,7 +3,7 @@ include:
    # builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.211"
 
    # Red Hat UBI Builder image packaging: Node.js, Quarkus and Java buildpacks
-   builder-image: "paketocommunity/builder-ubi-base:0.0.54"
+   builder-image: "paketocommunity/builder-ubi-base:0.0.92"
 
    # Version needed >= 0.30 to be able to use lifecycle >= 0.17 and to play with extensions
    pack_cli_version: "v0.33.2"

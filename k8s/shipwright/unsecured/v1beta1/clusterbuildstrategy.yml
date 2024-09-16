@@ -20,7 +20,7 @@ spec:
       default: "0.13"
     - name: CNB_BUILDER_IMAGE
       description: Builder image containing the buildpacks
-      default: "paketocommunity/builder-ubi-base:0.0.54"
+      default: "paketocommunity/builder-ubi-base:0.0.92"
     - name: CNB_BUILD_IMAGE
       description: Reference to the current build image in an OCI registry (if used <kaniko-dir> must be provided)
       default: "paketobuildpacks/build-jammy-tiny:latest"

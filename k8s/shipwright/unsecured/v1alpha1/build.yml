@@ -22,7 +22,7 @@ spec:
     #- name: CNB_GROUP_ID
     #  value: "1002"
     - name: CNB_BUILDER_IMAGE
-      value: paketocommunity/builder-ubi-base:0.0.54
+      value: paketocommunity/builder-ubi-base:0.0.92
     - name: CNB_LIFECYCLE_IMAGE
       value: buildpacksio/lifecycle:0.19.3
     - name: RUN_IMAGE

@@ -171,7 +171,7 @@ To validate this scenario top of the existing quarkus-hello project, we will use
 REGISTRY_HOST="kind-registry.local:5000"
 docker rmi ${REGISTRY_HOST}/quarkus-hello:1.0
 pack build ${REGISTRY_HOST}/quarkus-hello:1.0 \
-     --builder paketocommunity/builder-ubi-base:0.0.54 \
+     --builder paketocommunity/builder-ubi-base:0.0.92 \
      --volume $HOME/.m2:/home/cnb/.m2:rw
 ----
 
@@ -257,7 +257,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
-BUILDER_IMAGE=paketocommunity/builder-ubi-base:0.0.54
+BUILDER_IMAGE=paketocommunity/builder-ubi-base:0.0.92
 CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
 CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
 
@@ -609,7 +609,7 @@ BUILD_ID=0 # ID used to generate the following kubernetes label's value: test-01
 # Quarkus runtime
 SOURCE_SUB_PATH="."
 CNB_LOG_LEVEL="debug"
-CNB_BUILDER_IMAGE="paketocommunity/builder-ubi-base:0.0.54"
+CNB_BUILDER_IMAGE="paketocommunity/builder-ubi-base:0.0.92"
 CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
 CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
 
