@@ -133,6 +133,8 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.9.5:create \
   -Dextensions='resteasy,kubernetes,buildpack'
 ----
 
+**Note**: Edit the pom.xml file to change the JDK version from 21 to 17 `<maven.compiler.release>17</maven.compiler.release>`, otherwise the buildpack build will fail
+
 Test the project:
 [,bash]
 ----
@@ -155,6 +157,7 @@ mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
  -Dquarkus.buildpack.jvm-builder-imagepaketocommunity/builder-ubi-base:0.0.92 \
  -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
+ -Dquarkus.buildpack.builder-env.BP_JVM_VERSION="20" \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true
 ----
@@ -163,7 +166,8 @@ mvn package \
 ====
 Quarkus releases <= 3.9 can only build images for platform spec `0.4` and lifecycle `0.17` like this one: https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203.
 
-The `extension` feature, whicxh allows to install OpenJDK instead of Liberica,  is only available since platform `0.10` and lifecycle `0.18`.
+The `extension` feature, which allows to install OpenJDK instead of Liberica, is only available since platform `0.10` and lifecycle `0.18`.
+
 See work in progress to support new platform specs https://github.com/snowdrop/java-buildpack-client/pull/59[here] and quarkus https://github.com/quarkusio/quarkus/pull/41936[PR].
 ====
 
@@ -251,11 +255,29 @@ Don't install the buildpacks-phases version 0.2 from the https://github.com/tekt
 
 [,bash]
 ----
+kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
 ----
 
-Set the following variables:
+Create a dockercfg's secret using your registry credentials
+
+[,bash]
+----
+REG_NAME="https://index.docker.io/v1/"
+REG_USERNAME="<REG_USERNAME>"
+REG_PASSWORD="<REG_USERNAME>"
+kubectl create secret docker-registry dockercfg \
+  --docker-server="${REG_NAME}" \
+  --docker-username="${REG_USERNAME}" \
+  --docker-password="${REG_PASSWORD}"
+
+kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/testing/main/k8s/tekton/examples/sa-with-reg-creds.yml
+----
+
+Set next the following variables:
 
 [,bash]
 ----
@@ -321,6 +343,9 @@ spec:
       - name: pathInRepo
         value: tekton/pipeline/buildpacks/01/buildpacks.yaml
   workspaces:
+    - name: creds-ws
+      secret:
+        secretName: dockercfg
     - name: source-ws
       subPath: source
       persistentVolumeClaim:
