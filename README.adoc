@@ -241,6 +241,15 @@ VM_IP=127.0.0.1
 kubectl create ingress tekton-ui -n tekton-pipelines --class=nginx --rule="tekton-ui.$VM_IP.nip.io/*=tekton-dashboard:9097"
 ----
 
+**Note**: It is needed to patch Tekton you got an `0/1 node error` during the execution of the task cloning the GitHub repository as described https://github.com/tektoncd/pipeline/issues/3545[here]
+[,bash]
+----
+kubectl patch configmap/feature-flags \
+   -n tekton-pipelines \
+   --type merge \
+   -p '{"data":{"disable-affinity-assistant":"true"}}'
+----
+
 When the platform is ready, you can install the needed `Tasks`:
 
 [,bash]
