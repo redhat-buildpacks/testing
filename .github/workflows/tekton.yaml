@@ -42,6 +42,7 @@ jobs:
           # Install the tekton client
           curl -sLO  https://github.com/tektoncd/cli/releases/download/v${{ matrix.tekton-client-version }}/tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.deb
           sudo dpkg -i ./tektoncd-cli-${{ matrix.tekton-client-version }}_Linux-64bit.deb
+          tkn version
           
           # Patching needed on kind as we got an affinity error
           # when workspaces would like to use several PVC
