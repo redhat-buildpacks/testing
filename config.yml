@@ -6,7 +6,7 @@ include:
    builder-image: "paketocommunity/builder-ubi-base:0.0.92"
 
    # Version needed >= 0.30 to be able to use lifecycle >= 0.17 and to play with extensions
-   pack_cli_version: "v0.33.2"
+   pack_cli_version: "v0.35.1"
 
    # Quarkus java parameter
    quarkus_version: "3.14.4"
@@ -23,8 +23,8 @@ include:
 
    # Buildpacks parameters
    lifecycle-image: "buildpacksio/lifecycle:0.20.1"
-   run-image: "paketobuildpacks/run-jammy-tiny:latest"
-   build-image: "paketobuildpacks/build-jammy-tiny:latest"
+   run-image: "paketocommunity/run-ubi-base:0.0.77"
+   build-image: "paketocommunity/build-ubi-base:0.0.77"
 
    # Kind parameter
    kind_sha_commit: "main"

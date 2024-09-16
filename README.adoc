@@ -49,7 +49,7 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | Tool/Image | Version | Tested | Note
 
 | Lifecycle
-| https://github.com/buildpacks/lifecycle/releases/tag/v0.19.3[0.19.3]
+| https://github.com/buildpacks/lifecycle/releases/tag/v0.20.1[0.20.1]
 | Yes
 | -
 
@@ -59,7 +59,7 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | -
 
 | Pack cli
-| https://github.com/buildpacks/pack/releases/tag/v0.33.2[v0.33.2]
+| https://github.com/buildpacks/pack/releases/tag/v0.35.1[v0.35.1]
 | Yes
 | -
 
@@ -71,20 +71,30 @@ The test case covering Tekton https://pipelinesascode.com/[PipelineAsCode] using
 | Paketo Builder Tiny (jammy) builder (DEPRECATED but still needed for Quarkus <= 3.9)
 | https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203[0.0.203]
 | Yes
-| Package lifecycle 0.17.2
+| Package lifecycle 0.20.1
+
+| Paketo Build base ubi image
+| https://github.com/paketo-community/ubi-base-stack/releases/tag/v0.0.77[0.0.77]
+| Yes
+| Base image to be used to build
+
+| Paketo Run base ubi image
+| https://github.com/paketo-community/ubi-base-stack/releases/tag/v0.0.77[0.0.77]
+| Yes
+| Base image to be used to run a container
 
 | Paketo community UBI builder
-| https://github.com/paketo-community/builder-ubi-base/releases/tag/v0.0.54[0.0.54]
+| https://github.com/paketo-community/builder-ubi-base/releases/tag/v0.0.92[0.0.92]
 | Yes
 | Include Node.js, Quarkus Java buildpacks.
 
 | Paketo Node.js Extension for ubi
-| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.3.1[0.3.1]
+| https://github.com/paketo-community/ubi-nodejs-extension/releases/tag/v0.3.4[0.3.4]
 | Yes
 | -
 
 | Paketo Java Extension for ubi
-| https://github.com/paketo-community/ubi-java-extension/releases/tag/v0.1.1[0.1.1]
+| https://github.com/paketo-community/ubi-java-extension/releases/tag/v0.2.0[0.2.0]
 | Yes
 | -
 |===
@@ -137,13 +147,13 @@ In a separate terminal, curl the HTTP endpoint
 curl http://localhost:8080/hello
 ----
 
-To build the container image, do the build using as builder image `paketobuildpacks/builder-jammy-tiny:0.0.203` and pass `+BP_***+` env variables in order to configure properly the Quarkus buildpack build process:
+To build the container image, do the build using the ubi builder image `paketocommunity/builder-ubi-base:0.0.92` and pass `+BP_***+` env variables in order to configure properly the Quarkus buildpack build process:
 
 [,bash]
 ----
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-jammy-tiny:0.0.203 \
+ -Dquarkus.buildpack.jvm-builder-imagepaketocommunity/builder-ubi-base:0.0.92 \
  -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true
@@ -151,8 +161,10 @@ mvn package \
 
 [WARNING]
 ====
-Quarkus releases <= 3.9 can only build images for platform spec `0.4` and lifecycle `0.17` like this one: https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203. The `extension` feature is only available since platform `0.10` and lifecycle `0.18`.
-See work in progress to support new platform specs https://github.com/snowdrop/java-buildpack-client/pull/59[here].
+Quarkus releases <= 3.9 can only build images for platform spec `0.4` and lifecycle `0.17` like this one: https://github.com/paketo-buildpacks/builder-jammy-tiny/releases/tag/v0.0.203.
+
+The `extension` feature, whicxh allows to install OpenJDK instead of Liberica,  is only available since platform `0.10` and lifecycle `0.18`.
+See work in progress to support new platform specs https://github.com/snowdrop/java-buildpack-client/pull/59[here] and quarkus https://github.com/quarkusio/quarkus/pull/41936[PR].
 ====
 
 Next, start the container and curl the endpoint
@@ -258,8 +270,8 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 IMAGE_NAME=kind-registry.local:5000/quarkus-hello
 
 BUILDER_IMAGE=paketocommunity/builder-ubi-base:0.0.92
-CNB_BUILD_IMAGE=paketobuildpacks/build-jammy-tiny:latest
-CNB_RUN_IMAGE=paketobuildpacks/run-jammy-tiny:latest
+CNB_BUILD_IMAGE=paketocommunity/build-ubi-base:0.0.77
+CNB_RUN_IMAGE=paketocommunity/run-ubi-base:0.0.77
 
 kubectl delete PipelineRun/buildpacks-phases
 kubectl delete pvc/ws-pvc
@@ -610,8 +622,8 @@ BUILD_ID=0 # ID used to generate the following kubernetes label's value: test-01
 SOURCE_SUB_PATH="."
 CNB_LOG_LEVEL="debug"
 CNB_BUILDER_IMAGE="paketocommunity/builder-ubi-base:0.0.92"
-CNB_BUILD_IMAGE="paketobuildpacks/build-jammy-tiny:latest"
-CNB_RUN_IMAGE="paketobuildpacks/run-jammy-tiny:latest"
+CNB_BUILD_IMAGE="paketocommunity/build-ubi-base:0.0.77"
+CNB_RUN_IMAGE="paketocommunity/run-ubi-base:0.0.77"
 
 CNB_ENV_VARS='
 "BP_NATIVE_IMAGE=false",

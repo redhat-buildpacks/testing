@@ -26,7 +26,7 @@ spec:
     - name: CNB_LIFECYCLE_IMAGE
       value: buildpacksio/lifecycle:0.20.1
     - name: RUN_IMAGE
-      value: paketobuildpacks/run-jammy-tiny:latest
+      value: paketocommunity/run-ubi-base:0.0.77
     - name: APP_IMAGE
       value: kind-registry.local:5000/quarkus-hello
     - name: PROCESS_TYPE

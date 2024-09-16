@@ -81,7 +81,7 @@ jobs:
               - name: CNB_BUILDER_IMAGE
                 value: ${CNB_BUILDER_IMAGE}
               - name: RUN_IMAGE
-                value: paketobuildpacks/run-jammy-tiny:latest
+                value: paketocommunity/run-ubi-base:0.0.77
               - name: APP_IMAGE
                 value: ${CONTAINER_IMAGE}
               - name: PROCESS_TYPE

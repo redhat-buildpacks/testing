@@ -23,7 +23,7 @@ spec:
       default: "paketocommunity/builder-ubi-base:0.0.92"
     - name: CNB_BUILD_IMAGE
       description: Reference to the current build image in an OCI registry (if used <kaniko-dir> must be provided)
-      default: "paketobuildpacks/build-jammy-tiny:latest"
+      default: "paketocommunity/build-ubi-base:0.0.77"
     - name: CNB_LIFECYCLE_IMAGE
       description: The image to use when executing Lifecycle phases.
       default: "buildpacksio/lifecycle:0.20.1"
