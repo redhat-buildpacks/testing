@@ -155,9 +155,9 @@ To build the container image, do the build using the ubi builder image `paketoco
 ----
 mvn package \
  -Dquarkus.container-image.image=kind-registry.local:5000/quarkus-hello:1.0 \
- -Dquarkus.buildpack.jvm-builder-imagepaketocommunity/builder-ubi-base:0.0.92 \
+ -Dquarkus.buildpack.jvm-builder-image=paketocommunity/builder-ubi-base:0.0.101 \
  -Dquarkus.buildpack.builder-env.BP_NATIVE_IMAGE="false" \
- -Dquarkus.buildpack.builder-env.BP_JVM_VERSION="20" \
+ -Dquarkus.buildpack.builder-env.BP_JVM_VERSION="21" \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true
 ----
