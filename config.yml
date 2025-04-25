@@ -1,30 +1,31 @@
 include:
- - # DEPRECATED: New ubuntu image built top of jammy
-   # builder-image: "paketobuildpacks/builder-jammy-tiny:0.0.211"
-
-   # Red Hat UBI Builder image packaging: Node.js, Quarkus and Java buildpacks
-   builder-image: "paketocommunity/builder-ubi-base:0.0.92"
+ - # Red Hat UBI Builder image packaging: Node.js, Quarkus and Java buildpacks
+   builder-image: ghcr.io/matejvasek/builder-ubi8-base:latest #paketobuildpacks/builder-ubi8-base:0.0.202
 
    # Version needed >= 0.30 to be able to use lifecycle >= 0.17 and to play with extensions
-   pack_cli_version: "v0.35.1"
+   pack_cli_version: "v0.37.0"
 
-   # Quarkus java parameter
-   quarkus_version: "3.9.5"
+   # Quarkus version, branch to be cloned
+   quarkus_version: "3.22"
 
    # Changed ['11', '17'] to '17' as shipwright job reports:
    # Error: The template is not valid. .github/workflows/shipwright.yaml (Line: 34, Col: 25): A sequence was not expected
    java: "17"
 
    # Shipwright and Tekton parameters
-   tekton-version: "v0.61.1"
-   tekton-client-version: "0.38.1"
+   tekton-version: "v0.62.8"
+   tekton-client-version: "0.40.0"
    # Don't support array -> Run kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/Array/release.yaml
-   shipwright-version: "v0.12.0"
+   shipwright-version: "v0.15.6"
 
    # Buildpacks parameters
-   lifecycle-image: "buildpacksio/lifecycle:0.20.1"
-   run-image: "paketocommunity/run-ubi-base:0.0.77"
-   build-image: "paketocommunity/build-ubi-base:0.0.77"
+   lifecycle-image: "buildpacksio/lifecycle:0.20.8"
+   run-image: "paketobuildpacks/run-ubi8-base:0.0.111"
+   build-image: "paketobuildpacks/build-ubi8-base:0.0.111"
+   insecure-registries: "my-gitea-http.gitea.svc.cluster.local:3000"
 
    # Kind parameter
    kind_sha_commit: "main"
+
+   # Idpbuilder
+   idpbuilder_version: "v0.9.0"

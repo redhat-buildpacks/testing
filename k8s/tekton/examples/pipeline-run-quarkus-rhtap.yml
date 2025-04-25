@@ -22,9 +22,15 @@ spec:
     - name: cnbBuilderImage
       value: paketobuildpacks/builder-jammy-tiny:0.0.211
     - name: cnbBuildImage
+<<<<<<< HEAD
+      value: paketobuildpacks/build-ubi8-base:0.0.77
+    - name: cnbRunImage
+      value: paketobuildpacks/run-ubi8-base:0.0.77
+=======
       value: paketocommunity/build-ubi-base:0.0.77
     - name: cnbRunImage
       value: paketocommunity/run-ubi-base:0.0.77
+>>>>>>> main
     - name: cnbBuildEnvVars
       value:
         - "BP_NATIVE_IMAGE=false"

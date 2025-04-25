@@ -9,6 +9,10 @@ on:
       - '*.adoc'        # Ignores .adoc files at the root of the repository
       - '*.md'          # Ignores .md files at the root of the repository
       - '**/*.md'       # Ignores .md files within subdirectories
+
+env:
+  IDPCLUSTER_NAME: idplatform
+
 jobs:
   configure-matrix:
     uses: ./.github/workflows/configure.yaml
@@ -28,33 +32,45 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
 
-      - name: Setup Kind with Registry
+      - name: Install idpbuilder
         run: |
-          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/kind.sh" | bash -s install
-          curl -s -L "https://raw.githubusercontent.com/snowdrop/k8s-infra/${{ matrix.kind_sha_commit }}/kind/registry.sh" | bash -s install --registry-name kind-registry.local
+          version=${{ matrix.idpbuilder_version }}
+          curl -L -o ./idpbuilder.tar.gz "https://github.com/cnoe-io/idpbuilder/releases/download/${version}/idpbuilder-$(uname | awk '{print tolower($0)}')-$(uname -m | sed 's/x86_64/amd64/').tar.gz"
+          tar xzf idpbuilder.tar.gz
+          sudo mv ./idpbuilder /usr/local/bin/
+          idpbuilder version
 
-      - name: Setup Tekton & Shipwright
+      - name: Create an IDP cluster and install the tekton package
         run: |
-          kubectl create -f https://github.com/tektoncd/pipeline/releases/download/${{ matrix.tekton-version }}/release.yaml
-          kubectl wait deployment -n tekton-pipelines tekton-pipelines-controller --for condition=Available=True --timeout=120s
-          kubectl wait deployment -n tekton-pipelines tekton-pipelines-webhook --for condition=Available=True --timeout=120s
-          
+          PACKAGES_DIR=$(pwd)/.github/idp
+          idpbuilder create \
+            --name $IDPCLUSTER_NAME \
+            --dev-password \
+            -p $PACKAGES_DIR/tekton
+
+      - name: Setup Shipwright
+        run: |
           kubectl create -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
           kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=120s
-          
-          curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/v0.12.0/hack/setup-webhook-cert.sh | bash
+
+          curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/${{ matrix.shipwright-version }}/hack/setup-webhook-cert.sh | bash
           kubectl wait deployment -n shipwright-build shipwright-build-webhook --for condition=Available=True --timeout=120s
 
       - name: Test Quarkus Getting Started using ${{ matrix.builder-image }}
         run: |
           CONTAINER_NAME=quarkus-shipwright-hello
-          CONTAINER_IMAGE=kind-registry.local:5000/$CONTAINER_NAME:1.0
+          CONTAINER_IMAGE=my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/$CONTAINER_NAME:1.0
           QUARKUS_VERSION=${{ matrix.quarkus_version }}
           CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
-          
-          kubectl create -f ./k8s/shipwright/unsecured/v1beta1/pvc.yml
-          kubectl create -f ./k8s/shipwright/unsecured/v1beta1/clusterbuildstrategy.yml
-          
+
+          kubectl get secret -n default idpbuilder-cert -ojson | jq -r '.data."ca.crt"' | base64 -d > ca.cert
+          kubectl create configmap certificate-registry --from-file=ca.cert
+
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/shipwright/secret-dockercfg.yml
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/shipwright/sa.yml
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/shipwright/pvc.yml
+          kubectl apply -f $GITHUB_WORKSPACE/k8s/shipwright/clusterbuildstrategy.yml
+
           cat<<EOF | kubectl apply -f -
           apiVersion: shipwright.io/v1beta1
           kind: Build
@@ -65,53 +81,66 @@ jobs:
               type: Git
               git:
                 url: https://github.com/quarkusio/quarkus-quickstarts
-                revision: ${QUARKUS_VERSION}
+                revision: "${QUARKUS_VERSION}"
               contextDir: getting-started
             paramValues:
               - name: SOURCE_SUBPATH
                 value: getting-started
-              - name: CNB_LOG_LEVEL
-                value: "info"
-              - name: CNB_EXPERIMENTAL_MODE
-                value: warn
-              #- name: CNB_USER_ID
-              #  value: "1000"
-              #- name: CNB_GROUP_ID
-              #  value: "1000"
+              - name: CNB_PLATFORM_API
+                value: "0.13"
               - name: CNB_BUILDER_IMAGE
                 value: ${CNB_BUILDER_IMAGE}
-              - name: RUN_IMAGE
-                value: paketocommunity/run-ubi-base:0.0.77
+              - name: CNB_LIFECYCLE_IMAGE
+                value: buildpacksio/lifecycle:0.20.8
+              - name: CNB_LOG_LEVEL
+                value: "info"
+              - name: CNB_USER_ID
+                value: "1002"
+              - name: CNB_GROUP_ID
+                value: "1000"
+              - name: CNB_INSECURE_REGISTRIES
+                value: my-gitea-http.gitea.svc.cluster.local:3000 
+              - name: CNB_RUN_IMAGE
+                value: paketobuildpacks/run-ubi8-base:0.0.111
+              - name: CNB_BUILD_IMAGE
+                value: paketobuildpacks/build-ubi8-base:0.0.111
               - name: APP_IMAGE
                 value: ${CONTAINER_IMAGE}
               - name: PROCESS_TYPE
                 value: ""
               - name: ENV_VARS
                 values:
-                  - value: BP_NATIVE_IMAGE=false
+                  - value: BP_JVM_VERSION=21
             strategy:
               name: buildpacks
               kind: ClusterBuildStrategy
             output:
               image: $CONTAINER_IMAGE
           EOF
-          kubectl create -f ./k8s/shipwright/unsecured/v1beta1/buildrun.yml
-          
+          kubectl create -f $GITHUB_WORKSPACE/k8s/shipwright/buildrun.yml
+
           # Wait for the build
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
-          kubectl wait --for=condition=Succeeded --timeout=900s $BUILDRUN_NAME
+          kubectl wait --for=condition=Succeeded --timeout=300s $BUILDRUN_NAME
 
           # Test application
-          .github/testGreetingApplication.sh $CONTAINER_NAME localhost:5000/$CONTAINER_NAME:1.0
+          .github/testGreetingApplication.sh $CONTAINER_NAME gitea.cnoe.localtest.me:8443/giteaadmin/$CONTAINER_NAME:1.0
 
-      - name: Print Taskrun's Pod logs no matter if it fails or success
+      - name: Print resources no matter if it fails or success
         if: failure() || success()
         run: |
+          echo "Build resource(s)"
           kubectl get build -A
+
+          echo "BuildRun resource(s)"
           kubectl get buildrun -A
-          
+
+          echo "BuildRun describe resource"
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           kubectl describe $BUILDRUN_NAME
-          
+
+      - name: Print Log of the buildrun
+        if: failure()
+        run: |
           POD_NAME=$(kubectl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           kubectl logs $POD_NAME --all-containers

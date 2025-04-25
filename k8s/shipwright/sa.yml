@@ -3,6 +3,6 @@ kind: ServiceAccount
 metadata:
   name: shipwright
 secrets:
-  - name: registry-creds
+  - name: dockercfg
 imagePullSecrets:
-  - name: registry-creds
+  - name: dockercfg

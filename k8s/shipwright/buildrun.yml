@@ -1,0 +1,14 @@
+apiVersion: shipwright.io/v1beta1
+kind: BuildRun
+metadata:
+  generateName: buildpack-quarkus-buildrun-
+  labels:
+    build.shipwright.io/name: buildpack-quarkus-build
+spec:
+  build:
+    name: buildpack-quarkus-build
+  serviceAccount: shipwright
+  volumes:
+    - name: cache-dir
+      persistentVolumeClaim:
+        claimName: ws-shipwright-pvc

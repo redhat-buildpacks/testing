@@ -122,7 +122,7 @@ cd nodejs-rest-http
 
 pack build quay.io/ch007m/nodejs-pack-test \
   --path . \
-  --builder paketocommunity/builder-ubi-base \
+  --builder paketobuildpacks/builder-ubi8-base \
   --publish
 ----
 

@@ -1,20 +1,20 @@
 pack builder create builder --config builder.toml -v
 Pro tip: use --targets flag OR [[targets]] in builder.toml to specify the desired platform
-Pulling image index.docker.io/paketocommunity/run-ubi-base:latest
+Pulling image index.docker.io/paketobuildpacks/run-ubi8-base:latest
 fb168a0cbc3f: Already exists
 5d420b0b11f0: Already exists
 a30895ae170c: Already exists
 1418e2c6c90e: Download complete
-Pulling image docker.io/paketocommunity/build-ubi-base:0.0.76
+Pulling image docker.io/paketobuildpacks/build-ubi8-base:0.0.76
 3f059f49cab1: Already exists
 fb168a0cbc3f: Already exists
 5a40506acb6a: Already exists
 8248b9c920fb: Already exists
 fe1a386de971: Already exists
 32e9f22fa1cc: Download complete
-Creating builder builder from build-image docker.io/paketocommunity/build-ubi-base:0.0.76
+Creating builder builder from build-image docker.io/paketobuildpacks/build-ubi8-base:0.0.76
 Warning: failed to find a lifecycle binary for requested architecture amd64, defaulting to x86-64
-Using cached version of https://github.com/buildpacks/lifecycle/releases/download/v0.20.1/lifecycle-v0.20.1+linux.x86-64.tgz
+Using cached version of https://github.com/buildpacks/lifecycle/releases/download/v0.20.7/lifecycle-v0.20.7+linux.x86-64.tgz
 Looking up buildpack @0.1.1
 Downloading buildpack for platform: linux/amd64
 Downloading buildpack from image: docker.io/paketocommunity/ubi-java-buildpack:0.1.1
