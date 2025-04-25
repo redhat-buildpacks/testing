@@ -45,9 +45,6 @@ spec:
       default: "info"
     - name: APP_IMAGE
       description: The name of where to store the app image.
-    - name: RUN_IMAGE
-      description: Reference to a run image to use.
-      default: ""
     - name: CACHE_IMAGE
       description: The name of the persistent app cache image (if no cache workspace is provided).
       default: ""

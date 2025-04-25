@@ -48,8 +48,9 @@ jobs:
             --name $IDPCLUSTER_NAME \
             --dev-password \
             -p $PACKAGES_DIR/tekton
-          
+
           idpbuilder version
+          
           kubectl rollout status -n argocd deployment argocd-server --timeout=90s
           kubectl rollout status -n gitea deployment  my-gitea      --timeout=90s
 
@@ -155,7 +156,7 @@ jobs:
           fi
 
           tkn pipelinerun describe -n default buildpacks
-          
+
           #echo "#########################################"
           #echo "Show pods, pvc, secrets ..."
           #echo "#########################################"

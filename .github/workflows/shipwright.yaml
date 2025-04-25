@@ -52,7 +52,7 @@ jobs:
         run: |
           kubectl create -f https://github.com/shipwright-io/build/releases/download/${{ matrix.shipwright-version }}/release.yaml
           kubectl wait deployment -n shipwright-build shipwright-build-controller --for condition=Available=True --timeout=120s
-          
+
           curl --silent --location https://raw.githubusercontent.com/shipwright-io/build/${{ matrix.shipwright-version }}/hack/setup-webhook-cert.sh | bash
           kubectl wait deployment -n shipwright-build shipwright-build-webhook --for condition=Available=True --timeout=120s
 
@@ -62,7 +62,7 @@ jobs:
           CONTAINER_IMAGE=my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/$CONTAINER_NAME:1.0
           QUARKUS_VERSION=${{ matrix.quarkus_version }}
           CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
-          
+
           kubectl get secret -n default idpbuilder-cert -ojson | jq -r '.data."ca.crt"' | base64 -d > ca.cert
           kubectl create configmap certificate-registry --from-file=ca.cert
 
@@ -118,7 +118,7 @@ jobs:
               image: $CONTAINER_IMAGE
           EOF
           kubectl create -f $GITHUB_WORKSPACE/k8s/shipwright/buildrun.yml
-          
+
           # Wait for the build
           BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
           kubectl wait --for=condition=Succeeded --timeout=300s $BUILDRUN_NAME
@@ -129,10 +129,10 @@ jobs:
       - name: Print resources no matter if it fails or success
         if: failure() || success()
         run: |
-          echo "Build resurce(s)"
+          echo "Build resource(s)"
           kubectl get build -A
 
-          echo "BuildRun resurce(s)"
+          echo "BuildRun resource(s)"
           kubectl get buildrun -A
 
           echo "BuildRun describe resource"

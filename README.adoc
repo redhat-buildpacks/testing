@@ -66,22 +66,22 @@ This project currently verifies the following scenario:
 | Quarkus Buildpack
 | https://quarkus.io/guides/container-image#buildpack[3.22]
 | Yes
-| - !
+| -
 
-| Paketo Build base ubi image
+| Paketo Build base ubi8 image
 | https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.111[0.0.111]
 | Yes
 | Base image to be used to build
 
-| Paketo Run base ubi image
+| Paketo Run base ubi8 image
 | https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.111[0.0.111]
 | Yes
-| Base image to be used to run a container
+| Image to be used to run an application
 
 | Paketo community UBI builder
 | https://github.com/paketo-buildpacks/builder-ubi8-base/releases/tag/v0.0.202[0.0.202]
 | Yes
-| Include Node.js, Quarkus Java Buildpacks.
+| Include Node.js, Quarkus Java Buildpack.
 
 | Paketo Node.js Extension for ubi
 | https://github.com/paketo-buildpacks/ubi-nodejs-extension/releases/tag/v1.3.1[1.3.1]
@@ -146,7 +146,7 @@ In a separate terminal, curl the HTTP endpoint
 curl http://localhost:8080/hello
 ----
 
-To build the container image, do the build using the ubi builder image `paketobuildpacks/builder-ubi8-base:0.0.122` and pass `+BP_***+` env variables in order to configure properly the Quarkus buildpack build process:
+To build the container image, do the build using the `ubi8` builder image `paketobuildpacks/builder-ubi8-base:0.0.122` and pass `+BP_***+` env variable(s) in order to configure properly the Quarkus Buildpack build process:
 
 [,bash]
 ----
@@ -155,7 +155,7 @@ mvn clean package \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true \
  -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-ubi8-base:0.0.202 \
- -Dquarkus.buildpack.builder-env.BP_JVM_VERSION="21" \
+ -Dquarkus.buildpack.builder-env.BP_JVM_VERSION=21 \
  -Dquarkus.buildpack.use-daemon=true \
  -Dquarkus.buildpack.registry-user."gitea.cnoe.localtest.me:8443"=giteaAdmin \
  -Dquarkus.buildpack.registry-password."gitea.cnoe.localtest.me:8443"=developer
@@ -173,6 +173,7 @@ To get the debug messages and configure the logger `slf4j`, add the following qu
  -Dorg.slf4j.simpleLogger.log.io.quarkus.container.image.buildpack.deployment=DEBUG \
  -Dorg.slf4j.simpleLogger.log.dev.snowdrop.buildpack.docker=DEBUG
 ----
+====
 
 Next, start the container and curl the endpoint
 
@@ -335,13 +336,13 @@ podman run -i --rm -p 8080:8080 gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
-To use shipwright, it is needed to have a k8s cluster, a container registry and tekton installed (>= v0.48.+)
+To use shipwright, it is needed to have a k8s cluster, a container registry and Tekton installed (>= v0.60)
 
-Next, deploy the release `0.12` of shipwright
+
+Next, deploy the release `0.15.x` of shipwright
 
 [,bash]
 ----
-// kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.12.0/release.yaml
 kubectl create -f https://github.com/shipwright-io/build/releases/download/v0.15.6/release.yaml
 ----
 
@@ -360,7 +361,6 @@ kubectl apply -f k8s/shipwright/clusterbuildstrategy.yml
 ----
 
 Create a `Build` CR using as source the Quarkus Getting started repository:
-====
 
 [,bash]
 ----
@@ -465,4 +465,3 @@ kubectl create secret generic dockercfg \
 
 kubectl delete -f $(pwd)/.tmp/task-pod-1.yaml; kubectl apply -f $(pwd)/.tmp/task-pod-1.yaml
 ----
-

@@ -47,3 +47,4 @@ nb-configuration.xml
 
 .env
 /.tmp/
+/quarkus-hello/
