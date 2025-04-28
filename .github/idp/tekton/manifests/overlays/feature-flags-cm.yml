@@ -18,7 +18,7 @@ data:
   enable-concise-resolver-syntax: "false"
   enable-param-enum: "false"
   enable-provenance-in-status: "true"
-  enable-step-actions: "false"
+  enable-step-actions: "true" # Enable to add when conditions in steps's task
   enable-tekton-oci-bundles: "false"
   enforce-nonfalsifiability: "none"
   keep-pod-on-cancel: "false"
