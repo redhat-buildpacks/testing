@@ -127,7 +127,7 @@ mvn io.quarkus.platform:quarkus-maven-plugin:3.21.3:create \
   -DprojectGroupId=dev.snowdrop \
   -DprojectArtifactId=quarkus-hello \
   -DprojectVersion=1.0 \
-  -DplatformVersion=3.22.0.CR1 \
+  -DplatformVersion=3.22.1 \
   -Dextensions='resteasy,kubernetes,buildpack'
 ----
 
