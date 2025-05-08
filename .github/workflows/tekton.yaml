@@ -50,7 +50,7 @@ jobs:
             -p $PACKAGES_DIR/tekton
 
           idpbuilder version
-          
+
           kubectl rollout status -n argocd deployment argocd-server --timeout=90s
           kubectl rollout status -n gitea deployment  my-gitea      --timeout=90s
 
@@ -100,8 +100,6 @@ jobs:
                 params:
                   - name: url
                     value: ${{ matrix.quarkus_samples_repo }}
-                  - name: subdirectory
-                    value: ""
                   - name: deleteExisting
                     value: "true"
 
@@ -165,13 +163,13 @@ jobs:
 
           if [ "$SUCCEEDED" = true ]; then
             echo "✅ PipelineRun '$PIPELINERUN_NAME' succeeded"
-            tkn pipelinerun describe -n default buildpacks
+            tkn pipelinerun describe -n default $PIPELINERUN_NAME
           else
             echo "❌ PipelineRun '$PIPELINERUN_NAME' did not succeed within $TIMEOUT seconds"
             exit 1
           fi
 
-          tkn pipelinerun describe -n default buildpacks
+          tkn pipelinerun describe -n default $PIPELINERUN_NAME
 
           #echo "#########################################"
           #echo "Show pods, pvc, secrets ..."
