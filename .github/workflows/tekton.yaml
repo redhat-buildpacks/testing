@@ -143,7 +143,7 @@ jobs:
       - name: Wait till pipelinerun finished the build ...
         run: |
           TIMEOUT=900   # in seconds
-          INTERVAL=20   # polling interval in seconds
+          INTERVAL=10   # polling interval in seconds
           ELAPSED=0
           NAMESPACE=default
           PIPELINERUN_NAME=buildpacks

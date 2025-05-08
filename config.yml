@@ -1,6 +1,6 @@
 include:
  - # Red Hat UBI Builder image packaging: Node.js, Quarkus and Java buildpacks
-   builder-image: ghcr.io/matejvasek/builder-ubi8-base:latest #paketobuildpacks/builder-ubi8-base:0.0.202
+   builder-image: paketobuildpacks/builder-ubi8-base:0.1.0
 
    # Version needed >= 0.30 to be able to use lifecycle >= 0.17 and to play with extensions
    pack_cli_version: "v0.37.0"
