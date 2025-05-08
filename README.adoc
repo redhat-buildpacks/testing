@@ -254,8 +254,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-hello
 
-#BUILDER_IMAGE=paketobuildpacks/builder-ubi8-base:0.0.207 when OUT !!!
-BUILDER_IMAGE=ghcr.io/matejvasek/builder-ubi8-base:latest
+CNB_BUILDER_IMAGE=paketobuildpacks/builder-ubi8-base:0.1.0
 CNB_INSECURE_REGISTRIES=my-gitea-http.gitea.svc.cluster.local:3000
 
 echo "apiVersion: tekton.dev/v1
@@ -424,8 +423,7 @@ Enjoy !
 The instructions described hereafter should help to resolve the issue when lifecycle access the gitea registry inside a pod
 [,bash]
 ----
-#set -x BUILDER paketobuildpacks/builder-ubi8-base:0.0.202
-set -x BUILDER ghcr.io/matejvasek/builder-ubi8-base:latest
+set -x BUILDER paketobuildpacks/builder-ubi8-base:0.1.0
 
 echo "Test 1 using patched lifecycle, insecure registry define & CNB_REGISTRY_AUTH - OK"
 podman run -it \
