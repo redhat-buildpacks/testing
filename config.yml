@@ -7,6 +7,8 @@ include:
 
    # Quarkus version, branch to be cloned
    quarkus_version: "3.22"
+   quarkus_samples_repo: "https://github.com/quarkusio/quarkus-quickstarts.git"
+   repo_subpath: "getting-started"
 
    # Changed ['11', '17'] to '17' as shipwright job reports:
    # Error: The template is not valid. .github/workflows/shipwright.yaml (Line: 34, Col: 25): A sequence was not expected

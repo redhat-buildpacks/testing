@@ -80,51 +80,69 @@ jobs:
           cat <<EOF | kubectl apply -f -
           ---
           apiVersion: tekton.dev/v1
+          kind: Pipeline
+          metadata:
+            name: buildpacks
+          spec:
+            workspaces:
+              - name: source-ws
+            tasks:
+              - name: fetch-repository
+                taskRef:
+                  resolver: git
+                  params:
+                    - name: url
+                      value: https://github.com/tektoncd/catalog.git
+                    - name: revision
+                      value: main
+                    - name: pathInRepo
+                      value: task/git-clone/0.9/git-clone.yaml
+                workspaces:
+                  - name: output
+                    workspace: source-ws
+                params:
+                  - name: url
+                    value: ${{ matrix.quarkus_samples_repo }}
+                  - name: subdirectory
+                    value: ""
+                  - name: deleteExisting
+                    value: "true"
+
+              - name: buildpacks-phases
+                taskRef:
+                  name: buildpacks-phases
+                runAfter:
+                  - fetch-repository
+                workspaces:
+                  - name: source
+                    workspace: source-ws
+                params:
+                  - name: APP_IMAGE
+                    value: ${CONTAINER_IMAGE}
+                  - name: SOURCE_SUBPATH
+                    value: ${{ matrix.repo_subpath }}
+                  - name: CNB_BUILDER_IMAGE
+                    value: ${{ matrix.builder-image }}
+                  - name: CNB_INSECURE_REGISTRIES
+                    value: ${{ matrix.insecure-registries }}
+                  - name: CNB_ENV_VARS
+                    value:
+                      - BP_JVM_VERSION=21
+          ---
+          apiVersion: tekton.dev/v1
           kind: PipelineRun
           metadata:
             name: buildpacks
           spec:
             taskRunTemplate:
               serviceAccountName: sa-with-creds
-            params:
-              - name: gitRepo
-                value: https://github.com/quarkusio/quarkus-quickstarts.git
-              - name: sourceSubPath
-                value: getting-started
-              - name: AppImage
-                value: ${CONTAINER_IMAGE}
-              - name: cnbBuilderImage
-                value: ${{ matrix.builder-image }}
-              - name: cnbBuildImage
-                value: ${{ matrix.build-image }}
-              - name: cnbRunImage
-                value: ${{ matrix.run-image }}
-              - name : cnbInsecureRegistries
-                value: ${{ matrix.insecure-registries }}
-              - name: cnbBuildEnvVars
-                value:
-                  - BP_JVM_VERSION=21
+            pipelineRef:
+              name: buildpacks
             workspaces:
-            - name: creds-ws
-              secret:
-                secretName: dockercfg
             - name: source-ws
               subPath: source
               persistentVolumeClaim:
                 claimName: ws-pvc
-            - name: cache-ws
-              subPath: cache
-              persistentVolumeClaim:
-                claimName: ws-pvc
-            pipelineRef:
-              resolver: git
-              params:
-                - name: url
-                  value: https://github.com/redhat-buildpacks/catalog.git
-                - name: revision
-                  value: main
-                - name: pathInRepo
-                  value: tekton/pipeline/buildpacks/01/buildpacks.yaml
           EOF
 
       - name: Wait till pipelinerun finished the build ...
@@ -171,11 +189,6 @@ jobs:
           #kubectl get pod buildpacks-fetch-repository-pod -oyaml
           #
           #echo "#########################################"
-          #echo "Describe: buildpacks-buildpacks-extension-check-pod"
-          #echo "#########################################"
-          #kubectl get pod buildpacks-buildpacks-extension-check-pod -oyaml
-          #
-          #echo "#########################################"
           #echo "Describe: buildpacks pipelinerun"
           #echo "#########################################"
           #kubectl get pipelinerun/buildpacks
@@ -219,7 +232,4 @@ jobs:
           kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors
 
           POD_NAME=buildpacks-phases-buildpacks-extension-check-pod
-          kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors
-
-          POD_NAME=buildpacks-phases-buildpacks-extension-pod
           kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors
