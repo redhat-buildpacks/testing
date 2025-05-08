@@ -215,25 +215,15 @@ idpbuilder create --dev-password --name buildpack \
 
 When the platform is ready, you should be able to access the Tekton UI at the following address: `https://tekton-ui.cnoe.localtest.me:8443/`. You can verify if Tekton has been well installed using the Argo CD console: `https://argocd.cnoe.localtest.me:8443/`
 
-Deploy now the different tasks or resources that we need to build an application:
-
-[,bash]
-----
-kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
-----
-
-[WARNING]
-====
-Don't install the buildpacks-phases version 0.2 from the https://github.com/tektoncd/catalog/tree/main/task/buildpacks-phases[catalog] as it is outdated and do not work with lifecycle >= 1.17 supporting the `extension` mechanism
-====
+Deploy now the different resources that we need to build an application:
 
 [,bash]
 ----
 kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
-kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+kubectl delete -f https://raw.githubusercontent.com/ch007m/fork-tekton-catalog/29783777be4969e40c3af42eb318eeee7d17e46a/task/buildpacks-phases/0.3/buildpacks-phases.yaml
 
 kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
-kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+kubectl apply -f https://raw.githubusercontent.com/ch007m/fork-tekton-catalog/29783777be4969e40c3af42eb318eeee7d17e46a/task/buildpacks-phases/0.3/buildpacks-phases.yaml
 ----
 
 Create a dockercfg's secret using the gitea registry credentials to access it and link it to the ServiceAccount that Tekton will use.
@@ -264,62 +254,76 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-hello
 
-#BUILDER_IMAGE=paketobuildpacks/builder-ubi8-base:0.0.202 -> Use 0.0.203 when out as it fixes the issue to access gitea using HTTP protocol
+#BUILDER_IMAGE=paketobuildpacks/builder-ubi8-base:0.0.207 when OUT !!!
 BUILDER_IMAGE=ghcr.io/matejvasek/builder-ubi8-base:latest
-CNB_BUILD_IMAGE=paketobuildpacks/build-ubi8-base:0.0.111
-CNB_RUN_IMAGE=paketobuildpacks/run-ubi8-base:0.0.111
 CNB_INSECURE_REGISTRIES=my-gitea-http.gitea.svc.cluster.local:3000
 
 echo "apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: buildpacks
+spec:
+  workspaces:
+    - name: source-ws
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/tektoncd/catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: task/git-clone/0.9/git-clone.yaml
+      workspaces:
+        - name: output
+          workspace: source-ws
+      params:
+        - name: url
+          value: ${{ matrix.quarkus_samples_repo }}
+        - name: subdirectory
+          value: ""
+        - name: deleteExisting
+          value: "true"
+
+    - name: buildpacks-phases
+      taskRef:
+        name: buildpacks-phases
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: source-ws
+      params:
+        - name: APP_IMAGE
+          value: ${CONTAINER_IMAGE}
+        - name: SOURCE_SUBPATH
+          value: "getting-started"
+        - name: CNB_BUILDER_IMAGE
+          value: ${CNB_BUILDER_IMAGE}
+        - name: CNB_INSECURE_REGISTRIES
+          value: ${CNB_INSECURE_REGISTRIES}
+        - name: CNB_LOG_LEVEL
+          value: ${CNB_LOG_LEVEL}
+        - name: CNB_ENV_VARS
+          value:
+            - BP_JVM_VERSION=21
+---
+apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: buildpacks-phases
-  labels:
-    app.kubernetes.io/description: buildpack-pipeline-run
+  name: buildpacks
 spec:
   taskRunTemplate:
     serviceAccountName: sa-with-creds
-  params:
-    - name: gitRepo
-      value: https://github.com/quarkusio/quarkus-quickstarts.git
-    - name: sourceSubPath
-      value: getting-started
-    - name: AppImage
-      value: $IMAGE_NAME
-    - name: cnbBuilderImage
-      value: $BUILDER_IMAGE
-    - name: cnbBuildImage
-      value: $CNB_BUILD_IMAGE
-    - name: cnbLogLevel
-      value: $CNB_LOG_LEVEL
-    - name: cnbRunImage
-      value: $CNB_RUN_IMAGE
-    - name : cnbInsecureRegistries
-      value: $CNB_INSECURE_REGISTRIES
-    - name: cnbBuildEnvVars
-      value:
-        - BP_JVM_VERSION=21
   pipelineRef:
-    resolver: git
-    params:
-      - name: url
-        value: https://github.com/redhat-buildpacks/catalog.git
-      - name: revision
-        value: main
-      - name: pathInRepo
-        value: tekton/pipeline/buildpacks/01/buildpacks.yaml
+    name: buildpacks
   workspaces:
-    - name: creds-ws
-      secret:
-        secretName: dockercfg
-    - name: source-ws
-      subPath: source
-      persistentVolumeClaim:
-        claimName: ws-pvc
-    - name: cache-ws
-      subPath: cache
-      persistentVolumeClaim:
-        claimName: ws-pvc" | kubectl apply -f -
+  - name: source-ws
+    subPath: source
+    persistentVolumeClaim:
+      claimName: ws-pvc | kubectl apply -f -
 ----
 
 Follow the execution of the pipeline using the dashboard: `https://tekton-ui.cnoe.localtest.me:8443/#/namespaces/default/pipelineruns` or using the client: `tkn pipelinerun logs -f`
