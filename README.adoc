@@ -43,7 +43,7 @@ This project currently verifies the following scenario:
 | Tool/Image | Version | Tested | Note
 
 | Lifecycle
-| https://github.com/buildpacks/lifecycle/releases/tag/v0.20.7[0.20.7]
+| https://github.com/buildpacks/lifecycle/releases/tag/v0.20.9[0.20.9]
 | Yes
 | -
 
@@ -68,12 +68,12 @@ This project currently verifies the following scenario:
 | -
 
 | Paketo Build base ubi8 image
-| https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.111[0.0.111]
+| https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.114[0.0.114]
 | Yes
 | Base image to be used to build
 
 | Paketo Run base ubi8 image
-| https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.111[0.0.111]
+| https://github.com/paketo-buildpacks/ubi8-base-stack/releases/tag/v0.0.114[0.0.114]
 | Yes
 | Image to be used to run an application
 
@@ -434,7 +434,7 @@ podman run -it \
   /cnb/lifecycle/analyzer \
   -log-level=debug \
   -layers=/layers \
-  -run-image=paketobuildpacks/run-ubi8-base:0.0.111 \
+  -run-image=paketobuildpacks/run-ubi8-base:0.0.114 \
   -uid=1002 \
   -gid=1000 \
   -insecure-registry=gitea.cnoe.localtest.me:8443 \
@@ -448,7 +448,7 @@ podman run -it \
   /cnb/lifecycle/analyzer \
   -log-level=debug \
   -layers=/layers \
-  -run-image=paketobuildpacks/run-ubi8-base:0.0.111 \
+  -run-image=paketobuildpacks/run-ubi8-base:0.0.114 \
   -uid=1002 \
   -gid=1000 \
   -insecure-registry=gitea.cnoe.localtest.me:8443 \

@@ -21,9 +21,9 @@ include:
    shipwright-version: "v0.15.6"
 
    # Buildpacks parameters
-   lifecycle-image: "buildpacksio/lifecycle:0.20.8"
-   run-image: "paketobuildpacks/run-ubi8-base:0.0.111"
-   build-image: "paketobuildpacks/build-ubi8-base:0.0.111"
+   lifecycle-image: "buildpacksio/lifecycle:0.20.9"
+   run-image: "paketobuildpacks/run-ubi8-base:0.0.114"
+   build-image: "paketobuildpacks/build-ubi8-base:0.0.114"
    insecure-registries: "my-gitea-http.gitea.svc.cluster.local:3000"
 
    # Kind parameter
