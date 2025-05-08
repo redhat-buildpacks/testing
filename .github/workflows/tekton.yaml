@@ -67,9 +67,10 @@ jobs:
           kubectl rollout status deployment tekton-events-controller -n tekton-pipelines --timeout=90s
           #kubectl rollout status deployment tekton-pipelines-remote-resolvers -n tekton-pipelines-resolvers --timeout=90s
 
-          kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
-          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
-          kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+          #kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml
+          #kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
+          #kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml
+          kubectl apply -f https://raw.githubusercontent.com/ch007m/fork-tekton-catalog/29783777be4969e40c3af42eb318eeee7d17e46a/task/buildpacks-phases/0.3/buildpacks-phases.yaml
           kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/secret-dockercfg.yml
           kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/sa-with-reg-creds.yml
           kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/ws-pvc.yml
