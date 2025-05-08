@@ -142,7 +142,7 @@ jobs:
 
       - name: Wait till pipelinerun finished the build ...
         run: |
-          TIMEOUT=900   # in seconds
+          TIMEOUT=500   # in seconds
           INTERVAL=10   # polling interval in seconds
           ELAPSED=0
           NAMESPACE=default
@@ -223,8 +223,8 @@ jobs:
           echo "Pods ..."
           echo "#########################################"
 
-          POD_NAME=buildpacks-phases-fetch-repository-pod
+          POD_NAME=buildpacks-fetch-repository-pod
           kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors
 
-          POD_NAME=buildpacks-phases-buildpacks-extension-check-pod
+          POD_NAME=buildpacks-buildpacks-phases-pod
           kubectl get pod $POD_NAME >/dev/null 2>&1 && kubectl logs $POD_NAME --all-containers --ignore-errors
