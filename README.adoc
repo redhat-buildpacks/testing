@@ -267,14 +267,10 @@ spec:
   tasks:
     - name: fetch-repository
       taskRef:
-        resolver: git
+        resolver: http
         params:
-          - name: url
-            value: https://github.com/tektoncd/catalog.git
-          - name: revision
-            value: main
-          - name: pathInRepo
-            value: task/git-clone/0.9/git-clone.yaml
+        - name: url
+          value: https://raw.githubusercontent.com/tektoncd/catalog/refs/heads/main/task/git-clone/0.9/git-clone.yaml
       workspaces:
         - name: output
           workspace: source-ws
