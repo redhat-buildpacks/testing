@@ -88,7 +88,7 @@ jobs:
           #docker push myregistry:5000/alpine
 
           docker tag alpine ghcr.io/${{ github.repository }}/alpine:latest
-          docke push ghcr.io/${{ github.repository }}/alpine:latest
+          docker push ghcr.io/${{ github.repository }}/alpine:latest
 
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
