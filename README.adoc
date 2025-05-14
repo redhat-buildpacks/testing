@@ -34,7 +34,7 @@ or examples of this project.
 
 This project currently verifies the following scenario:
 
-- link:.github/workflows/quarkus.yaml[Quarkus HelloWord build using Java Buildpack library]
+- link:.github/workflows/quarkus.yaml[Quarkus HelloWord build using Java Buildpacks library]
 - link:.github/workflows/pack.yaml[Quarkus HelloWord build using Pack client]
 - link:.github/workflows/pack_nodejs.yaml[Node.js Hello using extension and pack]
 - link:.github/workflows/tekton.yaml[Quarkus HelloWorld & Tekton Pipeline]
@@ -120,9 +120,9 @@ podman machine stop; podman machine start
 
 == 1. Java Buildpacks Client
 
-Create a Java maven project using as reference the following example: https://github.com/snowdrop/java-buildpack-client/blob/main/samples/build-me
+Create a Java maven project using as reference the following: link:.github/samples/build-me/[Sample]
 
-Review the DSL to configure the Client in order to build a Java project
+Review the DSL of the `BuildMe` class to configure the Client in order to build a Java project
 [,java]
 ----
 ...
@@ -151,7 +151,11 @@ export PROJECT_PATH=<JAVA_PROJECT_PATH>
 # <IMAGE_REF> can be <IMAGE_NAME> without registry or a full registry reference with host, port(optional), path & tag
 export IMAGE_REF=<IMAGE_REF>
 ----
-**Review** the documentation of `java-buildpack-client` project for more information about how to customize the `Buildpacks` builder !
+
+[NOTE]
+====
+Review the documentation of the https://github.com/snowdrop/java-buildpack-client[`java-buildpack-client`] project for more information about how to customize the `Buildpacks` builder !
+====
 
 == 2. Quarkus Buildpacks
 
@@ -181,7 +185,7 @@ In a separate terminal, curl the HTTP endpoint
 curl http://localhost:8080/hello
 ----
 
-To build the container image, do the build using the `ubi8` builder image `paketobuildpacks/builder-ubi8-base:0.0.122` and pass `+BP_***+` env variable(s) in order to configure properly the Quarkus Buildpack build process:
+To build the container image, do the build using the `ubi8` builder image `paketobuildpacks/builder-ubi8-base:0.0.122` and pass `+BP_***+` env variable(s) in order to configure properly the Quarkus Buildpacks build process:
 
 [,bash]
 ----

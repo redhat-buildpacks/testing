@@ -43,7 +43,7 @@ jobs:
       - name: Try to push an image to myregistry
         run: |
           echo "Github repository: ${{ github.repository }}"
-          
+
           docker pull alpine
 
           docker tag alpine ghcr.io/${{ github.repository }}/alpine:latest
@@ -70,7 +70,7 @@ jobs:
           # Set the mandatory env variables
           export PROJECT_PATH=$QUARKUS_HELLO_DIR
           export IMAGE_REF=$CONTAINER_IMAGE
-          
+
           export REGISTRY_SERVER="ghcr.io"
           export REGISTRY_USER=${{ github.actor }}
           export REGISTRY_PASS=${{ secrets.GITHUB_TOKEN }}
