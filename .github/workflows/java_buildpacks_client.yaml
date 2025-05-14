@@ -52,7 +52,7 @@ jobs:
                registry:2
 
           cp /etc/hosts local_hosts
-          echo '127.0.0.1 container-registry' >> local_hosts
+          echo '127.0.0.1 registry' >> local_hosts
           cat local_hosts
           sudo cp local_hosts /etc/hosts
 
@@ -60,15 +60,12 @@ jobs:
         run: |
           CONTAINER_NAME=quarkus-jvm-hello
           #CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
-          CONTAINER_IMAGE=container-registry:5000/$CONTAINER_NAME:1.0
+          CONTAINER_IMAGE=registry:5000/$CONTAINER_NAME:1.0
 
           DOCKER_HOST=unix:///var/run/docker.sock
 
           SAMPLES_DIR=$(pwd)/.github/samples
           QUARKUS_HELLO_DIR=$(pwd)/quarkus-quickstarts/getting-started
-
-          #echo "Ping container registry"
-          #ping container-registry
 
           cat /etc/hosts
 
@@ -84,7 +81,7 @@ jobs:
           export IMAGE_REF=$CONTAINER_IMAGE
           export BP_JVM_VERSION="21"
           export CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
-          export CNB_INSECURE_REGISTRIES="container-registry:5000" 
+          export CNB_INSECURE_REGISTRIES="registry:5000"
 
           # Build the image and push it to the container registry
           mvn exec:java
