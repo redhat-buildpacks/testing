@@ -120,7 +120,7 @@ podman machine stop; podman machine start
 
 == 1. Java Buildpacks Client
 
-Create a Java maven project using as reference the following: link:.github/samples/build-me/[Sample]
+Create a Java maven project using as reference the following sample: `.github/samples/build-me`
 
 Review the DSL of the `BuildMe` class to configure the Client in order to build a Java project
 [,java]
