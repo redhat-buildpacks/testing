@@ -91,7 +91,7 @@ jobs:
               - name: CNB_BUILDER_IMAGE
                 value: ${CNB_BUILDER_IMAGE}
               - name: CNB_LIFECYCLE_IMAGE
-                value: buildpacksio/lifecycle:0.20.8
+                value: buildpacksio/lifecycle:0.20.9
               - name: CNB_LOG_LEVEL
                 value: "info"
               - name: CNB_USER_ID
@@ -101,9 +101,9 @@ jobs:
               - name: CNB_INSECURE_REGISTRIES
                 value: my-gitea-http.gitea.svc.cluster.local:3000 
               - name: CNB_RUN_IMAGE
-                value: paketobuildpacks/run-ubi8-base:0.0.111
+                value: paketobuildpacks/run-ubi8-base:0.0.114
               - name: CNB_BUILD_IMAGE
-                value: paketobuildpacks/build-ubi8-base:0.0.111
+                value: paketobuildpacks/build-ubi8-base:0.0.114
               - name: APP_IMAGE
                 value: ${CONTAINER_IMAGE}
               - name: PROCESS_TYPE

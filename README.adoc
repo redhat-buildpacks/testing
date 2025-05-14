@@ -58,12 +58,12 @@ This project currently verifies the following scenario:
 | Yes
 | -
 
-| Java Buildpack library
+| Java Buildpacks library
 | https://github.com/snowdrop/java-buildpack-client/tree/0.0.14[0.0.14]
 | Yes
 | Support platform from 0.4 to 0.13 !
 
-| Quarkus Buildpack
+| Quarkus Buildpacks
 | https://quarkus.io/guides/container-image#buildpack[3.22]
 | Yes
 | -
@@ -78,8 +78,8 @@ This project currently verifies the following scenario:
 | Yes
 | Image to be used to run an application
 
-| Paketo community UBI builder
-| https://github.com/paketo-buildpacks/builder-ubi8-base/releases/tag/v0.0.202[0.0.202]
+| Paketo UBI8 builder
+| https://github.com/paketo-buildpacks/builder-ubi8-base/releases/tag/v0.1.1[0.1.1]
 | Yes
 | Include Node.js, Quarkus Java Buildpack.
 
@@ -189,7 +189,7 @@ mvn clean package \
  -Dquarkus.container-image.image=gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello:1.0 \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-ubi8-base:0.0.202 \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-ubi8-base:0.1.1 \
  -Dquarkus.buildpack.builder-env.BP_JVM_VERSION=21 \
  -Dquarkus.buildpack.use-daemon=true \
  -Dquarkus.buildpack.registry-user."gitea.cnoe.localtest.me:8443"=giteaAdmin \
@@ -290,7 +290,7 @@ It is time to create a `Pipelinerun` to build the Quarkus application
 ----
 IMAGE_NAME=my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-hello
 
-CNB_BUILDER_IMAGE=paketobuildpacks/builder-ubi8-base:0.1.0
+CNB_BUILDER_IMAGE=paketobuildpacks/builder-ubi8-base:0.1.1
 CNB_INSECURE_REGISTRIES=my-gitea-http.gitea.svc.cluster.local:3000
 
 echo "apiVersion: tekton.dev/v1
@@ -455,7 +455,7 @@ Enjoy !
 The instructions described hereafter should help to resolve the issue when lifecycle access the gitea registry inside a pod
 [,bash]
 ----
-set -x BUILDER paketobuildpacks/builder-ubi8-base:0.1.0
+set -x BUILDER paketobuildpacks/builder-ubi8-base:0.1.1
 
 echo "Test 1 using patched lifecycle, insecure registry define & CNB_REGISTRY_AUTH - OK"
 podman run -it \

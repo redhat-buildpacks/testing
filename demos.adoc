@@ -92,7 +92,7 @@ cd quarkus-hello
 ./mvnw clean package
 
 pack build quay.io/ch007m/quarkus-hello --path . \
-  --builder quay.io/snowdrop/ubi-builder:0.1.0 \
+  --builder quay.io/snowdrop/ubi-builder:0.1.1 \
   --volume $HOME/.m2:/home/cnb/.m2:rw \
   --publish
 ----
