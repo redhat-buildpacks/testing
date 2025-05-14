@@ -64,12 +64,12 @@ jobs:
               -v $PWD/data:/data \
                registry:2
 
-          #cp /etc/hosts local_hosts
-          #echo "$RUNNER_IP registry" >> local_hosts
-          #cat local_hosts
-          #sudo cp local_hosts /etc/hosts
+          cp /etc/hosts local_hosts
+          echo "127.0.0.1 myregistry" >> local_hosts
+          cat local_hosts
+          sudo cp local_hosts /etc/hosts
 
-      - name: Try to access the registry
+      - name: Try to push an image to myregistry
         run: |
           echo "Check the containers running"
           docker ps
@@ -81,8 +81,8 @@ jobs:
           #cat /etc/hosts
 
           docker pull alpine
-          docker tag alpine localhost:5000/alpine
-          docker push localhost:5000/alpine
+          docker tag alpine myregistry:5000/alpine
+          docker push myregistry:5000/alpine
 
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
