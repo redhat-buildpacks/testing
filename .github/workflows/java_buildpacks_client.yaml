@@ -39,55 +39,63 @@ jobs:
 
           sudo apt-get remove podman
 
-      - name: Get Runner IP
-        id: ip
-        uses: haythem/public-ip@v1.3
+      #- name: Get Runner IP
+      #  id: ip
+      #  uses: haythem/public-ip@v1.3
+#
+      #- name: Print Runner IP
+      #  run: |
+      #    echo ${{ steps.ip.outputs.ipv4 }}
+      #    #echo ${{ steps.ip.outputs.ipv6 }}
+#
+      #- name: Run a container registry
+      #  run: |
+      #    mkdir ~/registry
+      #    cd ~/registry
+      #    mkdir data
+#
+      #    docker run -d --restart unless-stopped \
+      #        --network=host \
+      #        -p "5000:5000" \
+      #        -e REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data \
+      #        -v $PWD/data:/data \
+      #        --name myregistry \
+      #         registry:2
+#
+      #    cp /etc/hosts local_hosts
+      #    #echo "myregistry.$RUNNER_IP.nip.io myregistry" >> local_hosts
+      #    echo "127.0.0.1 myregistry" >> local_hosts
+      #    cat local_hosts
+      #    sudo cp local_hosts /etc/hosts
 
-      - name: Print Runner IP
-        run: |
-          echo ${{ steps.ip.outputs.ipv4 }}
-          #echo ${{ steps.ip.outputs.ipv6 }}
-
-      - name: Run a container registry
-        run: |
-          mkdir ~/registry
-          cd ~/registry
-          mkdir data
-
-          docker run -d --restart unless-stopped \
-              --network=host \
-              -p "5000:5000" \
-              -e REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data \
-              -v $PWD/data:/data \
-              --name myregistry \
-               registry:2
-
-          cp /etc/hosts local_hosts
-          #echo "myregistry.$RUNNER_IP.nip.io myregistry" >> local_hosts
-          echo "127.0.0.1 myregistry" >> local_hosts
-          cat local_hosts
-          sudo cp local_hosts /etc/hosts
+      - name: Log in to GitHub Container Registry
+        # Authenticate with GHCR to securely push images
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Try to push an image to myregistry
         run: |
-          echo "Check the containers running"
-          docker ps
+          #echo "Check the containers running"
+          #docker ps
 
-          RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
-          echo "IP address: $RUNNER_IP"
+          #RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
+          #echo "IP address: $RUNNER_IP"
 
           docker pull alpine
           #docker tag alpine myregistry.$RUNNER_IP.nip.io:5000/alpine
           #docker push myregistry.$RUNNER_IP.nip.io:5000/alpine
 
-          docker tag alpine myregistry:5000/alpine
-          docker push myregistry:5000/alpine
+          #docker tag alpine myregistry:5000/alpine
+          #docker push myregistry:5000/alpine
+
+          docker tag alpine ghcr.io/${{ github.repository }}/alpine:latest
+          docke push ghcr.io/${{ github.repository }}/alpine:latest
 
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
           RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
           CONTAINER_NAME=quarkus-jvm-hello
-          CONTAINER_IMAGE=myregistry:5000/$CONTAINER_NAME:1.0
+          #CONTAINER_IMAGE=myregistry:5000/$CONTAINER_NAME:1.0
+          CONTAINER_IMAGE=ghcr.io/${{ github.repository }}/$CONTAINER_NAME:1.0
 
           DOCKER_HOST=unix:///var/run/docker.sock
 
@@ -106,12 +114,13 @@ jobs:
           export IMAGE_REF=$CONTAINER_IMAGE
           export BP_JVM_VERSION="21"
           export CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
-          export CNB_INSECURE_REGISTRIES="myregistry.$RUNNER_IP.nip.io:5000"
+          # export CNB_INSECURE_REGISTRIES="myregistry.$RUNNER_IP.nip.io:5000"
 
           # Build the image and push it to the container registry
           mvn exec:java
 
       - name: "Checking the image published"
         run: |
-          # yamllint disable-line rule:new-line-at-end-of-file
+          CONTAINER_NAME=quarkus-jvm-hello
+          CONTAINER_IMAGE=ghcr.io/${{ github.repository }}/$CONTAINER_NAME:1.0
           docker image inspect $CONTAINER_IMAGE
