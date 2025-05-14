@@ -87,7 +87,7 @@ jobs:
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
           CONTAINER_NAME=quarkus-jvm-hello
-          CONTAINER_IMAGE=localhost:5000/$CONTAINER_NAME:1.0
+          CONTAINER_IMAGE=myregistry:5000/$CONTAINER_NAME:1.0
 
           DOCKER_HOST=unix:///var/run/docker.sock
 
@@ -106,7 +106,7 @@ jobs:
           export IMAGE_REF=$CONTAINER_IMAGE
           export BP_JVM_VERSION="21"
           export CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
-          export CNB_INSECURE_REGISTRIES="localhost:5000"
+          export CNB_INSECURE_REGISTRIES="myregistry:5000"
 
           # Build the image and push it to the container registry
           mvn exec:java
