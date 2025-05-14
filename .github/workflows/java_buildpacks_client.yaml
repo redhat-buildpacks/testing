@@ -42,7 +42,8 @@ jobs:
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
           CONTAINER_NAME=quarkus-jvm-hello
-          CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
+          #CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
+          CONTAINER_IMAGE=localhost:5000/$CONTAINER_NAME:1.0
 
           DOCKER_HOST=unix:///var/run/docker.sock
 
