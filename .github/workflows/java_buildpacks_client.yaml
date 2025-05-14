@@ -62,8 +62,9 @@ jobs:
           export BP_JVM_VERSION="21"
           export CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
 
-          # Build the image and push to the container registry
-          mvn package
+          # Build the image and push it to the container registry
+          mvn exec:java
 
-          # Test application
-          #../../.github/testGreetingApplication.sh $CONTAINER_NAME $CONTAINER_IMAGE
+          # Checking the image published
+          # yamllint disable-line rule:new-line-at-end-of-file
+          docker image inspect $CONTAINER_IMAGE
