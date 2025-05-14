@@ -12,7 +12,7 @@ include:
 
    # Changed ['11', '17'] to '17' as shipwright job reports:
    # Error: The template is not valid. .github/workflows/shipwright.yaml (Line: 34, Col: 25): A sequence was not expected
-   java: "17"
+   java: "21"
 
    # Shipwright and Tekton parameters
    tekton-version: "v1.0.0"
