@@ -71,6 +71,9 @@ jobs:
 
       - name: Try to access the registry
         run: |
+          echo "Check the containers running"
+          docker ps
+
           RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
           echo "IP address: $RUNNER_IP"
 
