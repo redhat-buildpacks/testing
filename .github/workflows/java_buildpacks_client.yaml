@@ -79,7 +79,14 @@ jobs:
           SAMPLES_DIR=$(pwd)/.github/samples
           QUARKUS_HELLO_DIR=$(pwd)/quarkus-quickstarts/getting-started
 
+          RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
+          echo "IP address: $RUNNER_IP"
+
+          echo "Cat /etc/hosts file"
           cat /etc/hosts
+
+          echo "Ping the registry"
+          ping -c 4 registry
 
           # Checkout the java project to be build
           git clone --depth 1 --branch ${{ matrix.quarkus_version }} https://github.com/quarkusio/quarkus-quickstarts.git
