@@ -39,14 +39,14 @@ jobs:
 
           sudo apt-get remove podman
 
-      - name: Public IP
+      - name: Get Runner IP
         id: ip
         uses: haythem/public-ip@v1.3
 
-      - name: Print Public IP
+      - name: Print Runner IP
         run: |
           echo ${{ steps.ip.outputs.ipv4 }}
-          #echo ${{ steps.ip.outputs.ipv6 }}
+          echo ${{ steps.ip.outputs.ipv6 }}
 
       - name: Run a container registry
         run: |
@@ -65,7 +65,7 @@ jobs:
                registry:2
 
           cp /etc/hosts local_hosts
-          echo '$RUNNER_IP registry' >> local_hosts
+          echo "$RUNNER_IP registry" >> local_hosts
           cat local_hosts
           sudo cp local_hosts /etc/hosts
 
