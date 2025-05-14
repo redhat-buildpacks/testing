@@ -131,7 +131,7 @@ jobs:
         run: |
           echo "Build resource(s)"
           BUILD_NAME=buildpack-quarkus-build
-          kubectl describe $BUILD_NAME
+          kubectl describe build $BUILD_NAME
 
           echo "BuildRun resource(s)"
           kubectl get buildrun -A
