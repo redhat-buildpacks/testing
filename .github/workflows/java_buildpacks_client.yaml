@@ -54,8 +54,8 @@ jobs:
           cd ~/registry
           mkdir data
 
-          #RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
-          #echo "IP address: $RUNNER_IP"
+          RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
+          echo "IP address: $RUNNER_IP"
 
           docker run -d --restart unless-stopped \
               --network=host \
@@ -65,7 +65,7 @@ jobs:
                registry:2
 
           cp /etc/hosts local_hosts
-          echo "127.0.0.1 myregistry" >> local_hosts
+          echo "myregistry.$RUNNER_IP.nip.io myregistry" >> local_hosts
           cat local_hosts
           sudo cp local_hosts /etc/hosts
 
@@ -74,15 +74,9 @@ jobs:
           echo "Check the containers running"
           docker ps
 
-          #RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
-          #echo "IP address: $RUNNER_IP"
-
-          #echo "cat /etc/hosts file"
-          #cat /etc/hosts
-
           docker pull alpine
-          docker tag alpine myregistry:5000/alpine
-          docker push myregistry:5000/alpine
+          docker tag alpine myregistry.$RUNNER_IP.nip.io:5000/alpine
+          docker push myregistry.$RUNNER_IP.nip.io:5000/alpine
 
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
