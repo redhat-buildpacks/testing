@@ -1,0 +1,69 @@
+name: "Test using Java Buildpacks client"
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.adoc'        # Ignores .adoc files at the root of the repository
+      - '*.md'          # Ignores .md files at the root of the repository
+      - '**/*.md'       # Ignores .md files within subdirectories
+jobs:
+  configure-matrix:
+    uses: ./.github/workflows/configure.yaml
+
+  linux-jvm-build:
+    name: Linux - JVM build
+    needs: configure-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.configure-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install JDK ${{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+
+      - name: Setup Container Registry
+        uses: Sgitario/setup-container-registry@v1
+
+      - name: Remove podman
+        run: |
+          echo "Remove podman as docker is installed by default within the ubuntu image"
+          sudo systemctl stop podman.socket
+          sudo systemctl stop podman
+
+          sudo apt-get remove podman
+
+      - name: Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}
+        run: |
+          CONTAINER_NAME=quarkus-jvm-hello
+          CONTAINER_IMAGE=$CONTAINER_REGISTRY_URL/$CONTAINER_NAME:1.0
+          
+          DOCKER_HOST=unix:///var/run/docker.sock
+          
+          SAMPLES_DIR=$(pwd)/.github/samples
+          QUARKUS_HELLO_DIR=$(pwd)/quarkus-quickstarts/getting-started
+
+          # Checkout the java project to be build
+          git clone --depth 1 --branch ${{ matrix.quarkus_version }} https://github.com/quarkusio/quarkus-quickstarts.git
+          
+          # Compile the BuildMe sample
+          cd $SAMPLES_DIR/build-me
+          mvn -B compile
+          
+          # Set the mandatory env variables
+          export PROJECT_PATH=$QUARKUS_HELLO_DIR
+          export IMAGE_REF=$CONTAINER_IMAGE
+          export BP_JVM_VERSION="21"
+          export CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
+
+          # Build the image and push to the container registry
+          mvn package
+          
+          # Test application
+          #../../.github/testGreetingApplication.sh $CONTAINER_NAME $CONTAINER_IMAGE
