@@ -59,7 +59,7 @@ jobs:
 
           docker run -d --restart unless-stopped \
               --network=host \
-              -e REGISTRY_HTTP_ADDR=$RUNNER_IP:5000 \
+              -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
               -e REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data \
               -v $PWD/data:/data \
                registry:2
@@ -68,6 +68,17 @@ jobs:
           echo "$RUNNER_IP registry" >> local_hosts
           cat local_hosts
           sudo cp local_hosts /etc/hosts
+
+      - name: Try to access the registry
+        run: |
+          RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
+          echo "IP address: $RUNNER_IP"
+
+          echo "cat /etc/hosts file"
+          cat /etc/hosts
+
+          echo "Ping the registry"
+          ping -c 4 registry
 
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
@@ -78,15 +89,6 @@ jobs:
 
           SAMPLES_DIR=$(pwd)/.github/samples
           QUARKUS_HELLO_DIR=$(pwd)/quarkus-quickstarts/getting-started
-
-          RUNNER_IP=${{ steps.ip.outputs.ipv4 }}
-          echo "IP address: $RUNNER_IP"
-
-          echo "Cat /etc/hosts file"
-          cat /etc/hosts
-
-          echo "Ping the registry"
-          ping -c 4 registry
 
           # Checkout the java project to be build
           git clone --depth 1 --branch ${{ matrix.quarkus_version }} https://github.com/quarkusio/quarkus-quickstarts.git
@@ -105,6 +107,7 @@ jobs:
           # Build the image and push it to the container registry
           mvn exec:java
 
-          # Checking the image published
+      - name: "Checking the image published"
+        run: |
           # yamllint disable-line rule:new-line-at-end-of-file
           docker image inspect $CONTAINER_IMAGE
