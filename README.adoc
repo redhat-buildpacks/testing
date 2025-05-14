@@ -128,7 +128,7 @@ Review the DSL of the `BuildMe` class to configure the Client in order to build 
 ...
         int exitCode = BuildConfig.builder()
             .withBuilderImage(new ImageReference("paketobuildpacks/builder-ubi8-base:latest"))
-            .withOutputImage(new ImageReference(IMAGE_REF))
+            .withOutputImage(new ImageReference(APPLICATION_IMAGE_REF))
             .withNewPlatformConfig()
               .withEnvironment(envMap)
             .endPlatformConfig()
