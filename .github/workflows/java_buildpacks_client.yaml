@@ -112,9 +112,13 @@ jobs:
           # Set the mandatory env variables
           export PROJECT_PATH=$QUARKUS_HELLO_DIR
           export IMAGE_REF=$CONTAINER_IMAGE
+          
+          export REGISTRY_SERVER="ghcr.io"
+          export REGISTRY_USER=${{ github.actor }}
+          export REGISTRY_PASS=${{ secrets.GITHUB_TOKEN }}
+
           export BP_JVM_VERSION="21"
           export CNB_BUILDER_IMAGE=${{ matrix.builder-image }}
-          # export CNB_INSECURE_REGISTRIES="myregistry.$RUNNER_IP.nip.io:5000"
 
           # Build the image and push it to the container registry
           mvn exec:java

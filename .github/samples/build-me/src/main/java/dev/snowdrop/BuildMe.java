@@ -35,7 +35,7 @@ public class BuildMe {
             ));
 
         List<RegistryAuthConfig> authInfo = new ArrayList<>();
-        if(System.getenv("REGISTRY_ADDRESS")!=null){
+        if(System.getenv("REGISTRY_SERVER")!=null){
           String registry = System.getenv("REGISTRY_SERVER");
           String username = System.getenv("REGISTRY_USER");
           String password = System.getenv("REGISTRY_PASS");
