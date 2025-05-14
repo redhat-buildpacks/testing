@@ -15,7 +15,7 @@ include:
    java: "17"
 
    # Shipwright and Tekton parameters
-   tekton-version: "v0.62.8"
+   tekton-version: "v1.0.0"
    tekton-client-version: "0.40.0"
    # Don't support array -> Run kubectl apply -f https://github.com/tektoncd/pipeline/releases/download/Array/release.yaml
    shipwright-version: "v0.15.6"

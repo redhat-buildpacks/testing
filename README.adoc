@@ -204,7 +204,7 @@ podman run -i --rm -p 8080:8080 gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-
 
 == 3. Tekton
 
-To use https://tekton.dev/[Tekton], it is needed to have a k8s cluster (>= 1.27), and a container registry.
+To use https://tekton.dev/[Tekton], it is needed to have a k8s cluster (>= 1.28), and a container registry.
 To install it like the dashboard, we will rely on the `idplatform` cluster we created using the `idpbuilder` tool
 
 [,bash]
@@ -332,7 +332,7 @@ podman run -i --rm -p 8080:8080 gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-
 
 See the project documentation for more information: https://github.com/shipwright-io/build
 
-To use shipwright, it is needed to have a k8s cluster, a container registry and Tekton installed (>= v0.60)
+To use shipwright, it is needed to have a k8s cluster, a container registry and Tekton installed (>= v0.62)
 
 
 Next, deploy the release `0.15.x` of shipwright
