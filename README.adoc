@@ -419,6 +419,13 @@ kubectl create configmap certificate-registry \
   --from-file=ca.cert
 ----
 
+Create a secret containing the registry credentials as it is used by the Shipwright ServiceAccount
+[,bash]
+----
+kubectl delete secret dockercfg
+kubectl apply -f k8s/shipwright/secret-dockercfg.yml
+----
+
 To trigger a `BuildRun` do this:
 
 [,bash]

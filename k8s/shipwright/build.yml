@@ -15,7 +15,7 @@ spec:
     - name: CNB_PLATFORM_API
       value: "0.13"
     - name: CNB_BUILDER_IMAGE
-      value: ghcr.io/matejvasek/builder-ubi8-base:latest #paketobuildpacks/builder-ubi8-base:0.1.1
+      value: paketobuildpacks/builder-ubi8-base:0.1.1
     - name: CNB_LIFECYCLE_IMAGE
       value: buildpacksio/lifecycle:0.20.9
     - name: CNB_INSECURE_REGISTRIES

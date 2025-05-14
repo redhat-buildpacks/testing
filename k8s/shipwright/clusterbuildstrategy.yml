@@ -102,13 +102,13 @@ spec:
             mkdir -p /layers/$(params.CACHE_DIR_NAME)
             chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" /layers/$(params.CACHE_DIR_NAME)
           fi
-          
+
           # TODO: To be reviewed as shipwright don't support like Tekton workspaces
           #if [[ "$(workspaces.cache.bound)" == "true" ]]; then
           #  echo "> Setting permissions on '$(workspaces.cache.path)'..."
           #  chown -R "$(params.CNB_USER_ID):$(params.CNB_GROUP_ID)" "$(workspaces.cache.path)"
           #fi
-          
+
           echo "Creating .docker folder"
           mkdir -p "/tekton/home/.docker"
 
@@ -176,7 +176,7 @@ spec:
     - name: detect
       image: $(params.CNB_BUILDER_IMAGE)
       imagePullPolicy: Always
-      command: [ "/cnb/lifecycle/detector" ]
+      command: ["/cnb/lifecycle/detector"]
       args:
         - "-app=$(workspaces.source.path)/$(params.SOURCE_SUBPATH)"
         - "-group=/layers/group.toml"
