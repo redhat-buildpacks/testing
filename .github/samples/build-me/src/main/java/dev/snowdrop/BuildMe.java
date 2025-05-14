@@ -56,6 +56,7 @@ public class BuildMe {
             .withNewDockerConfig()
               .withAuthConfigs(authInfo)
               .withUseDaemon(Boolean.parseBoolean(USE_DAEMON))
+              //.withDockerNetwork("host")
             .endDockerConfig()
             .withNewLogConfig()
               .withLogger(new SystemLogger())
