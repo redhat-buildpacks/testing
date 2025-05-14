@@ -79,9 +79,10 @@ jobs:
 
           echo "cat /etc/hosts file"
           cat /etc/hosts
-
-          echo "Ping the registry"
-          ping -c 4 registry
+          
+          docker pull alpine
+          docker tag alpine registry:5000/alpine
+          docker push registry:5000/alpine
 
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
