@@ -44,7 +44,8 @@ jobs:
           mkdir ~/registry
           cd ~/registry
           mkdir data
-          docker run -d --restart unless-stopped --network host \
+          docker run -d --restart unless-stopped \
+              --network=host \
               -e REGISTRY_HTTP_ADDR=0.0.0.0:5000 \
               -e REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/data \
               -v $PWD/data:/data \
@@ -68,6 +69,8 @@ jobs:
 
           #echo "Ping container registry"
           #ping container-registry
+
+          cat /etc/hosts
 
           # Checkout the java project to be build
           git clone --depth 1 --branch ${{ matrix.quarkus_version }} https://github.com/quarkusio/quarkus-quickstarts.git
