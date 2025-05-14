@@ -46,7 +46,7 @@ jobs:
       - name: Print Runner IP
         run: |
           echo ${{ steps.ip.outputs.ipv4 }}
-          echo ${{ steps.ip.outputs.ipv6 }}
+          #echo ${{ steps.ip.outputs.ipv6 }}
 
       - name: Run a container registry
         run: |
@@ -62,7 +62,8 @@ jobs:
                registry:2
 
           cp /etc/hosts local_hosts
-          echo "myregistry.$RUNNER_IP.nip.io myregistry" >> local_hosts
+          #echo "myregistry.$RUNNER_IP.nip.io myregistry" >> local_hosts
+          echo "127.0.0.1 myregistry" >> local_hosts
           cat local_hosts
           sudo cp local_hosts /etc/hosts
 
@@ -75,8 +76,11 @@ jobs:
           echo "IP address: $RUNNER_IP"
 
           docker pull alpine
-          docker tag alpine myregistry.$RUNNER_IP.nip.io:5000/alpine
-          docker push myregistry.$RUNNER_IP.nip.io:5000/alpine
+          #docker tag alpine myregistry.$RUNNER_IP.nip.io:5000/alpine
+          #docker push myregistry.$RUNNER_IP.nip.io:5000/alpine
+
+          docker tag alpine myregistry:5000/alpine
+          docker push myregistry:5000/alpine
 
       - name: "Test the Java Buildpacks Sample using as builder image: ${{ matrix.builder-image }}"
         run: |
