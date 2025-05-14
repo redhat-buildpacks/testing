@@ -130,7 +130,8 @@ jobs:
         if: failure() || success()
         run: |
           echo "Build resource(s)"
-          kubectl get build -A
+          BUILD_NAME=buildpack-quarkus-build
+          kubectl describe $BUILD_NAME
 
           echo "BuildRun resource(s)"
           kubectl get buildrun -A
