@@ -259,11 +259,10 @@ Deploy now the different resources that we need to build an application:
 
 [,bash]
 ----
-kubectl delete -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
-kubectl delete -f https://raw.githubusercontent.com/ch007m/fork-tekton-catalog/29783777be4969e40c3af42eb318eeee7d17e46a/task/buildpacks-phases/0.3/buildpacks-phases.yaml
+kubectl delete -f https://raw.githubusercontent.com/tektoncd/catalog/refs/heads/main/task/buildpacks-phases/0.3/buildpacks-phases.yaml
 
-kubectl apply -f https://raw.githubusercontent.com/redhat-buildpacks/catalog/main/tekton/task/buildpacks-phases/01/buildpacks-phases.yaml
-kubectl apply -f https://raw.githubusercontent.com/ch007m/fork-tekton-catalog/29783777be4969e40c3af42eb318eeee7d17e46a/task/buildpacks-phases/0.3/buildpacks-phases.yaml
+kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/refs/heads/main/task/buildpacks-phases/0.3/buildpacks-phases.yaml
+
 ----
 
 Create a dockercfg's secret using the gitea registry credentials to access it and link it to the ServiceAccount that Tekton will use.

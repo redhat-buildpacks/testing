@@ -67,7 +67,7 @@ jobs:
           kubectl rollout status deployment tekton-events-controller -n tekton-pipelines --timeout=90s
           #kubectl rollout status deployment tekton-pipelines-remote-resolvers -n tekton-pipelines-resolvers --timeout=90s
 
-          kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/60ec901ebc3d34f6533a738360bde2937c0f5004/task/buildpacks-phases/0.3/buildpacks-phases.yaml
+          kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/refs/heads/main/task/buildpacks-phases/0.3/buildpacks-phases.yaml
           kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/secret-dockercfg.yml
           kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/sa-with-reg-creds.yml
           kubectl apply -f $GITHUB_WORKSPACE/k8s/tekton/ws-pvc.yml
