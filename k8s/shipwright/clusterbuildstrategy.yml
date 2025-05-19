@@ -89,7 +89,8 @@ spec:
       default: "-Dmaven.test.skip=true --no-transfer-progress package"
   steps:
     - name: prepare
-      image: docker.io/library/bash:5.1.4
+      image: registry.access.redhat.com/ubi9/ubi-minimal:9.6
+      command: ["/bin/bash"]
       args:
         - -c
         - |
@@ -276,7 +277,8 @@ spec:
           readOnly: true
 
     - name: results
-      image: docker.io/library/bash:5.1.4
+      image: registry.access.redhat.com/ubi9/ubi-minimal:9.6
+      command: ["/bin/bash"]
       args:
         - -c
         - |
