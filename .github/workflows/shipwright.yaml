@@ -116,6 +116,13 @@ jobs:
               kind: ClusterBuildStrategy
             output:
               image: $CONTAINER_IMAGE
+            volumes:
+              - name: certificate-registry
+                configMap:
+                  name: certificate-registry
+              - name: creds-ws
+                secret:
+                  secretName: dockercfg
           EOF
           kubectl create -f $GITHUB_WORKSPACE/k8s/shipwright/buildrun.yml
 
@@ -137,11 +144,11 @@ jobs:
           kubectl get buildrun -A
 
           echo "BuildRun describe resource"
-          BUILDRUN_NAME=$(kubectl get buildrun -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          BUILDRUN_NAME=$(kubectl get buildrun -l build.shipwright.io/name=buildpack-quarkus-build -o name)
           kubectl describe $BUILDRUN_NAME
 
       - name: Print Log of the buildrun
         if: failure()
         run: |
-          POD_NAME=$(kubectl get pod -lbuild.shipwright.io/name=buildpack-quarkus-build -oname)
+          POD_NAME=$(kubectl get pod -l build.shipwright.io/name=buildpack-quarkus-build -o name)
           kubectl logs $POD_NAME --all-containers

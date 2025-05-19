@@ -5,11 +5,11 @@ metadata:
 spec:
   volumes:
     - name: certificate-registry
-      configMap:
-        name: certificate-registry
+      emptyDir: {}
+      overridable: true
     - name: creds-ws
-      secret:
-        secretName: dockercfg
+      emptyDir: {}
+      overridable: true
     - name: kaniko-dir
       emptyDir: {}
     - name: platform-env
