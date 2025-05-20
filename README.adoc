@@ -11,6 +11,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
+https://github.com/redhat-buildpacks/testing/actions/workflows/java_buildpacks_client.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/java_buildpacks_client.yaml/badge.svg[]]
 https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/quarkus.yaml/badge.svg[]]
 https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/pack.yaml/badge.svg[]]
 https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml[image:https://github.com/redhat-buildpacks/testing/actions/workflows/tekton.yaml/badge.svg[]]
