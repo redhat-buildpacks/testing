@@ -38,5 +38,12 @@ spec:
   strategy:
     name: buildpacks
     kind: ClusterBuildStrategy
+  volumes:
+    - name: certificate-registry
+      configMap:
+        name: certificate-registry
+    - name: creds-ws
+      secret:
+        secretName: dockercfg
   output:
     image: my-gitea-http.gitea.svc.cluster.local:3000/giteaadmin/quarkus-hello:latest
