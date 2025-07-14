@@ -94,7 +94,7 @@ function tkn_logs() {
 function install_pipeline() {
  # On some ocp4 clusters, we got this error: https://github.com/tektoncd/catalog/issues/1097
  # this is why we must use 0.7 and not 0.9 !!
- kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.7/git-clone.yaml
+ kubectl apply -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.10/git-clone.yaml
  # Value commit from the latest SHA commit of this PR: https://github.com/redhat-buildpacks/testing/pull/38
  SHA_COMMIT=main
  kubectl apply -f "https://raw.githubusercontent.com/redhat-buildpacks/catalog/${SHA_COMMIT}/tekton/task/buildpacks-extension-phases/01/buildpacks-extension-phases.yaml"
