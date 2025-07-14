@@ -80,7 +80,7 @@ This project currently verifies the following scenario:
 | Image to be used to run an application
 
 | Paketo UBI8 builder
-| https://github.com/paketo-buildpacks/builder-ubi8-base/releases/tag/v0.1.1[0.1.1]
+| https://github.com/paketo-buildpacks/builder-ubi8-base/releases/tag/v0.1.42[0.1.42]
 | Yes
 | Include Node.js, Quarkus Java Buildpack.
 
