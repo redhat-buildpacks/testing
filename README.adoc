@@ -194,9 +194,8 @@ mvn clean package \
  -Dquarkus.container-image.image=gitea.cnoe.localtest.me:8443/giteaadmin/quarkus-hello:1.0 \
  -Dquarkus.container-image.build=true \
  -Dquarkus.container-image.push=true \
- -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-ubi8-base:0.1.1 \
+ -Dquarkus.buildpack.jvm-builder-image=paketobuildpacks/builder-ubi8-base:0.1.42 \
  -Dquarkus.buildpack.builder-env.BP_JVM_VERSION=21 \
- -Dquarkus.buildpack.use-daemon=true \
  -Dquarkus.buildpack.registry-user."gitea.cnoe.localtest.me:8443"=giteaAdmin \
  -Dquarkus.buildpack.registry-password."gitea.cnoe.localtest.me:8443"=developer
 ----
